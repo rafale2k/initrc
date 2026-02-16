@@ -141,3 +141,24 @@ export LESS='-R -i -M -j10'
 
 # 3. 補完を「1回のTab」で即座にリスト表示
 set show-all-if-ambiguous on
+
+# --- Rlogin配色切り替え魔法 ---
+set_terminal_color() {
+    if [[ "$TERM" == "xterm-256color" || "$TERM" == "xterm" ]]; then
+        if [ "$EUID" -eq 0 ]; then
+            # 【Rootユーザー】背景を深い黒(または好みで濃い赤)にする
+            printf "\033]11;#000000\007" # 背景：純黒
+            printf "\033]10;#ffffff\007" # 文字：白
+        else
+            # 【一般ユーザー】背景を Tokyo Night (深い紺/黒) にする
+            printf "\033]11;#1a1b26\007" # 背景：Tokyo Night
+            printf "\033]10;#a9b1d6\007" # 文字
+        fi
+        # 共通のパレット設定
+        printf "\033]4;0;#414868;1;#f7768e;2;#9ece6a;3;#e0af68;4;#7aa2f7;5;#bb9af7;6;#7dcfff;7;#a9b1d6\007"
+        printf "\033]4;8;#414868;9;#f7768e;10;#9ece6a;11;#e0af68;12;#7aa2f7;13;#bb9af7;14;#7dcfff;15;#c0caf5\007"
+    fi
+}
+
+# 実行
+set_terminal_color

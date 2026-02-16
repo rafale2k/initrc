@@ -1,5 +1,5 @@
 [init]
-	defaultBranch = master
+	defaultBranch = main
 [user]
 	email = your-github-username@users.noreply.github.com
 	name = Jane Doe

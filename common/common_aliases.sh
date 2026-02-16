@@ -143,23 +143,20 @@ export LESS='-R -i -M -j10'
 set show-all-if-ambiguous on
 
 # --- Rlogin配色切り替え魔法 (管理者識別モード) ---
+# --- Rlogin背景色・パレット制御魔法 ---
 set_terminal_color() {
     if [[ "$TERM" == "xterm-256color" || "$TERM" == "xterm" ]]; then
         if [ "$EUID" -eq 0 ]; then
-            # 【Rootユーザー】背景を「極濃赤」にして警告感を出す
-            printf "\033]11;#1a0202\007" # 背景：ごく暗い赤
-            printf "\033]10;#f8f8f2\007" # 文字：明るい白
+            # root: 背景(0番)を赤黒、文字(10番)を白
+            printf "\033]4;0;#2a0505\007"
+            printf "\033]10;#ffffff\007"
         else
-            # 【一般ユーザー】背景を「Tokyo Night」にする
-            printf "\033]11;#1a1b26\007" # 背景：深い紺
-            printf "\033]10;#a9b1d6\007" # 文字：青みがかったグレー
+            # user: 背景(0番)をTokyo Night、文字(10番)を元の色
+            printf "\033]4;0;#1a1b26\007"
+            printf "\033]10;#a9b1d6\007"
         fi
-        
-        # ANSIパレット (共通設定)
-        printf "\033]4;0;#414868;1;#f7768e;2;#9ece6a;3;#e0af68;4;#7aa2f7;5;#bb9af7;6;#7dcfff;7;#a9b1d6\007"
-        printf "\033]4;8;#414868;9;#f7768e;10;#9ece6a;11;#e0af68;12;#7aa2f7;13;#bb9af7;14;#7dcfff;15;#c0caf5\007"
     fi
 }
 
-# 実行
+# 読み込み時に一度実行
 set_terminal_color

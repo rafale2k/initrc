@@ -49,6 +49,7 @@
     status                  # exit code of the last command
     command_execution_time  # duration of the last command
     background_jobs         # presence of background jobs
+    my_docker_status        # ← ここに追記！
     direnv                  # direnv status (https://direnv.net/)
     asdf                    # asdf version manager (https://github.com/asdf-vm/asdf)
     virtualenv              # python virtual environment (https://docs.python.org/3/library/venv.html)
@@ -1838,3 +1839,17 @@ typeset -g POWERLEVEL9K_CONFIG_FILE=${${(%):-%x}:a}
 
 (( ${#p10k_config_opts} )) && setopt ${p10k_config_opts[@]}
 'builtin' 'unset' 'p10k_config_opts'
+
+# --- 自作カスタムセグメント: Dockerの状態を表示 ---
+function prompt_my_docker_status() {
+  # dockerコマンドがない場合は何もしない
+  (( $+commands[docker] )) || return
+
+  # 実行中のコンテナ数を取得
+  local count=$(docker ps -q 2>/dev/null | wc -l)
+
+  if (( count > 0 )); then
+    # 背景色 26 (青), 文字色 255 (白), アイコン 🐳
+    p10k segment -f 255 -b 26 -i '🐳' -t "${count}"
+  fi
+}

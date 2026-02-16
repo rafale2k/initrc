@@ -60,6 +60,8 @@ alias gp='git push origin main'
 alias gpl='git pull origin main'
 alias gl='git log --oneline --graph --decorate'
 alias gd='git diff'
+# 日時を勝手にメッセージにしてコミット＆プッシュする荒業
+alias gquick='git add -A && git commit -m "quick update: $(date "+%Y-%m-%d %H:%M:%S")" && git push origin main'
 
 # ==========================================
 # 4. Docker 関連 (最新API v1.53 対応)

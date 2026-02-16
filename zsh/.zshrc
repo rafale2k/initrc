@@ -58,16 +58,5 @@ alias zshconfig="nano ~/.zshrc"
 alias reload="source ~/.zshrc"
 
 # =============================================================================
-# 4. テーマ・配色 (Powerlevel10k & Rlogin)
-# =============================================================================
 # Powerlevel10k の詳細設定読み込み
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-# Rloginの配色をTokyo Nightにする魔法 (Bash版と共通化)
-if [[ "$TERM" == "xterm-256color" ]]; then
-    printf "\033]11;#1a1b26\007" # 背景
-    printf "\033]10;#a9b1d6\007" # 文字
-    printf "\033]12;#7aa2f7\007" # カーソル
-    printf "\033]4;0;#414868;1;#f7768e;2;#9ece6a;3;#e0af68;4;#7aa2f7;5;#bb9af7;6;#7dcfff;7;#a9b1d6\007"
-    printf "\033]4;8;#414868;9;#f7768e;10;#9ece6a;11;#e0af68;12;#7aa2f7;13;#bb9af7;14;#7dcfff;15;#c0caf5\007"
-fi

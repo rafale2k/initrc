@@ -42,15 +42,4 @@ alias bashconfig='nano ~/.bashrc'
 alias reload='source ~/.bashrc'
 alias s='sudo -E -s'              # 環境変数を引き継いでroot化
 
-# =============================================================================
-# 4. Rlogin / ターミナル配色設定 (Tokyo Night)
-# =============================================================================
-if [[ "$TERM" == "xterm-256color" ]]; then
-    # 背景・文字・カーソル
-    printf "\033]11;#1a1b26\007"
-    printf "\033]10;#a9b1d6\007"
-    printf "\033]12;#7aa2f7\007"
-    # ANSIカラーパレット (0-15)
-    printf "\033]4;0;#414868;1;#f7768e;2;#9ece6a;3;#e0af68;4;#7aa2f7;5;#bb9af7;6;#7dcfff;7;#a9b1d6\007"
-    printf "\033]4;8;#414868;9;#f7768e;10;#9ece6a;11;#e0af68;12;#7aa2f7;13;#bb9af7;14;#7dcfff;15;#c0caf5\007"
-fi
+[[ -f /home/rafale/dotfiles/common/common_aliases.sh ]] && source /home/rafale/dotfiles/common/common_aliases.sh

@@ -365,6 +365,12 @@
   typeset -g POWERLEVEL9K_VCS_CLEAN_BACKGROUND=2
   typeset -g POWERLEVEL9K_VCS_MODIFIED_BACKGROUND=3
   typeset -g POWERLEVEL9K_VCS_UNTRACKED_BACKGROUND=2
+  # 変更があるファイル（Modified）の数字を出す
+  typeset -g POWERLEVEL9K_VCS_MODIFIED_NUM_BEFORE_ICON=true
+  # 未追跡ファイル（Untracked）の数字を出す
+  typeset -g POWERLEVEL9K_VCS_UNTRACKED_NUM_BEFORE_ICON=true
+  # ステージング済み（Staged）がある場合の色を「オレンジ」から「イエロー」に変えるなど
+  typeset -g POWERLEVEL9K_VCS_STAGED_FOREGROUND=220  # 明るい黄色
   typeset -g POWERLEVEL9K_VCS_CONFLICTED_BACKGROUND=3
   typeset -g POWERLEVEL9K_VCS_LOADING_BACKGROUND=8
 

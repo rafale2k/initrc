@@ -1,0 +1,6 @@
+# Tab1回で補完候補を表示する
+set show-all-if-ambiguous on
+
+# 候補が複数ある時、メニュー形式で表示して矢印で選べるようにする
+set menu-complete-display-prefix on
+"\t": menu-complete

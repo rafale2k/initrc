@@ -1,0 +1,5 @@
+[init]
+	defaultBranch = master
+[user]
+	email = your-github-username@users.noreply.github.com
+	name = Jane Doe

@@ -160,3 +160,14 @@ set_terminal_color() {
 
 # 読み込み時に一度実行
 set_terminal_color
+
+# --- Zsh 用のキーバインド (inputrc と挙動を合わせる) ---
+if [[ -n "$ZSH_VERSION" ]]; then
+    # 上下キーで「入力中の文字から始まる履歴」を検索
+    # (Oh My Zsh のプラグインと競合しないように設定)
+    bindkey '^[[A' up-line-or-search
+    bindkey '^[[B' down-line-or-search
+ 
+    # 大文字小文字を区別しない補完の設定 (Zsh版)
+    zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+fi

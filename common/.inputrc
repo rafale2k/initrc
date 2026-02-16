@@ -1,6 +1,26 @@
-# Tab1回で補完候補を表示する
+# 大文字・小文字を区別せずに補完する (cd download -> cd Download)
+set completion-ignore-case on
+
+# 補完候補が複数ある場合、1回目のTabでリストを表示する
+# (通常は2回叩かないと出ませんが、これで爆速になります)
 set show-all-if-ambiguous on
 
-# 候補が複数ある時、メニュー形式で表示して矢印で選べるようにする
-set menu-complete-display-prefix on
-"\t": menu-complete
+# 補完候補の種類（ディレクトリかファイルか）を色で判別しやすくする
+set visible-stats on
+
+# 補完時に、ディレクトリの場合は末尾に / を自動で付ける
+set mark-directories on
+
+# 上下キーで「入力中の文字から始まる履歴」だけを遡る
+# 例: "git " と入力してから上キーを押すと、過去の git コマンドだけが出てくる
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# 補完候補が表示される際、100個以上あっても「表示しますか？」と聞かない
+set completion-query-items -1
+
+# ベル音（ビープ音）を鳴らさない（深夜の作業も安心）
+set bell-style none
+
+# 1行が長くなった時、折り返さずに横スクロールする (好みによりますが、プロンプトが崩れにくくなります)
+# set horizontal-scroll-mode on

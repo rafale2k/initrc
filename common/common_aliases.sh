@@ -156,6 +156,8 @@ export LESS='-R -i -M -j10'
 # 3. 補完を「1回のTab」で即座にリスト表示
 set show-all-if-ambiguous on
 
+alias update-dots='omz update && cd ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k && git pull && cd ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && git pull && cd ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && git pull && cd ~'
+
 # --- Rlogin配色切り替え魔法 (管理者識別モード) ---
 # --- Rlogin背景色・パレット制御魔法 ---
 set_terminal_color() {

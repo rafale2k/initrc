@@ -4,3 +4,4 @@
 editors/nano-syntax-highlighting/
 .gitconfig
 gitconfig
+./.gitconfig_shared

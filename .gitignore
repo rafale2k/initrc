@@ -4,5 +4,5 @@
 editors/nano-syntax-highlighting/
 .gitconfig
 gitconfig
-/home/rafale/dotfiles/.gitconfig_shared
+/.gitconfig_shared
 editors/nano-syntax-highlighting/

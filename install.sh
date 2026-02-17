@@ -55,12 +55,16 @@ ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
 ln -sf "$DOTPATH/editors/.nanorc" "$HOME/.nanorc"
 ln -sf "$DOTPATH/common/.inputrc" "$HOME/.inputrc" # 追加
+# Git共通設定を追加
+ln -sf "$DOTPATH/common/.gitconfig_shared" "$HOME/dotfiles/.gitconfig_shared"
 
 # Root Links
 sudo ln -sf "$DOTPATH/bash/.bashrc" "/root/.bashrc"
 sudo ln -sf "$DOTPATH/editors/.vimrc" "/root/.vimrc"
 sudo ln -sf "$DOTPATH/editors/.nanorc" "/root/.nanorc"
 sudo ln -sf "$DOTPATH/common/.inputrc" "/root/.inputrc" # 追加
+# rootでもGit設定を共有
+sudo ln -sf "$DOTPATH/common/.gitconfig_shared" "/root/.gitconfig_shared"
 
 # --- Nano Syntax Highlighting ---
 if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then

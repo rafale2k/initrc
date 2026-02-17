@@ -1,3 +1,5 @@
 [user]
 	name = Dassult Rafale
 	email = d.rafale@gmail.com
+[include]
+    path = /home/rafale/dotfiles/.gitconfig_shared

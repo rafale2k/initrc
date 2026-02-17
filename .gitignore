@@ -2,3 +2,4 @@
 
 # nanoの構文ハイライト用ディレクトリを除外
 editors/nano-syntax-highlighting/
+.gitconfig

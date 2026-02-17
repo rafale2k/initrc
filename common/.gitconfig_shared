@@ -29,6 +29,7 @@
     quotepath = false
     # 改行コードの自動変換を抑制（勝手に書き換わらないようにする）
     autocrlf = input
+    excludesfile = ~/.gitignore_global
 [push]
     # 現在のブランチと同名のブランチをプッシュする（もっとも安全な挙動）
     default = current

@@ -57,6 +57,7 @@ ln -sf "$DOTPATH/editors/.nanorc" "$HOME/.nanorc"
 ln -sf "$DOTPATH/common/.inputrc" "$HOME/.inputrc" # 追加
 # Git共通設定を追加
 ln -sf "$DOTPATH/common/.gitconfig_shared" "$HOME/dotfiles/.gitconfig_shared"
+ln -sf "$DOTPATH/common/gitignore_global" "$HOME/.gitignore_global"
 
 # Root Links
 sudo ln -sf "$DOTPATH/bash/.bashrc" "/root/.bashrc"
@@ -65,6 +66,7 @@ sudo ln -sf "$DOTPATH/editors/.nanorc" "/root/.nanorc"
 sudo ln -sf "$DOTPATH/common/.inputrc" "/root/.inputrc" # 追加
 # rootでもGit設定を共有
 sudo ln -sf "$DOTPATH/common/.gitconfig_shared" "/root/.gitconfig_shared"
+sudo ln -sf "$DOTPATH/common/gitignore_global" "/root/.gitignore_global"
 
 # --- Nano Syntax Highlighting ---
 if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then

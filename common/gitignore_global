@@ -1,3 +1,11 @@
+# OS generated files
 .DS_Store
+Thumbs.db
+
+# Editor backup/temp files
 *.swp
 *~
+*.bak
+
+# Git internal logs
+*.log

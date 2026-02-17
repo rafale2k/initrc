@@ -38,3 +38,4 @@ include "~/.nano/syntax/monokai.nanorc"
 
 ## 予備: システム標準のハイライト設定も読み込んでおく（もしあれば）
 include "/usr/share/nano/*.nanorc"
+include "~/dotfiles/editors/nano-syntax-highlighting/*.nanorc"

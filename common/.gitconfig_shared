@@ -1,0 +1,37 @@
+[alias]
+    # グラフ表示（これ1つで履歴が丸わかり）
+    lg = log --graph --abbrev-commit --decorate --format=format:'%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(dim white)- %an%C(reset)%C(bold yellow)%d%C(reset)' --all
+    
+    # 短縮コマンド
+    st = status -sb
+    co = checkout
+    br = branch
+    ci = commit
+    # 直前のコミットの微修正（メッセージ修正もこれ）
+    amend = commit --amend --no-edit
+
+[color]
+    ui = auto
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
+[help]
+    # コマンドを打ち間違えた時、0.5秒後に自動実行してくれる
+    autocorrect = 5
+[core]
+    # 日本語ファイル名の文字化け防止
+    quotepath = false
+    # 改行コードの自動変換を抑制（勝手に書き換わらないようにする）
+    autocrlf = input
+[push]
+    # 現在のブランチと同名のブランチをプッシュする（もっとも安全な挙動）
+    default = current
+
+[fetch]
+    prune = true

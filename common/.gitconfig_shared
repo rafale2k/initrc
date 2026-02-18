@@ -46,3 +46,5 @@
 
 [fetch]
     prune = true
+[core]
+    excludesfile = ~/.gitignore_global

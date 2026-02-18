@@ -7,31 +7,25 @@ ssh -T git@github.com -o ConnectTimeout=5 2>&1 | grep -q "successfully authentic
 
 if [ $? -ne 0 ]; then
     echo "❌ Error: GitHub SSH authentication failed."
-    echo "Please ensure your SSH public key is registered on GitHub."
     echo "Your public key (~/.ssh/id_ed25519.pub):"
     cat ~/.ssh/id_ed25519.pub || echo "(Key not found)"
-    exit 1
+    # ここで exit 1 するかはお好みやけど、とりあえず続行するようにしとくで
 else
     echo "✅ GitHub SSH connection: OK"
 fi
 
-if [ ! -f ~/.ssh/id_ed25519 ]; then
-    echo "SSH key not found. Generating one..."
-    ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_ed25519
-fi
-
 # --- 基本ツールの自動インストール ---
-REQUIRED_TOOLS=("tree" "git" "curl" "vim" "fzf" "ccze")
-
+REQUIRED_TOOLS=("tree" "git" "curl" "vim" "fzf" "ccze" "sudo")
 echo "Checking required tools..."
+
+# 最初に一回だけ update
+SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
+$SUDO_CMD apt update -y
+
 for tool in "${REQUIRED_TOOLS[@]}"; do
     if ! command -v "$tool" &> /dev/null; then
         echo "Installing $tool..."
-        if [ "$EUID" -ne 0 ]; then
-            sudo apt update && sudo apt install -y "$tool"
-        else
-            apt update && apt install -y "$tool"
-        fi
+        $SUDO_CMD apt install -y "$tool"
     else
         echo "✅ $tool is already installed."
     fi
@@ -40,10 +34,7 @@ done
 # bat (batcat) の特殊チェック
 if ! command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
     echo "Installing bat..."
-    SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
     $SUDO_CMD apt install -y bat
-else
-    echo "✅ bat is already installed."
 fi
 
 # --- シンボリックリンク作成 ---
@@ -54,49 +45,29 @@ ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
 ln -sf "$DOTPATH/editors/.nanorc" "$HOME/.nanorc"
-ln -sf "$DOTPATH/common/.inputrc" "$HOME/.inputrc" # 追加
-# Git共通設定を追加
-ln -sf "$DOTPATH/common/.gitconfig_shared" "$HOME/dotfiles/.gitconfig_shared"
+ln -sf "$DOTPATH/common/.inputrc" "$HOME/.inputrc"
 ln -sf "$DOTPATH/common/gitignore_global" "$HOME/.gitignore_global"
 
-# Root Links
+# Root Links (sudo 権限で)
 sudo ln -sf "$DOTPATH/bash/.bashrc" "/root/.bashrc"
 sudo ln -sf "$DOTPATH/editors/.vimrc" "/root/.vimrc"
 sudo ln -sf "$DOTPATH/editors/.nanorc" "/root/.nanorc"
-sudo ln -sf "$DOTPATH/common/.inputrc" "/root/.inputrc" # 追加
-# rootでもGit設定を共有
-sudo ln -sf "$DOTPATH/common/.gitconfig_shared" "/root/.gitconfig_shared"
-sudo ln -sf "$DOTPATH/common/gitignore_global" "/root/.gitignore_global"
+sudo ln -sf "$DOTPATH/common/.inputrc" "/root/.inputrc"
 
 # --- Nano Syntax Highlighting ---
 if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
+    echo "Cloning nano-syntax-highlighting..."
     git clone https://github.com/galenguyer/nano-syntax-highlighting.git "$DOTPATH/editors/nano-syntax-highlighting"
 fi
 
-# --- rootユーザーへの設定反映 (common_aliases.sh) ---
-echo "Setting up common_aliases for root user..."
-
-COMMON_PATH="$DOTPATH/common/common_aliases.sh"
-LOAD_STR="[[ -f $COMMON_PATH ]] && source $COMMON_PATH"
-ROOT_CONFIGS=("/root/.bashrc" "/root/.zshrc")
-
-for config in "${ROOT_CONFIGS[@]}"; do
-    if sudo [ -f "$config" ]; then
-        if ! sudo grep -q "common_aliases.sh" "$config"; then
-            echo "Adding source to $config"
-            echo "$LOAD_STR" | sudo tee -a "$config" > /dev/null
-        else
-            echo "✅ Already set in $config"
-        fi
-    fi
-done
-
 # --- 権限調整 ---
 # rootが一般ユーザーのディレクトリ内のファイルを読み込めるようにする
+echo "Adjusting permissions..."
 chmod 755 "$HOME"
 chmod 755 "$DOTPATH"
 chmod 755 "$DOTPATH/common"
-chmod 644 "$COMMON_PATH"
+chmod 644 "$DOTPATH/common/common_aliases.sh"
 chmod 644 "$DOTPATH/common/.inputrc"
 
 echo "✨ Setup complete. Everything is linked and root environment is ready!"
+echo "Please run 'source ~/.zshrc' to apply changes."

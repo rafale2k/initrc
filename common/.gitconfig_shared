@@ -9,7 +9,7 @@
     gs = status
     ga = add
     gaa = add -A
-    gc = commit -m
+#    gc = commit -m
     gca = commit -am
     gp = push
     gpm = push origin main

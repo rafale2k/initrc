@@ -1859,3 +1859,12 @@ function prompt_my_docker_status() {
     p10k segment -f 255 -b 26 -i '🐳' -t "${count}"
   fi
 }
+# 戻ってきたときに背景色をTokyo Night（#1a1b26）に戻す処理
+function _reset_root_bg_on_return() {
+  # Tokyo Nightのメイン背景色を指定
+  printf '\e]11;#1a1b26\a'
+}
+
+# zshがプロンプトを出す直前に必ず実行させる
+add-zsh-hook precmd _reset_root_bg_on_return
+

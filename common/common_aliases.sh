@@ -1,70 +1,95 @@
 #!/bin/bash
 
 # ==========================================
-# 1. システム・ナビゲーション (共通)
+# 1. ターミナル配色制御 (Tokyo Night)
 # ==========================================
+# ターミナルの色を Tokyo Night に染める最強魔法
+set_tokyo_night_colors() {
+    # インタラクティブシェルでない場合は実行しない
+    [[ $- != *i* ]] && return
+
+    if [[ "$TERM" == "xterm-256color" || "$TERM" == "xterm" ]]; then
+        if [ "$EUID" -ne 0 ]; then
+            # --- 16色パレット定義 (0-15番) ---
+            printf "\033]4;0;#1a1b26\007"  # Background
+            printf "\033]4;8;#414868\007"  # Bright Black (Comments)
+            printf "\033]4;1;#f7768e\007"  # Red
+            printf "\033]4;9;#f7768e\007"  # Bright Red
+            printf "\033]4;2;#9ece6a\007"  # Green
+            printf "\033]4;10;#9ece6a\007" # Bright Green
+            printf "\033]4;3;#e0af68\007"  # Yellow
+            printf "\033]4;11;#e0af68\007" # Bright Yellow
+            printf "\033]4;4;#7aa2f7\007"  # Blue
+            printf "\033]4;12;#7aa2f7\007" # Bright Blue
+            printf "\033]4;5;#bb9af7\007"  # Magenta
+            printf "\033]4;13;#bb9af7\007" # Bright Magenta
+            printf "\033]4;6;#7dcfff\007"  # Cyan
+            printf "\033]4;14;#7dcfff\007" # Bright Cyan
+            printf "\033]4;7;#a9b1d6\007"  # White
+            printf "\033]4;15;#c0caf5\007" # Bright White
+
+            # --- 直接指定 (トドメ) ---
+            printf "\e]11;#1a1b26\a" # 背景色
+            printf "\e]10;#a9b1d6\a" # 文字色
+            printf "\e]12;#7aa2f7\a" # カーソル色
+        fi
+    fi
+}
+
+# 読み込み時に一度実行
+set_tokyo_night_colors
+
+# ==========================================
+# 2. システム・ナビゲーション & 基本操作
+# ==========================================
+# root化: 戻ってきた瞬間にTokyo Nightにリセットする予約付き
+alias s='sudo -i; set_tokyo_night_colors'
+alias exit='set_tokyo_night_colors; exit'
+
 alias ..='cd ..'
 alias ...='cd ../..'
-alias ll='ls -alF'
-alias la='ls -A'
-alias l='ls -CF'
-alias path='echo -e ${PATH//:/\\n}' # PATHを見やすく表示
+alias ll='ls -alF --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
 alias sl='ls'
-# 現在のディレクトリを3階層下までツリー表示
+alias b='cd -'
+alias path='echo -e ${PATH//:/\\n}'
 alias lt='tree -C -L 3'
-# batcat (bat) がインストールされている場合のみエイリアスを貼る
+alias myip='curl ifconfig.me; echo'
+
+# batcat (bat) 切り替え
 if command -v batcat &> /dev/null; then
     alias cat='batcat --paging=never --theme="Monokai Extended"'
 elif command -v bat &> /dev/null; then
     alias cat='bat --paging=never --theme="Monokai Extended"'
 fi
 
-# grepをより強力に（検索結果を緑でハイライト）
-alias grep='grep --color=auto'
+# フォルダ作成と移動を同時に
+mkcd() { mkdir -p "$1" && cd "$1"; }
 
-# 'cd -' (一つ前のディレクトリに戻る) を 'b' (back) だけで実行
-alias b='cd -'
-
-# mkcd フォルダ名 で、作成と移動を同時に行う
-mkcd() {
-  mkdir -p "$1" && cd "$1"
-}
-
-# --- ログ閲覧の強化 ---
-# ccze がインストールされている場合のみエイリアスを有効化
+# ログ閲覧 (ccze)
 if command -v ccze &> /dev/null; then
-    # リアルタイムログをカラー表示
     alias tailf='tail -f "$1" | ccze -A'
-
-    # cat の代わりに色付きで表示する関数
-    clog() {
-        cat "$1" | ccze -A | less -R
-    }
+    clog() { cat "$1" | ccze -A | less -R; }
 fi
 
-#===========================================
-# 2. 安全装置 (うっかりミス防止)
 # ==========================================
-alias rm='rm -i'
-alias cp='cp -i'
-alias mv='mv -i'
-alias mkdir='mkdir -p' # 親ディレクトリも自動作成
-
-# ==========================================
-# 3. Git 短縮エイリアス (爆速操作)
+# 3. Git エイリアス (2026年仕様)
 # ==========================================
 alias gs='git status'
 alias ga='git add'
+alias gaa='git add -A'
 alias gc='git commit -m'
+alias gca='git commit -am'
 alias gp='git push origin main'
+alias gpm='git push origin main'
 alias gpl='git pull origin main'
 alias gl='git log --oneline --graph --decorate'
 alias gd='git diff'
-# 日時を勝手にメッセージにしてコミット＆プッシュする荒業
 alias gquick='git add -A && git commit -m "quick update: $(date "+%Y-%m-%d %H:%M:%S")" && git push origin main'
 
 # ==========================================
-# 4. Docker 関連 (最新API v1.53 対応)
+# 4. Docker 関連 (v1.53対応)
 # ==========================================
 export DOCKER_API_VERSION=1.53
 export DOCKER_HIDE_LEGACY_VERSION_WARNING=true
@@ -76,114 +101,45 @@ alias dcu='docker compose up -d'
 alias dcd='docker compose down'
 alias dcr='docker compose restart'
 alias dcl='docker compose logs -f'
-
-# コンテナ一覧をきれいに表示 (Upを緑色に強調)
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | sed -e "s/Up/$(printf "\033[32mUp\033[0m")/g"'
-# リソース監視 (シンプルに白文字で整列)
-alias dtop='docker stats --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.NetIO}}"'
 
-# ログ表示 (cczeがある場合は色付け)
-dlog() {
-    if [ -z "$1" ]; then
-        echo "使用方法: dlog [コンテナ名]"
-        return 1
+# 最強ログ表示 (dlog/dl)
+dl() {
+    local container
+    if [ -n "$1" ]; then
+        container="$1"
+    elif command -v fzf &> /dev/null; then
+        container=$(docker ps -a --format "{{.Names}}" | fzf --prompt="Select Container > ")
     fi
-    if command -v ccze &> /dev/null; then
-        docker logs -f --tail 100 "$1" | ccze -A -C -m ansi
-    else
-        docker logs -f --tail 100 "$1"
-    fi
+    [ -z "$container" ] && return
+    command -v ccze &> /dev/null && docker logs -f --tail 100 "$container" | ccze -A -C -m ansi || docker logs -f --tail 100 "$container"
 }
-alias dl='dlog'
-
-# fzf を使ったインタラクティブなログ選択
-dlf() {
-    if ! command -v fzf &> /dev/null; then
-        echo "fzf がインストールされていません。"
-        return 1
-    fi
-    local container=$(docker ps -a --format "{{.Names}}" | fzf --prompt="Select Container > ")
-    [ -n "$container" ] && dlog "$container"
-}
+alias dlog='dl'
 
 # コンテナに入る
-de() { docker exec -it "$1" bash || docker exec -it "$1" sh; }
-
-# 掃除系
-alias dstopall='docker stop $(docker ps -q)'
-alias dclean='docker system prune -f'
-alias dclean-all='docker system prune -a --volumes -f'
+alias de='docker exec -it "$1" bash || docker exec -it "$1" sh'
 
 # ==========================================
-# 5. /docker/ ディレクトリへのショートカット
+# 5. 特殊設定 & 便利機能
 # ==========================================
 alias dls='ls -F --color=auto /docker'
 cd-d() {
     if [ -z "$1" ]; then cd /docker && ls -F; else cd "/docker/$1"; fi
 }
-if [ -n "$ZSH_VERSION" ]; then
-    compctl -/ -W /docker cd-d
-fi
+[ -n "$ZSH_VERSION" ] && compctl -/ -W /docker cd-d
 
-# ==========================================
-# 6. シェル別キーバインド設定
-# ==========================================
-if [ -n "$ZSH_VERSION" ]; then
-    bindkey "^[[1;5C" forward-word
-    bindkey "^[[1;5D" backward-word
-    bindkey "^R" history-incremental-search-backward
-elif [ -n "$BASH_VERSION" ]; then
-    bind '"\e[1;5C": forward-word'
-    bind '"\e[1;5D": backward-word'
-    bind '"\e[A": history-search-backward'
-    bind '"\e[B": history-search-forward'
-fi
+# 安全装置
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+alias mkdir='mkdir -p'
 
-alias myip='curl ifconfig.me; echo'
-
-# man ページを Monokai 風に色付けする設定
-export LESS_TERMCAP_mb=$'\E[1;31m'      # 点滅開始 -> Monokaiピンク
-export LESS_TERMCAP_md=$'\E[1;31m'      # 太字開始 -> Monokaiピンク（見出し）
-export LESS_TERMCAP_me=$'\E[0m'         # 終了
-export LESS_TERMCAP_so=$'\E[01;44;37m'  # ソリッド（検索ヒットなど）
-export LESS_TERMCAP_se=$'\E[0m'         # 終了
-export LESS_TERMCAP_us=$'\E[1;36m'      # 下線開始 -> Monokaiシアン
-export LESS_TERMCAP_ue=$'\E[0m'         # 終了
-# less で Monokai 風の色付けを有効にする
-export LESSOPEN="| /usr/share/source-highlight/src-hilite-lesspipe.sh %s"
+# Manページの色付け
+export LESS_TERMCAP_md=$'\E[1;31m' 
+export LESS_TERMCAP_me=$'\E[0m'
+export LESS_TERMCAP_us=$'\E[1;36m' 
+export LESS_TERMCAP_ue=$'\E[0m'
 export LESS='-R -i -M -j10'
 
-# 3. 補完を「1回のTab」で即座にリスト表示
-set show-all-if-ambiguous on
-
-alias update-dots='omz update && cd ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/themes/powerlevel10k && git pull && cd ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-autosuggestions && git pull && cd ${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting && git pull && cd ~'
-
-# --- Rlogin配色切り替え魔法 (管理者識別モード) ---
-# --- Rlogin背景色・パレット制御魔法 ---
-set_terminal_color() {
-    if [[ "$TERM" == "xterm-256color" || "$TERM" == "xterm" ]]; then
-        if [ "$EUID" -eq 0 ]; then
-            # root: 背景(0番)を赤黒、文字(10番)を白
-            printf "\033]4;0;#2a0505\007"
-            printf "\033]10;#ffffff\007"
-        else
-            # user: 背景(0番)をTokyo Night、文字(10番)を元の色
-            printf "\033]4;0;#1a1b26\007"
-            printf "\033]10;#a9b1d6\007"
-        fi
-    fi
-}
-
-# 読み込み時に一度実行
-set_terminal_color
-
-# --- Zsh 用のキーバインド (inputrc と挙動を合わせる) ---
-if [[ -n "$ZSH_VERSION" ]]; then
-    # 上下キーで「入力中の文字から始まる履歴」を検索
-    # (Oh My Zsh のプラグインと競合しないように設定)
-    bindkey '^[[A' up-line-or-search
-    bindkey '^[[B' down-line-or-search
- 
-    # 大文字小文字を区別しない補完の設定 (Zsh版)
-    zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-fi
+# ドットファイル更新
+alias update-dots='cd ~/dotfiles && git pull && gquick && cd -'

@@ -48,11 +48,15 @@ ln -sf "$DOTPATH/editors/.nanorc" "$HOME/.nanorc"
 ln -sf "$DOTPATH/common/.inputrc" "$HOME/.inputrc"
 ln -sf "$DOTPATH/common/gitignore_global" "$HOME/.gitignore_global"
 
-# Root Links (sudo 権限で)
+# --- install.sh の Root Links セクション修正 ---
+# Root Links (Bash とエディタ、Git 共通設定だけでOK)
 sudo ln -sf "$DOTPATH/bash/.bashrc" "/root/.bashrc"
 sudo ln -sf "$DOTPATH/editors/.vimrc" "/root/.vimrc"
 sudo ln -sf "$DOTPATH/editors/.nanorc" "/root/.nanorc"
 sudo ln -sf "$DOTPATH/common/.inputrc" "/root/.inputrc"
+# Git 設定の本体 (include を効かせるため、shared 本体も root にリンク)
+sudo ln -sf "$DOTPATH/common/.gitconfig_shared" "/root/.gitconfig_shared"
+sudo ln -sf "$DOTPATH/common/gitignore_global" "/root/.gitignore_global"
 
 # --- Nano Syntax Highlighting ---
 if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then

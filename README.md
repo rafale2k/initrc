@@ -37,7 +37,7 @@
 git clone [https://github.com/rafale2k/initrc.git](https://github.com/rafale2k/initrc.git) ~/dotfiles
 cd ~/dotfiles && ./install.sh
 実行後、exec zsh -l で "Recreated" された環境が適用されます。
-
+```
 ## 📂 リポジトリ構造
 common/: シェル共通のエイリアス & 高度な関数群
 

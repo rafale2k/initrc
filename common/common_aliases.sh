@@ -148,9 +148,23 @@ dl() {
 # 3. エイリアスは「関数を定義した後」に書く
 alias dlog='dl'
 
+# 1. 既存のエイリアスを一旦消して、名前を綺麗にする
+unalias de 2>/dev/null
 # コンテナに入る
-alias de='docker exec -it "$1" bash || docker exec -it "$1" sh'
+de() {
+  local container="$1"
+  # もし引数が空なら、fzf で選ばせる（dl と同じ優しさを！）
+  if [ -z "$container" ]; then
+    if command -v fzf &> /dev/null; then
+      container=$(docker ps --format "{{.Names}}" | fzf --prompt="Select Container to Exec > ")
+    fi
+  fi
 
+  [ -z "$container" ] && return
+  
+  # コンテナの中に入り込む（bash がなければ sh）
+  docker exec -it "$container" /bin/bash || docker exec -it "$container" /bin/sh
+}
 # ==========================================
 # 5. 特殊設定 & 便利機能
 # ==========================================

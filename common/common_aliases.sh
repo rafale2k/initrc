@@ -79,6 +79,9 @@ fi
 # ==========================================
 # 3. Git エイリアス (2026年仕様)
 # ==========================================
+unalias gcm 2>/dev/null
+unalias dl 2>/dev/null
+
 alias gs='git status'
 alias ga='git add'
 alias gaa='git add -A'
@@ -92,20 +95,20 @@ alias gd='git diff'
 alias gquick='git add -A && git commit -m "quick update: $(date "+%Y-%m-%d %H:%M:%S")" && git push origin main'
 # コミットメッセージをちゃんと書くための関数
 gcm() {
-  # 1. 種類（Type）を選択
-  local type=$(echo "feat: 新機能\nfix: バグ修正\ndocs: ドキュメント修正\nstyle: 整形\nrefactor: リファクタリング\nchore: 雑事" | fzf --height 40% --reverse --prompt="Commit Type: " | cut -d':' -f1)
-  
-  # キャンセルした場合
+  # Zsh じゃない（Bash の）ときは fzf が使えない場合もあるから
+  # 念のため簡単なコマンドチェックを入れるとよりプロっぽい
+  if ! command -v fzf &> /dev/null; then
+    echo "Message: "
+    read msg
+    git commit -m "$msg"
+    return
+  fi
+
+  local type=$(printf "feat: 新機能\nfix: バグ修正\ndocs: ドキュメント修正\nstyle: 整形\nrefactor: リファクタリング\nchore: 雑事" | fzf --height 40% --reverse --prompt="Commit Type: " | cut -d':' -f1)
   [ -z "$type" ] && return
-  
-  # 2. メッセージを入力
   echo -n "Message: "
   read msg
-  
-  # メッセージが空ならキャンセル
   [ -z "$msg" ] && return
-  
-  # 3. コミット実行
   git commit -m "$type: $msg"
 }
 
@@ -124,11 +127,8 @@ alias dcr='docker compose restart'
 alias dcl='docker compose logs -f'
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | sed -e "s/Up/$(printf "\033[32mUp\033[0m")/g"'
 
-# 1. 関数定義の前にエイリアスを解除しておく（これが一番確実）
-unalias dl 2>/dev/null
-
 # 2. function キーワードをつけて定義する
-function dl() {
+dl() {
     local container
     if [ -n "$1" ]; then
         container="$1"

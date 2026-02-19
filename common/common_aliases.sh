@@ -90,12 +90,6 @@ alias gpl='git pull origin main'
 alias gl='git log --oneline --graph --decorate'
 alias gd='git diff'
 alias gquick='git add -A && git commit -m "quick update: $(date "+%Y-%m-%d %H:%M:%S")" && git push origin main'
-# prefix付きのコミットエイリアス
-alias gfeat='git commit -m "feat: "'   # 新機能
-alias gfix='git commit -m "fix: "'     # バグ修正
-alias gdocs='git commit -m "docs: "'   # ドキュメント修正
-alias gstyle='git commit -m "style: "' # 見た目・整形（コードの中身は変えない）
-alias gref='git commit -m "refactor: "' # リファクタリング
 # コミットメッセージをちゃんと書くための関数
 gcm() {
   # 1. 種類（Type）を選択
@@ -130,8 +124,11 @@ alias dcr='docker compose restart'
 alias dcl='docker compose logs -f'
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | sed -e "s/Up/$(printf "\033[32mUp\033[0m")/g"'
 
-# 最強ログ表示 (dlog/dl)
-dl() {
+# 1. 関数定義の前にエイリアスを解除しておく（これが一番確実）
+unalias dl 2>/dev/null
+
+# 2. function キーワードをつけて定義する
+function dl() {
     local container
     if [ -n "$1" ]; then
         container="$1"
@@ -139,8 +136,16 @@ dl() {
         container=$(docker ps -a --format "{{.Names}}" | fzf --prompt="Select Container > ")
     fi
     [ -z "$container" ] && return
-    command -v ccze &> /dev/null && docker logs -f --tail 100 "$container" | ccze -A -C -m ansi || docker logs -f --tail 100 "$container"
+    
+    # 実行部分（command -v でチェックする丁寧な作りやね！）
+    if command -v ccze &> /dev/null; then
+        docker logs -f --tail 100 "$container" | ccze -A -C -m ansi
+    else
+        docker logs -f --tail 100 "$container"
+    fi
 }
+
+# 3. エイリアスは「関数を定義した後」に書く
 alias dlog='dl'
 
 # コンテナに入る

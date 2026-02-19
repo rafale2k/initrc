@@ -37,3 +37,15 @@ Bash と Zsh の両方で動作する一貫した操作感。
 ```bash
 git clone [https://github.com/rafale2k/initrc.git](https://github.com/rafale2k/initrc.git) ~/dotfiles
 cd ~/dotfiles && ./install.sh
+実行後、exec zsh -l または reload で環境が反映されます。
+
+📂 ディレクトリ構成
+common/: Bash/Zsh 共通のエイリアスと関数（gcm, dl など）
+
+editors/: Vim / Nano のテーマと設定ファイル
+
+zsh/ & bash/: 各シェルの固有設定
+
+install.sh: 全自動セットアップスクリプト
+
+Developed with ❤️ for efficient server management.

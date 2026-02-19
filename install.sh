@@ -51,16 +51,17 @@ fi
 # --- シンボリックリンク作成 ---
 echo "Creating symbolic links..."
 
-# 1. テンプレートを読み込んで、パスを現在の場所に書き換えた一時ファイルを作る
-# sed の区切り文字を | にしてるのは、パスの / と混ざらんようにするためやで！
-sed "s|REPLACE_ME_WITH_REAL_PATH|$DOTPATH|g" "$DOTPATH/editors/.nanorc" > "$HOME/.nanorc"
+# --- Nano Setup Section ---
+# 1. テンプレート内の DOTFILES_REAL_PATH を現在の絶対パス ($DOTPATH) に置換
+# sed の区切り文字に | を使うことで、パスの / と競合させへんのがコツやで！
+sed "s|DOTFILES_REAL_PATH|$DOTPATH|g" "$DOTPATH/editors/.nanorc" > "$HOME/.nanorc"
 
-# 2. root 用にも同じものをコピー（rootからも絶対パスで見れるようになる）
+# 2. root 用の設定を配る
+# 既存のリンクやファイルがあると cp が失敗したり挙動が怪しくなるから、一旦消すのが確実！
+sudo rm -f /root/.nanorc
 sudo cp "$HOME/.nanorc" "/root/.nanorc"
 
-# 3. ついでに nano-syntax-highlighting の実体もパスが通る場所に置いておくと安心
-mkdir -p "$HOME/.nano/syntax"
-# もし monokai とかを使いたいならここもリンクを貼る
+echo "✨ Nano syntax highlighting paths updated to: $DOTPATH"
 # ln -sf "$DOTPATH/editors/monokai.nanorc" "$HOME/.nano/syntax/monokai.nanorc"
 
 # User Links

@@ -1,13 +1,16 @@
 #!/bin/bash
-# 自分の居場所（絶対パス）を取得
-DOTPATH=$(cd $(dirname $0); pwd)
+#!/bin/bash
+# 実行されたスクリプトの場所を絶対パスで取得
+DOTPATH=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 
-echo "Setting up dotfiles from: $DOTPATH"
-
-# --- パス変数の書き出し (重要！) ---
-# ユーザー用とroot用に、現在のリポジトリパスを保存する
+# 1. パス情報の保存（既存）
 echo "export DOTFILES_PATH=\"$DOTPATH\"" > "$HOME/.dotfiles_env"
 sudo sh -c "echo \"export DOTFILES_PATH=\\\"$DOTPATH\\\"\" > /root/.dotfiles_env"
+
+# 2. .nanorc の動的生成
+# テンプレート内の「DOTFILES_REAL_PATH」を現在の絶対パスに置き換えて配置する
+sed "s|DOTFILES_REAL_PATH|$DOTPATH|g" "$DOTPATH/editors/.nanorc" > "$HOME/.nanorc"
+sudo cp "$HOME/.nanorc" "/root/.nanorc"
 
 # --- GitHub SSH 接続チェック ---
 echo "Checking GitHub SSH connection..."
@@ -48,11 +51,23 @@ fi
 # --- シンボリックリンク作成 ---
 echo "Creating symbolic links..."
 
+# 1. テンプレートを読み込んで、パスを現在の場所に書き換えた一時ファイルを作る
+# sed の区切り文字を | にしてるのは、パスの / と混ざらんようにするためやで！
+sed "s|REPLACE_ME_WITH_REAL_PATH|$DOTPATH|g" "$DOTPATH/editors/.nanorc" > "$HOME/.nanorc"
+
+# 2. root 用にも同じものをコピー（rootからも絶対パスで見れるようになる）
+sudo cp "$HOME/.nanorc" "/root/.nanorc"
+
+# 3. ついでに nano-syntax-highlighting の実体もパスが通る場所に置いておくと安心
+mkdir -p "$HOME/.nano/syntax"
+# もし monokai とかを使いたいならここもリンクを貼る
+# ln -sf "$DOTPATH/editors/monokai.nanorc" "$HOME/.nano/syntax/monokai.nanorc"
+
 # User Links
 ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
-ln -sf "$DOTPATH/editors/.nanorc" "$HOME/.nanorc"
+#ln -sf "$DOTPATH/editors/.nanorc" "$HOME/.nanorc"
 ln -sf "$DOTPATH/common/.inputrc" "$HOME/.inputrc"
 ln -sf "$DOTPATH/common/gitignore_global" "$HOME/.gitignore_global"
 
@@ -60,7 +75,7 @@ ln -sf "$DOTPATH/common/gitignore_global" "$HOME/.gitignore_global"
 # Root Links (Bash とエディタ、Git 共通設定だけでOK)
 sudo ln -sf "$DOTPATH/bash/.bashrc" "/root/.bashrc"
 sudo ln -sf "$DOTPATH/editors/.vimrc" "/root/.vimrc"
-sudo ln -sf "$DOTPATH/editors/.nanorc" "/root/.nanorc"
+#sudo ln -sf "$DOTPATH/editors/.nanorc" "/root/.nanorc"
 sudo ln -sf "$DOTPATH/common/.inputrc" "/root/.inputrc"
 # Git 設定の本体 (include を効かせるため、shared 本体も root にリンク)
 sudo ln -sf "$DOTPATH/common/.gitconfig_shared" "/root/.gitconfig_shared"

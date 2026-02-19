@@ -77,14 +77,11 @@ if command -v ccze &> /dev/null; then
 fi
 
 # ==========================================
-# Git エイリアス & 関数 (2026年 統合仕様)
+# 1. Git エイリアス & 関数
 # ==========================================
-
-# 既存のエイリアスをクリーンアップ
 unalias gcm 2>/dev/null
 unalias dl 2>/dev/null
 
-# 基本エイリアス
 alias gs='git status -sb'
 alias ga='git add'
 alias gaa='git add -A'
@@ -93,45 +90,27 @@ alias gca='git commit -am'
 alias gp='git push origin main'
 alias gpm='git push origin main'
 alias gpl='git pull origin main'
-alias gl='git lg'  # .gitconfigで定義したリッチなログを呼び出す
+alias gl='git lg'  # ※.gitconfigに [alias] lg を定義している前提
 alias gd='git diff'
-
-# クイック更新用
 alias gquick='git add -A && git commit -m "quick update: $(date "+%Y-%m-%d %H:%M:%S")" && git push origin main'
 
-# インタラクティブ・コミット関数
 gcm() {
-    # fzf がインストールされていない場合のフォールバック
     if ! command -v fzf &> /dev/null; then
-        echo -n "Commit Message: "
-        read msg
-        [ -z "$msg" ] && return
-        git commit -m "$msg"
-        return
+        echo -n "Message: "; read msg; [ -n "$msg" ] && git commit -m "$msg"; return
     fi
-
-    # プレフィックスの選択
-    local type=$(printf "feat: 新機能\nfix: バグ修正\ndocs: ドキュメント修正\nstyle: 整形\nrefactor: リファクタリング\nchore: 雑事" | \
-                 fzf --height 40% --reverse --prompt="Commit Type > " | cut -d':' -f1)
-
-    # 選択がキャンセルされたら終了
+    local type=$(printf "feat: 新機能\nfix: バグ修正\ndocs: ドキュメント修正\nstyle: 整形\nrefactor: リファクタリング\nchore: 雑事" | fzf --height 40% --reverse --prompt="Commit Type > " | cut -d':' -f1)
     [ -z "$type" ] && return
-
-    # メッセージの入力
-    echo -n "Message: "
-    read msg
-    [ -z "$msg" ] && return
-
-    # コミット実行
+    echo -n "Message: "; read msg; [ -z "$msg" ] && return
     git commit -m "$type: $msg"
 }
 
 # ==========================================
-# 4. Docker 関連 (v1.53対応)
+# 2. Docker 関連 (v1.53対応)
 # ==========================================
 export DOCKER_API_VERSION=1.53
 export DOCKER_HIDE_LEGACY_VERSION_WARNING=true
 
+# 基本エイリアス
 alias d='docker'
 alias dc='docker compose'
 alias di='docker images'
@@ -139,46 +118,39 @@ alias dcu='docker compose up -d'
 alias dcd='docker compose down'
 alias dcr='docker compose restart'
 alias dcl='docker compose logs -f'
+
+# ステータスを綺麗に見せる (Upを緑色に)
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | sed -e "s/Up/$(printf "\033[32mUp\033[0m")/g"'
 
-# 2. function キーワードをつけて定義する
+# 高機能ログ閲覧 (dl / dlog)
 dl() {
-    local container
-    if [ -n "$1" ]; then
-        container="$1"
-    elif command -v fzf &> /dev/null; then
-        container=$(docker ps -a --format "{{.Names}}" | fzf --prompt="Select Container > ")
+    local container="$1"
+    if [ -z "$container" ] && command -v fzf &> /dev/null; then
+        container=$(docker ps -a --format "{{.Names}}" | fzf --prompt="Select Container (Logs) > ")
     fi
     [ -z "$container" ] && return
     
-    # 実行部分（command -v でチェックする丁寧な作りやね！）
     if command -v ccze &> /dev/null; then
         docker logs -f --tail 100 "$container" | ccze -A -C -m ansi
     else
         docker logs -f --tail 100 "$container"
     fi
 }
-
-# 3. エイリアスは「関数を定義した後」に書く
 alias dlog='dl'
 
-# 1. 既存のエイリアスを一旦消して、名前を綺麗にする
+# コンテナ内部へ潜る (de)
 unalias de 2>/dev/null
-# コンテナに入る
 de() {
-  local container="$1"
-  # もし引数が空なら、fzf で選ばせる（dl と同じ優しさを！）
-  if [ -z "$container" ]; then
-    if command -v fzf &> /dev/null; then
-      container=$(docker ps --format "{{.Names}}" | fzf --prompt="Select Container to Exec > ")
+    local container="$1"
+    if [ -z "$container" ] && command -v fzf &> /dev/null; then
+        container=$(docker ps --format "{{.Names}}" | fzf --prompt="Select Container (Exec) > ")
     fi
-  fi
-
-  [ -z "$container" ] && return
-  
-  # コンテナの中に入り込む（bash がなければ sh）
-  docker exec -it "$container" /bin/bash || docker exec -it "$container" /bin/sh
+    [ -z "$container" ] && return
+    
+    # bash を試してダメなら sh
+    docker exec -it "$container" /bin/bash || docker exec -it "$container" /bin/sh
 }
+
 # ==========================================
 # 5. 特殊設定 & 便利機能
 # ==========================================

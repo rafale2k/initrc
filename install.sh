@@ -1,5 +1,13 @@
 #!/bin/bash
+# 自分の居場所（絶対パス）を取得
 DOTPATH=$(cd $(dirname $0); pwd)
+
+echo "Setting up dotfiles from: $DOTPATH"
+
+# --- パス変数の書き出し (重要！) ---
+# ユーザー用とroot用に、現在のリポジトリパスを保存する
+echo "export DOTFILES_PATH=\"$DOTPATH\"" > "$HOME/.dotfiles_env"
+sudo sh -c "echo \"export DOTFILES_PATH=\\\"$DOTPATH\\\"\" > /root/.dotfiles_env"
 
 # --- GitHub SSH 接続チェック ---
 echo "Checking GitHub SSH connection..."
@@ -57,6 +65,10 @@ sudo ln -sf "$DOTPATH/common/.inputrc" "/root/.inputrc"
 # Git 設定の本体 (include を効かせるため、shared 本体も root にリンク)
 sudo ln -sf "$DOTPATH/common/.gitconfig_shared" "/root/.gitconfig_shared"
 sudo ln -sf "$DOTPATH/common/gitignore_global" "/root/.gitignore_global"
+# .gitconfig の include 設定
+if ! grep -q ".gitconfig_shared" "$HOME/.gitconfig" 2>/dev/null; then
+    printf "\n[include]\n    path = ~/.gitconfig_shared\n" >> "$HOME/.gitconfig"
+fi
 
 # --- Nano Syntax Highlighting ---
 if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
@@ -72,6 +84,7 @@ chmod 755 "$DOTPATH"
 chmod 755 "$DOTPATH/common"
 chmod 644 "$DOTPATH/common/common_aliases.sh"
 chmod 644 "$DOTPATH/common/.inputrc"
+chmod 644 "$HOME/.dotfiles_env"
 
 echo "✨ Setup complete. Everything is linked and root environment is ready!"
 echo "Please run 'source ~/.zshrc' to apply changes."

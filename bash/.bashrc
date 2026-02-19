@@ -1,4 +1,6 @@
 #!/bin/bash
+# root用のパスを読み込む
+[[ -f /root/.dotfiles_env ]] && source /root/.dotfiles_env
 
 # =============================================================================
 # 1. Oh My Bash (OMB) の設定
@@ -21,9 +23,8 @@ source "$OSH/oh-my-bash.sh"
 # =============================================================================
 # 2. 共通エイリアス・環境設定
 # =============================================================================
-# 共通エイリアスを絶対パスで読み込む
-COMMON_PATH="/home/rafale/dotfiles/common/common_aliases.sh"
-[[ -f "$COMMON_PATH" ]] && source "$COMMON_PATH"
+# 共通設定を変数で読み込み
+[[ ! -f "$DOTFILES_PATH/common/common_aliases.sh" ]] || source "$DOTFILES_PATH/common/common_aliases.sh"
 
 # 基本環境
 export TERM=xterm-256color

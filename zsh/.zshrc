@@ -1,3 +1,6 @@
+# 保存されたパスを読み込む
+[[ -f ~/.dotfiles_env ]] && source ~/.dotfiles_env
+
 # 1. 背景色リセット（rootから戻った時のため）
 # Tokyo Night (#1a1b26) に強制指定
 printf '\e]11;#1a1b26\a'
@@ -19,12 +22,13 @@ if [[ -z "$ZSH_COMPDUMP_LOADED" ]]; then
 fi
 
 # 3. p10k 設定読み込み
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# パス変数を使って読み込む
+[[ ! -f "$DOTFILES_PATH/zsh/.p10k.zsh" ]] || source "$DOTFILES_PATH/zsh/.p10k.zsh"
+ZSH_THEME="powerlevel10k/powerlevel10k"
 
 # 4. 共通設定・エイリアス読み込み
 if [[ -z "$COMMON_ALIASES_LOADED" ]]; then
-    DOTFILES_DIR="$HOME/dotfiles"
-    [[ ! -f "$DOTFILES_DIR/common/common_aliases.sh" ]] || source "$DOTFILES_DIR/common/common_aliases.sh"
+    [[ ! -f "$DOTFILES_PATH/common/common_aliases.sh" ]] || source "$DOTFILES_PATH/common/common_aliases.sh"
     export COMMON_ALIASES_LOADED=1
 fi
 

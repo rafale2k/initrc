@@ -77,12 +77,15 @@ if command -v ccze &> /dev/null; then
 fi
 
 # ==========================================
-# 3. Git エイリアス (2026年仕様)
+# Git エイリアス & 関数 (2026年 統合仕様)
 # ==========================================
+
+# 既存のエイリアスをクリーンアップ
 unalias gcm 2>/dev/null
 unalias dl 2>/dev/null
 
-alias gs='git status'
+# 基本エイリアス
+alias gs='git status -sb'
 alias ga='git add'
 alias gaa='git add -A'
 alias gc='git commit -m'
@@ -90,26 +93,37 @@ alias gca='git commit -am'
 alias gp='git push origin main'
 alias gpm='git push origin main'
 alias gpl='git pull origin main'
-alias gl='git log --oneline --graph --decorate'
+alias gl='git lg'  # .gitconfigで定義したリッチなログを呼び出す
 alias gd='git diff'
-alias gquick='git add -A && git commit -m "quick update: $(date "+%Y-%m-%d %H:%M:%S")" && git push origin main'
-# コミットメッセージをちゃんと書くための関数
-gcm() {
-  # Zsh じゃない（Bash の）ときは fzf が使えない場合もあるから
-  # 念のため簡単なコマンドチェックを入れるとよりプロっぽい
-  if ! command -v fzf &> /dev/null; then
-    echo "Message: "
-    read msg
-    git commit -m "$msg"
-    return
-  fi
 
-  local type=$(printf "feat: 新機能\nfix: バグ修正\ndocs: ドキュメント修正\nstyle: 整形\nrefactor: リファクタリング\nchore: 雑事" | fzf --height 40% --reverse --prompt="Commit Type: " | cut -d':' -f1)
-  [ -z "$type" ] && return
-  echo -n "Message: "
-  read msg
-  [ -z "$msg" ] && return
-  git commit -m "$type: $msg"
+# クイック更新用
+alias gquick='git add -A && git commit -m "quick update: $(date "+%Y-%m-%d %H:%M:%S")" && git push origin main'
+
+# インタラクティブ・コミット関数
+gcm() {
+    # fzf がインストールされていない場合のフォールバック
+    if ! command -v fzf &> /dev/null; then
+        echo -n "Commit Message: "
+        read msg
+        [ -z "$msg" ] && return
+        git commit -m "$msg"
+        return
+    fi
+
+    # プレフィックスの選択
+    local type=$(printf "feat: 新機能\nfix: バグ修正\ndocs: ドキュメント修正\nstyle: 整形\nrefactor: リファクタリング\nchore: 雑事" | \
+                 fzf --height 40% --reverse --prompt="Commit Type > " | cut -d':' -f1)
+
+    # 選択がキャンセルされたら終了
+    [ -z "$type" ] && return
+
+    # メッセージの入力
+    echo -n "Message: "
+    read msg
+    [ -z "$msg" ] && return
+
+    # コミット実行
+    git commit -m "$type: $msg"
 }
 
 # ==========================================

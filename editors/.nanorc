@@ -1,4 +1,4 @@
-## editors/.nanorc (Template)
+## editors/.nanorc (Hardcore Monokai Template)
 set linenumbers
 set softwrap
 set tabsize 4
@@ -7,19 +7,23 @@ set constantshow
 set smarthome
 set autoindent
 
-# インターフェースの色
-set titlecolor brightwhite,blue
-set statuscolor brightwhite,green
+# --- Monokai Interface Colors ---
+# 背景色を意識したコントラストの強い配色
+set titlecolor brightwhite,black
+set statuscolor brightwhite,black
 set errorcolor brightwhite,red
-set selectedcolor brightwhite,magenta
-set numbercolor yellow
-set keycolor cyan
-set functioncolor brightgreen
+set selectedcolor black,brightmagenta
+set numbercolor brightcyan      # 行番号はMonokaiブルー
+set keycolor brightmagenta      # ショートカットはMonokaiピンク
+set functioncolor brightyellow  # 関数はMonokaiイエロー
 
 # --- ハイライト設定 ---
-# 1. 標準のハイライトを読み込む
+# 1. 標準のハイライト
 include "/usr/share/nano/*.nanorc"
 
-# 2. リポジトリ内のハイライトを一括読み込み（Monokai含む）
-# DOTFILES_REAL_PATH は install.sh で自動置換される
+# 2. 外部のハイライトを一括読み込み
+# (ここに Monokai 用のカラー定義が含まれていることを期待)
 include "DOTFILES_REAL_PATH/editors/nano-syntax-highlighting/*.nanorc"
+
+# 3. 追加のどぎつい配色おまじない (もしあれば個別に指定)
+include "DOTFILES_REAL_PATH/editors/nano-syntax-highlighting/themes/monokai.nanorc"

@@ -54,6 +54,8 @@ else
 fi
 alias b='cd -'
 alias path='echo -e ${PATH//:/\\n}'
+alias si='sudo -i'
+alias ss='sudo -s'
 
 # bat / cat 切り替え
 if command -v batcat &> /dev/null; then

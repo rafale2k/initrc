@@ -43,10 +43,17 @@ set_tokyo_night_colors
 alias s='sudo -i; set_tokyo_night_colors'
 alias exit='set_tokyo_night_colors; exit'
 alias ..='cd ..'
-alias ll='ls -alF --color=auto'
+if [ -f /usr/local/bin/eza ]; then
+    # 直接パスを指定して、確実に --icons を有効にする
+    alias ls='/usr/local/bin/eza --icons --group-directories-first'
+    alias ll='/usr/local/bin/eza -alF --icons --git'
+    alias lt='/usr/local/bin/eza -T -L 3 --icons --git'
+else
+    # ezaがない場合のバックアップ（標準のls）
+    alias ll='ls -alF --color=auto'
+fi
 alias b='cd -'
 alias path='echo -e ${PATH//:/\\n}'
-alias lt='tree -C -L 3'
 
 # bat / cat 切り替え
 if command -v batcat &> /dev/null; then
@@ -59,3 +66,21 @@ mkcd() { mkdir -p "$1" && cd "$1"; }
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
+# 開いているポートを一覧表示（プロセス名付き）
+alias ports='sudo lsof -i -P -n | grep LISTEN'
+
+# 公開IPアドレスをサクッと取得
+alias myip='curl -s https://ifconfig.me'
+
+# ローカルIPアドレスを一覧表示（192.168... など）
+alias localip="hostname -I | cut -d' ' -f1"
+
+# ディレクトリ容量の重い順にTOP10表示
+alias du10='du -sh * | sort -hr | head -n 10'
+
+# プロセスをメモリ使用率順に表示
+alias mem='ps auxf | sort -nr -k 4 | head -n 10'
+
+# 歴史（History）から検索（fzfがあるなら最強）
+alias h='history | fzf'
+

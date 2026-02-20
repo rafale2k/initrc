@@ -62,8 +62,8 @@ sudo cp "$HOME/.nanorc" "/root/.nanorc"
 # 6. Git Safe Directory Setup
 # 実体ファイルを破壊しないよう、パスを特定せずグローバル設定として流し込む
 echo "⚙️  Configuring Git safe directories..."
-git config --global --add safe.directory "$DOTPATH" 2>/dev/null || true
-sudo git config --global --add safe.directory "$DOTPATH" 2>/dev/null || true
+#git config --global --add safe.directory "$DOTPATH" 2>/dev/null || true
+#sudo git config --global --add safe.directory "$DOTPATH" 2>/dev/null || true
 
 # 7. 権限調整
 echo "🔐 Adjusting permissions..."

@@ -19,3 +19,9 @@ gcm() {
     echo -n "Message: "; read msg; [ -z "$msg" ] && return
     git commit -m "$type: $msg"
 }
+# 直前のコミットメッセージだけ修正したい時
+alias gca='git commit --amend'
+
+# コミットログから特定のキーワードを検索してグラフ表示
+# 例: gls "bugfix"
+gls() { git log --oneline --graph --all -i --grep="$1"; }

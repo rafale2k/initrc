@@ -28,10 +28,7 @@ if [[ -z "$ZSH_COMPDUMP_LOADED" ]]; then
 fi
 
 # 5. 共通設定・エイリアス読み込み (loader.sh)
-if [[ -z "$COMMON_ALIASES_LOADED" ]]; then
     [[ -f "$DOTFILES_PATH/common/loader.sh" ]] && source "$DOTFILES_PATH/common/loader.sh"
-    export COMMON_ALIASES_LOADED=1
-fi
 
 # 6. Zsh 固有の動作設定
 setopt HIST_IGNORE_DUPS     # 重複コマンドを履歴に入れない

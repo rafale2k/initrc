@@ -19,12 +19,13 @@ done
 
 # 3. Git設定の動的適用
 # dotfiles直下の gitconfig を include する
-GITCONFIG_BASE="$DOT_DIR/gitconfig"
-if [ -r "$GITCONFIG_BASE" ]; then
-    if ! git config --get include.path | grep -q "$GITCONFIG_BASE"; then
-        git config --global include.path "$GITCONFIG_BASE"
-    fi
-fi
+#GITCONFIG_BASE="$DOT_DIR/gitconfig"
+#if [ -r "$GITCONFIG_BASE" ]; then
+#    # --get-all を使うことで、登録済みのすべてのパスをチェック対象にする
+#    if ! git config --global --get-all include.path | grep -qF "$GITCONFIG_BASE"; then
+#        git config --global --add include.path "$GITCONFIG_BASE"
+#    fi
+#fi
 
 # 4. Global Gitignore の適用
 # common/gitignore_global を適用

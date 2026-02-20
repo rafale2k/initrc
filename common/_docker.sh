@@ -25,3 +25,15 @@ dl() {
     [ -z "$container" ] && return
     docker logs -f --tail 100 "$container"
 }
+# ビルドしてからデタッチモードで起動
+alias dcub='docker compose up -d --build'
+
+# ログを全表示（compose用）
+alias dcl='docker compose logs -f'
+
+unalias dce 2>/dev/null
+dce() {
+    local service
+    service=$(docker compose ps --services | fzf --prompt="Select Service (Exec) > ")
+    [ -n "$service" ] && docker compose exec "$service" /bin/bash || docker compose exec "$service" /bin/sh
+}

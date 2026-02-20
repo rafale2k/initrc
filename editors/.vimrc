@@ -49,6 +49,10 @@ set hlsearch                " 検索結果をハイライト
 set backspace=indent,eol,start " バックスペースを有効化
 set wildmenu                " コマンド補完を視覚的に
 set hidden                  " 保存せずにバッファを切り替え可能に
+set clipboard+=unnamedplus
+set nobackup
+set noswapfile
+set nowritebackup
 
 " --- マッピング ---
 " Esc2回で検索ハイライトを消す
@@ -76,3 +80,5 @@ if &term =~ "xterm"
 
     inoremap <special> <expr> <Esc>[200~ XTermPasteBegin("")
 endif
+" vim: set ft=vim :
+

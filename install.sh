@@ -42,15 +42,12 @@ ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
 ln -sf "$DOTPATH/.inputrc" "$HOME/.inputrc"
-ln -sf "$DOTPATH/gitconfig" "$HOME/.gitconfig" # さっき移動したやつ
 ln -sf "$DOTPATH/.gitignore_global" "$HOME/.gitignore_global"
 
 # Root Links
 sudo ln -sf "$DOTPATH/bash/.bashrc" "/root/.bashrc"
 sudo ln -sf "$DOTPATH/editors/.vimrc" "/root/.vimrc"
 sudo ln -sf "$DOTPATH/.inputrc" "/root/.inputrc"
-sudo ln -sf "$DOTPATH/gitconfig" "/root/.gitconfig"
-sudo ln -sf "$DOTPATH/.gitignore_global" "/root/.gitignore_global"
 
 # 5. Nano Setup (Syntax Highlighting)
 echo "📝 Setting up Nano..."
@@ -62,17 +59,15 @@ sudo cp "$HOME/.nanorc" "/root/.nanorc"
 
 # --- 6. Git Config (絶対に include を使わない安全版) ---
 echo "⚙️ Configuring Git..."
-
-# ユーザー側の設定をリセットしてリンク
-rm -f "$HOME/.gitconfig"
 ln -sf "$DOTPATH/gitconfig" "$HOME/.gitconfig"
-
-# root側の設定をリセットしてリンク
-sudo rm -f "/root/.gitconfig"
+ln -sf "$DOTPATH/.gitignore_global" "$HOME/.gitignore_global"
 sudo ln -sf "$DOTPATH/gitconfig" "/root/.gitconfig"
+sudo ln -sf "$DOTPATH/.gitignore_global" "/root/.gitignore_global"
 
-# safe.directory の設定（git config コマンドが失敗する可能性を考慮して gitconfig に直接書くか、エラーを無視する）
-sudo git config --file "$DOTPATH/gitconfig" --add safe.directory "$DOTPATH" 2>/dev/null || true
+# 実体ファイル(gitconfig)を汚さず、実行ユーザーのローカル設定として保存
+# ※ `--global` を使うとリンク先が書き換わるので、あえてコマンドとしてのみ実行
+git config --global --add safe.directory "$DOTPATH" 2>/dev/null || true
+sudo git config --global --add safe.directory "$DOTPATH" 2>/dev/null || true
 
 # 7. 権限調整
 echo "🔐 Adjusting permissions..."
@@ -80,6 +75,11 @@ chmod 755 "$HOME"
 chmod 755 "$DOTPATH"
 chmod -R 755 "$DOTPATH/common"
 chmod 644 "$HOME/.dotfiles_env"
+
+# --- Vim Plugin Setup ---
+echo "📦 Installing Vim plugins..."
+vim +PlugInstall +qall
+sudo vim +PlugInstall +qall
 
 echo "✨ Setup complete! Everything is linked."
 echo "👉 Run 'source ~/.zshrc' (User) or 'sudo -i' (Root) to enjoy!"

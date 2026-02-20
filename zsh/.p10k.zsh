@@ -1867,10 +1867,3 @@ function _reset_root_bg_on_return() {
 
 # zshがプロンプトを出す直前に必ず実行させる
 add-zsh-hook precmd _reset_root_bg_on_return
-
-
-# Dockerコンテナの起動数を表示するカスタム設定
-typeset -g POWERLEVEL9K_DOCKER_CONTEXT_SHOW_ON_COMMAND='docker|kubectl'
-typeset -g POWERLEVEL9K_DOCKER_CONTEXT_CLASSES=(
-  '*'  DEFAULT)
-typeset -g POWERLEVEL9K_DOCKER_CONTEXT_DEFAULT_CONTENT_EXPANSION='🐳 $($(docker ps -q | wc -l))'

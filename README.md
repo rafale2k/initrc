@@ -28,6 +28,10 @@
 
 | Command | Feature | Description |
 | :--- | :--- | :--- |
+| `fe` | **File Explorer** | **(New)** `fd` + `bat` による高速検索。中身をプレビューしながらエディタで開く。 |
+| `z` / `zi` | **Smart Jump** | `zoxide` による高速移動。`zi` は `eza` によるツリープレビュー対応。 |
+| `la` | **List All** | `eza -a` のエイリアス。アイコン付きで隠しファイルまで表示。 |
+| `gcm` | **Git Commit** | `fzf` による対話型コミット。 |
 
 ---
 

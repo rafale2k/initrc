@@ -1,0 +1,24 @@
+syntax "monokai" ".*"
+
+# 基本の色（Monokaiパレット）
+# キーワード (明るいマゼンタ)
+color brightmagenta "\<(if|then|else|elif|fi|for|in|do|done|while|until|case|esac|break|continue|return|exit|source)\>"
+
+# 文字列 (黄色)
+color yellow ""(\\.|[^"])*"" "'(\\.|[^'])*'"
+
+# 変数 (明るいシアン)
+color brightcyan "\$[A-Za-z_][A-Za-z0-9_]*"
+
+# コメント (シアン)
+color cyan "(^|[[:space:]])#.*"
+
+# 関数 (明るいグリーン)
+color brightgreen "\<[A-Za-z_][A-Za-z0-9_]*\>\("
+
+# 数字 (マゼンタ)
+color magenta "[0-9]+"
+
+# カッコ・演算子
+color brightwhite "[(){}\[\]]"
+color brightmagenta "[|&;<>()]"

@@ -9,7 +9,15 @@ set_tokyo_night_colors() {
     [[ $- != *i* ]] && return
 
     if [[ "$TERM" == "xterm-256color" || "$TERM" == "xterm" ]]; then
-        if [ "$EUID" -ne 0 ]; then
+        if [ "$EUID" -eq 0 ]; then
+            # --- Rootユーザー用: 暗めの背景 + 水色の文字 ---
+            printf "\e]11;#000000\a" # 背景色 (漆黒)
+            printf "\e]10;#00ffff\a" # 文字色 (水色/シアン)
+            printf "\e]12;#ff0000\a" # カーソル色 (Rootだと分かりやすく赤にするのもアリ)
+            
+            # 16色パレットも水色ベースに上書きしたい場合はここに printf を追加
+        else
+            # --- 一般ユーザー用: 通常の Tokyo Night ---
             # --- 16色パレット定義 (0-15番) ---
             printf "\033]4;0;#1a1b26\007"  # Background
             printf "\033]4;8;#414868\007"  # Bright Black (Comments)
@@ -51,11 +59,12 @@ if [ -f /usr/local/bin/eza ]; then
 else
     # ezaがない場合のバックアップ（標準のls）
     alias ll='ls -alF --color=auto'
+    alias lt='tree -T -L 3'
 fi
 alias b='cd -'
 alias path='echo -e ${PATH//:/\\n}'
-alias si='sudo -i'
-alias ss='sudo -s'
+alias si='sudo -i; set_tokyo_night_colors'
+alias ss='sudo -s; set_tokyo_night_colors'
 
 # bat / cat 切り替え
 if command -v batcat &> /dev/null; then

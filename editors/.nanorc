@@ -19,11 +19,11 @@ set functioncolor brightyellow  # 関数はMonokaiイエロー
 
 # --- ハイライト設定 ---
 # 1. 標準のハイライト
-include "/usr/share/nano/*.nanorc"
+#include "/usr/share/nano/*.nanorc"
 
 # 2. 外部のハイライトを一括読み込み
 # (ここに Monokai 用のカラー定義が含まれていることを期待)
 include "DOTFILES_REAL_PATH/editors/nano-syntax-highlighting/*.nanorc"
 
 # 3. 追加のどぎつい配色おまじない (もしあれば個別に指定)
-#include "DOTFILES_REAL_PATH/editors/nano-syntax-highlighting/themes/monokai.nanorc"
+include "DOTFILES_REAL_PATH/editors/nano-syntax-highlighting/themes/monokai.nanorc"

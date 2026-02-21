@@ -28,14 +28,16 @@
 
 | Command | Feature | Description |
 | :--- | :--- | :--- |
-| `z` / `zi` | **Smart Jump** | `zoxide` による高速移動。`zi` では `eza` 連携のツリープレビューを展開。 |
-| `gcm` | **Git Smart Commit** | `fzf` による対話型コミット。メッセージ入力を直感的に。 |
-| `dl` / `de` | **Docker Helper** | コンテナログ監視・侵入を `fzf` でリストから選択。 |
-| `si` / `ss` | **Safe Root** | root 昇格時の背景色警告。オペレーションミスを視覚的に防止。 |
-| `cat` / `ls` | **Modern Replace** | `bat` や `eza` への自動エイリアス。 |
 
 ---
 
+## 📂 リポジトリ構造
+
+- **`common/`**: 機能別に分割された設定群
+    - `_system.sh`: 配色・基本コマンド・モダンツール置換
+    - `_navigation.sh`: **(New)** 移動系・fzf / zoxide / fd 連携
+    - `_docker.sh` / `_git.sh`: 各ツール専用設定
+    - `loader.sh`: これらを動的に一括読み込みするコア
 ## 🚀 クイックスタート
 
 ```bash

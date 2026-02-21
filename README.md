@@ -1,6 +1,6 @@
 # 🚀 initrc: The RC Files Recreator
 
-![Version](https://img.shields.io/badge/version-1.3.0-blue)
+![Version](https://img.shields.io/badge/version-1.4.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 > **"Environment construction in 0 seconds."** > `initrc` は、単なる設定のコピーではありません。実行環境に合わせて設定ファイルを動的に **"Recreate（再生成）"** する、Linuxサーバー管理者のための最強スターターキットです。

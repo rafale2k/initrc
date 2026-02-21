@@ -17,7 +17,7 @@ else
 fi
 
 # 3. 基本ツールの自動インストール
-REQUIRED_TOOLS=("tree" "git" "curl" "vim" "fzf" "ccze" "sudo" "zsh")
+REQUIRED_TOOLS=("tree" "git" "curl" "vim" "fzf" "ccze" "sudo" "zsh" "zoxide")
 echo "🛠️  Checking required tools..."
 SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
 $SUDO_CMD apt update -y

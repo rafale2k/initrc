@@ -21,7 +21,7 @@ if [[ -z "$ZSH_COMPDUMP_LOADED" ]]; then
     COMPL_WAITING_DOTS="false"
     
     # プラグイン設定
-    plugins=(git z sudo extract docker docker-compose zsh-autosuggestions zsh-syntax-highlighting)
+    plugins=(git sudo extract docker docker-compose zsh-autosuggestions zsh-syntax-highlighting)
     
     source $ZSH/oh-my-zsh.sh
     export ZSH_COMPDUMP_LOADED=1
@@ -48,3 +48,5 @@ precmd() {
         set_tokyo_night_colors > /dev/null 2>&1
     fi
 }
+
+eval "$(zoxide init zsh)"

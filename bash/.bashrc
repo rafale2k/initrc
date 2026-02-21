@@ -51,4 +51,6 @@ PROMPT_COMMAND=set_my_root_ps1
 alias bashconfig='nano ~/.bashrc'
 alias reload='source ~/.bashrc'
 
-# ※ 'b' や 's'、'll' などは loader.sh 経由の _system.sh にあるので削除しました
+# zoxide の初期化 (bash用)
+eval "$(zoxide init bash)"
+

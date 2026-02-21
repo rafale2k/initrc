@@ -26,4 +26,4 @@ include "/usr/share/nano/*.nanorc"
 include "DOTFILES_REAL_PATH/editors/nano-syntax-highlighting/*.nanorc"
 
 # 3. 追加のどぎつい配色おまじない (もしあれば個別に指定)
-include "DOTFILES_REAL_PATH/editors/nano-syntax-highlighting/themes/monokai.nanorc"
+#include "DOTFILES_REAL_PATH/editors/nano-syntax-highlighting/themes/monokai.nanorc"

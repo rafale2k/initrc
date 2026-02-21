@@ -86,3 +86,12 @@ alias mem='ps auxf | sort -nr -k 4 | head -n 10'
 # 歴史（History）から検索（fzfがあるなら最強）
 alias h='history | fzf'
 
+# eza があれば eza ツリー表示、なければ ls 表示にする
+if command -v eza > /dev/null; then
+    export _ZO_FZF_OPTS="--preview 'eza -T -L 2 --icons --color=always {2..}' --preview-window=right:50%"
+elif command -v exa > /dev/null; then
+    export _ZO_FZF_OPTS="--preview 'exa -T -L 2 --icons --color=always {2..}' --preview-window=right:50%"
+else
+    export _ZO_FZF_OPTS="--preview 'ls -p -C --color=always {2..}' --preview-window=right:50%"
+fi
+

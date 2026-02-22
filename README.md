@@ -11,24 +11,24 @@
 
 ## 🖼️ Showcase
 
-### 1. Smart Navigation & Preview
-`fe` や `n` コマンドにより、`fzf` + `bat` による高速プレビュー検索を実現。
+### 🔍 1. Interactive File Search (n / fe)
+`fzf` + `bat` による高速プレビュー検索。エディタを開く前に中身を瞬時に確認できます。
 ![Smart Search](assets/51.jpg)
 
-### 2. Universal Deployer
-macOS, Ubuntu, RHEL系を問わず、`install.sh` 一本で環境を完全構築。
-![Universal Install](assets/52.jpg)
+### 🌳 2. Smart Navigation (zi)
+`zoxide` と `eza` が連携。ディレクトリ構造をツリー表示でプレビューしながら、爆速で移動します。
+![Navigation Preview](assets/52.jpg)
 
-### 3. Visual Context Switching
-Tokyo Night を基調とした美しい UI。エディタ起動時は自動で Monokai 背景へ切り替わります。
-![UI Showcase](assets/53.jpg)
+### 🎨 3. Terminal UI & Color Context
+**Tokyo Night** の洗練された配色。Nano 編集時には自動で **Monokai 背景** へ切り替わり、作業への没入感を高めます。
+![Total UI Experience](assets/53.jpg)
 
 ---
 
 ## 🛠️ "Recreator" としての核心機能
 
 ### 📦 Universal Deployer (Multi-OS Support)
-`install.sh` が OS を自動判別し、適切なパッケージマネージャー (`apt`, `dnf`, `brew`) を選択。`eza`, `fd`, `bat` などの必須ツールをリポジトリ登録から全自動でセットアップします。
+`install.sh` が OS を自動判別し、適切なパッケージマネージャー (`apt`, `dnf`, `brew`) を選択。モダンツールのリポジトリ登録からインストールまでを全自動化します。
 
 ### 🎨 Smart Terminal Context
 通常時は **Tokyo Night**、Nano 編集時のみ **Monokai グレー** 背景へ。視覚的に「編集モード」を認識させる独自のカラー制御を搭載。

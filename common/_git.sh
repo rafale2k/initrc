@@ -8,26 +8,36 @@ alias gaa='git add -A'
 alias gc='git commit -m'
 alias gp='git push origin main'
 alias gl='git lg'
-alias gquick='git add -A && git commit -m "quick update: $(date "+%Y-%m-%d %H:%M:%S")" && git push origin main'
 
-# --- AI Commit Message Generator (Gemini 2.0 Flash Lite for Speed) ---
+# --- AI Commit Message Generator ---
 _ai_generate_commit_message() {
     [[ -z "$GEMINI_API_KEY" ]] && return 1
 
-    local diff_text=$(git diff --cached | head -c 4000)
+    # diffを取得（制御文字が含まれる可能性を考慮）
+    local diff_text
+    diff_text=$(git diff --cached | head -c 4000)
     [[ -z "$diff_text" ]] && return 1
 
-    # 思考をスキップさせる超速プロンプト
-    local raw_prompt="git diffから1行のコミットメッセージのみ作成して。思考不要、解説不要、出力はメッセージ1行のみ。日本語。Conventional Commits形式で。\ndiff:\n$diff_text"
-    local json_data=$(jq -n --arg msg "$raw_prompt" '{contents: [{parts: [{text: $msg}]}]}')
+    # プロンプト構成：日本語を最優先に指示
+    local raw_prompt="【指示】日本語で出力せよ。
+git diffから、Conventional Commits形式のコミットメッセージを1行だけ作成してください。
+思考プロセスや解説は一切不要。出力は日本語のメッセージ1行のみとすること。
+diff:
+$diff_text"
 
-    # モデルを 2.0-flash-lite に変更（爆速）
-    local response=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
+    # 制御文字によるJSONパースエラーを防ぐため、--arg で確実にエスケープ
+    local json_data
+    json_data=$(jq -n --arg msg "$raw_prompt" '{"contents": [{"parts": [{"text": $msg}]}]}')
+
+    # モデルは爆速の 2.0-flash-lite
+    local response
+    response=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
         -H 'Content-Type: application/json' \
         -d "$json_data")
 
-    # 抽出処理
-    local message=$(echo "$response" | jq -r '.. | .text? // empty' | grep -v "null" | head -n 1 | sed 's/^`//g; s/`$//g' | xargs)
+    # 再帰探索で確実にメッセージを抽出
+    local message
+    message=$(echo "$response" | jq -r '.. | .text? // empty' | grep -v "null" | head -n 1 | sed 's/^`//g; s/`$//g' | xargs)
 
     [[ -z "$message" || "$message" == "null" ]] && return 1
     echo "$message"
@@ -36,19 +46,22 @@ _ai_generate_commit_message() {
 # --- Enhanced Git Commit (gcm) ---
 gcm() {
     if [ -z "$(git diff --cached)" ]; then
-        echo "No changes staged. Use 'ga' or 'gaa' first."
+        echo "No changes staged."
         return 1
     fi
 
-    echo "🤖 AI is thinking (Speed mode)..."
+    echo "🤖 AI is thinking (Fast Mode)..."
     
     local ai_message
     ai_message=$(_ai_generate_commit_message)
 
-    # 配列の初期化をより確実に
     local -a choices
     choices=()
-    [[ -n "$ai_message" ]] && choices+=("$ai_message")
+    # AIが成功した時だけ選択肢の先頭に追加
+    if [[ -n "$ai_message" ]]; then
+        choices+=("$ai_message")
+    fi
+    
     choices+=("feat: update configuration")
     choices+=("fix: minor bug fixes")
     choices+=("docs: update documentation")
@@ -75,6 +88,3 @@ gcm() {
         return 1
     fi
 }
-
-alias gca='git commit --amend'
-gls() { git log --oneline --graph --all -i --grep="$1"; }

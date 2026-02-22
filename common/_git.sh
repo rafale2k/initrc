@@ -1,97 +1,91 @@
 #!/bin/bash
 unalias gcm 2>/dev/null
 
-# --- AI Commit Message Generator (Quality Focused) ---
-_ai_generate_commit_message() {
+# --- AI Commit Message Generator (Stable & Multi-Proposal) ---
+_ai_generate_commit_proposals() {
     [[ -z "$GEMINI_API_KEY" ]] && return 1
 
-    local diff_content
-    diff_content=$(git diff --cached | head -c 5000)
-    [[ -z "$diff_content" ]] && return 1
-
-    export RAW_DIFF_CONTENT="$diff_content"
+    # diffをBase64化して特殊文字の影響をゼロにする
+    local diff_b64
+    diff_b64=$(git diff --cached | head -c 10000 | base64 | tr -d '\n')
+    [[ -z "$diff_b64" ]] && return 1
+    
+    export DIFF_B64_DATA="$diff_b64"
     export GEMINI_API_KEY_ENV="$GEMINI_API_KEY"
 
-    local message
-    message=$(python3 <<'EOF'
+    # Pythonブリッジ
+    python3 <<'EOF'
 import json
 import urllib.request
 import os
 
-def solve():
-    api_key = os.environ.get("GEMINI_API_KEY_ENV")
-    diff_text = os.environ.get("RAW_DIFF_CONTENT", "")
+def fetch():
+    key = os.environ.get("GEMINI_API_KEY_ENV")
+    b64_diff = os.environ.get("DIFF_B64_DATA", "")
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    # 制限が厳しい2.0を避け、安定している 1.5-flash をメインに据える
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
     
-    # 英語での要約指示（品質を上げるため、思考の余地を与える）
-    system_prompt = (
-        "You are an expert software engineer. Analyze the provided git diff and "
-        "write a concise, high-quality commit message in English. "
-        "Use Conventional Commits format (feat:, fix:, chore:, etc.). "
-        "Focus on 'why' and 'what' changed. Keep it under 72 characters."
+    sys_inst = (
+        "You are an expert developer. The input is a Base64 encoded git diff. "
+        "Decode it and provide 3 high-quality commit messages in English. "
+        "Format: Conventional Commits. Output ONLY 3 lines of messages. No numbers."
     )
     
-    user_prompt = f"Summarize this diff into a single line commit message:\n\n{diff_text}"
-
-    data = {
-        "system_instruction": {"parts": [{"text": system_prompt}]},
-        "contents": [{"parts": [{"text": user_prompt}]}]
+    payload = {
+        "system_instruction": {"parts": [{"text": sys_inst}]},
+        "contents": [{"parts": [{"text": f"Base64 Diff:\n{b64_diff}"}]}]
     }
 
-    req = urllib.request.Request(
-        url, 
-        data=json.dumps(data).encode("utf-8"), 
-        headers={"Content-Type": "application/json"}
-    )
-    
     try:
-        with urllib.request.urlopen(req, timeout=15) as res:
-            resp = json.loads(res.read().decode("utf-8"))
-            return resp["candidates"][0]["content"]["parts"][0]["text"].strip()
+        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as res:
+            data = json.loads(res.read().decode("utf-8"))
+            text = data['candidates'][0]['content']['parts'][0]['text']
+            # 行をクリーンにして出力
+            lines = [l.strip().lstrip('1234567890.+-* ').strip('` ') for l in text.strip().split('\n') if l.strip()]
+            for l in lines[:3]: print(l)
     except:
-        return None
+        pass
 
-print(solve() or "")
+fetch()
 EOF
-)
-
-    unset RAW_DIFF_CONTENT
+    unset DIFF_B64_DATA
     unset GEMINI_API_KEY_ENV
-
-    [[ -z "$message" || "$message" == "null" ]] && return 1
-    
-    # 記号のクリーニング
-    echo "$message" | sed 's/^`//g; s/`$//g' | xargs
 }
 
-# --- Enhanced Git Commit (gcm) ---
+# --- gcm (Git Commit AI Selector) ---
 gcm() {
     if [ -z "$(git diff --cached)" ]; then
         echo "❌ No changes staged."
         return 1
     fi
 
-    echo "🤖 AI is summarizing (Quality Mode)..."
+    echo "🤖 AI is thinking (Gemini 1.5 Flash Mode)..."
     
-    local ai_message
-    ai_message=$(_ai_generate_commit_message)
+    local proposals
+    proposals=$(_ai_generate_commit_proposals)
 
     local -a choices
     choices=()
-    [[ -n "$ai_message" ]] && choices+=("$ai_message")
-    choices+=("feat: update configuration" "fix: minor bug fixes" "docs: update documentation" "[Manual Input]")
-
-    local selected
-    selected=$(printf "%s\n" "${choices[@]}" | fzf --height 40% --reverse --border --header "Select commit message")
-
-    if [[ -z "$selected" ]]; then
-        echo "Commit cancelled."
-        return 1
+    if [[ -n "$proposals" ]]; then
+        while IFS= read -r line; do
+            choices+=("$line")
+        done <<< "$proposals"
+        choices+=("---")
+    else
+        echo "⚠️ API still on cool-down. Try again in a minute."
     fi
 
+    choices+=("feat: update configuration" "fix: minor bug fixes" "[Manual Input]")
+
+    local selected
+    selected=$(printf "%s\n" "${choices[@]}" | fzf --height 60% --reverse --border --header "Select AI proposal")
+
+    [[ -z "$selected" || "$selected" == "---" ]] && { echo "Cancelled."; return 1; }
+
     if [[ "$selected" == "[Manual Input]" ]]; then
-        echo -n "Enter commit message: "
+        echo -n "Enter message: "
         read manual_message
         selected=$manual_message
     fi

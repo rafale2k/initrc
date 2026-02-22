@@ -1,44 +1,59 @@
 #!/bin/bash
 # ==========================================
-# 共通設定ローダー (rafale edition)
+# 共通設定ローダー (Zsh & Bash モジュール対応)
 # ==========================================
 
 # 1. パスの特定 (Zsh/Bash両対応)
 if [ -n "$ZSH_VERSION" ]; then
-    DOT_DIR="${${(%):-%x}:a:h:h}" # commonの1つ上(dotfiles直下)
+    DOT_DIR="${${(%):-%x}:a:h:h}"
     COMMON_DIR="${${(%):-%x}:a:h}"
 else
+    # Bash 用のパス取得
     DOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     COMMON_DIR="$DOT_DIR/common"
 fi
 
-# 2. _*.sh を一括読み込み
+# 2. common/_*.sh を一括読み込み (共通)
 for f in "$COMMON_DIR"/_*.sh; do
     [ -r "$f" ] && source "$f"
 done
 
-# 3. Git設定の動的適用
-# dotfiles直下の gitconfig を include する
-#GITCONFIG_BASE="$DOT_DIR/gitconfig"
-#if [ -r "$GITCONFIG_BASE" ]; then
-#    # --get-all を使うことで、登録済みのすべてのパスをチェック対象にする
-#    if ! git config --global --get-all include.path | grep -qF "$GITCONFIG_BASE"; then
-#        git config --global --add include.path "$GITCONFIG_BASE"
-#    fi
-#fi
+# 3. 各シェル固有のディレクトリから自動読み込み
+if [ -n "$ZSH_VERSION" ]; then
+    # --- Zsh の場合 ---
+    ZSH_DIR="$DOT_DIR/zsh"
+    if [ -d "$ZSH_DIR" ]; then
+        for f in "$ZSH_DIR"/*.zsh; do
+            fname=$(basename "$f")
+            case "$fname" in
+                .zshrc|.p10k.zsh) continue ;; 
+                *) [ -r "$f" ] && source "$f" ;;
+            esac
+        done
+    fi
+elif [ -n "$BASH_VERSION" ]; then
+    # --- Bash の場合 ---
+    BASH_DIR="$DOT_DIR/bash"
+    if [ -d "$BASH_DIR" ]; then
+        for f in "$BASH_DIR"/*.sh; do
+            fname=$(basename "$f")
+            case "$fname" in
+                .bashrc|_omb.sh) continue ;; # _omb.shは本体で明示的に呼ぶため除外
+                *) [ -r "$f" ] && source "$f" ;;
+            esac
+        done
+    fi
+fi
 
 # 4. Global Gitignore の適用
-# common/gitignore_global を適用
 GITIGNORE_GLOBAL="$COMMON_DIR/gitignore_global"
 if [ -r "$GITIGNORE_GLOBAL" ]; then
     git config --global core.excludesfile "$GITIGNORE_GLOBAL"
 fi
 
-# common/loader.sh の末尾に追加
+# 5. ローカル設定
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 [[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
 
-unset DOT_DIR
-unset COMMON_DIR
-unset GITCONFIG_BASE
-unset GITIGNORE_GLOBAL
+# 変数のクリーンアップ
+unset DOT_DIR COMMON_DIR ZSH_DIR BASH_DIR fname

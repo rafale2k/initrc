@@ -1,0 +1,9 @@
+[init]
+	defaultBranch = main
+[user]
+	email = your-github-username@users.noreply.github.com
+	name = Jane Doe
+[include]
+	path = /home/rafale/dotfiles/gitconfig
+[core]
+	excludesfile = /home/rafale/dotfiles/common/gitignore_global

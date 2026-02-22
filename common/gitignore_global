@@ -1,0 +1,16 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Nano syntax highlighting (submodule的な扱いなので本体リポジトリからは除外)
+editors/nano-syntax-highlighting/
+
+# Local/Secret files
+.env
+.env.local
+*.local
+.dotfiles_env
+
+# Temporary files
+*.swp
+*~

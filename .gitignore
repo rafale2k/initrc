@@ -6,3 +6,6 @@ editors/nano-syntax-highlighting/
 gitconfig
 /.gitconfig_shared
 editors/nano-syntax-highlighting/
+# .gitignore に追加
+.env
+*.loca

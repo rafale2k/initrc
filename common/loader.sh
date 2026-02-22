@@ -34,6 +34,10 @@ if [ -r "$GITIGNORE_GLOBAL" ]; then
     git config --global core.excludesfile "$GITIGNORE_GLOBAL"
 fi
 
+# common/loader.sh の末尾に追加
+[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+[[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
+
 unset DOT_DIR
 unset COMMON_DIR
 unset GITCONFIG_BASE

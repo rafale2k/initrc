@@ -1,71 +1,86 @@
 #!/bin/bash
-# Git エイリアス & 関数
 unalias gcm 2>/dev/null
 
-alias gs='git status -sb'
-alias ga='git add'
-alias gaa='git add -A'
-alias gc='git commit -m'
-alias gp='git push origin main'
-alias gl='git lg'
-
-# --- AI Commit Message Generator ---
+# --- AI Commit Message Generator (Quality Focused) ---
 _ai_generate_commit_message() {
     [[ -z "$GEMINI_API_KEY" ]] && return 1
 
-    # diffを取得（制御文字が含まれる可能性を考慮）
-    local diff_text
-    diff_text=$(git diff --cached | head -c 4000)
-    [[ -z "$diff_text" ]] && return 1
+    local diff_content
+    diff_content=$(git diff --cached | head -c 5000)
+    [[ -z "$diff_content" ]] && return 1
 
-    # プロンプト構成：日本語を最優先に指示
-    local raw_prompt="【指示】日本語で出力せよ。
-git diffから、Conventional Commits形式のコミットメッセージを1行だけ作成してください。
-思考プロセスや解説は一切不要。出力は日本語のメッセージ1行のみとすること。
-diff:
-$diff_text"
+    export RAW_DIFF_CONTENT="$diff_content"
+    export GEMINI_API_KEY_ENV="$GEMINI_API_KEY"
 
-    # 制御文字によるJSONパースエラーを防ぐため、--arg で確実にエスケープ
-    local json_data
-    json_data=$(jq -n --arg msg "$raw_prompt" '{"contents": [{"parts": [{"text": $msg}]}]}')
-
-    # モデルは爆速の 2.0-flash-lite
-    local response
-    response=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_API_KEY}" \
-        -H 'Content-Type: application/json' \
-        -d "$json_data")
-
-    # 再帰探索で確実にメッセージを抽出
     local message
-    message=$(echo "$response" | jq -r '.. | .text? // empty' | grep -v "null" | head -n 1 | sed 's/^`//g; s/`$//g' | xargs)
+    message=$(python3 <<'EOF'
+import json
+import urllib.request
+import os
+
+def solve():
+    api_key = os.environ.get("GEMINI_API_KEY_ENV")
+    diff_text = os.environ.get("RAW_DIFF_CONTENT", "")
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    
+    # 英語での要約指示（品質を上げるため、思考の余地を与える）
+    system_prompt = (
+        "You are an expert software engineer. Analyze the provided git diff and "
+        "write a concise, high-quality commit message in English. "
+        "Use Conventional Commits format (feat:, fix:, chore:, etc.). "
+        "Focus on 'why' and 'what' changed. Keep it under 72 characters."
+    )
+    
+    user_prompt = f"Summarize this diff into a single line commit message:\n\n{diff_text}"
+
+    data = {
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": [{"parts": [{"text": user_prompt}]}]
+    }
+
+    req = urllib.request.Request(
+        url, 
+        data=json.dumps(data).encode("utf-8"), 
+        headers={"Content-Type": "application/json"}
+    )
+    
+    try:
+        with urllib.request.urlopen(req, timeout=15) as res:
+            resp = json.loads(res.read().decode("utf-8"))
+            return resp["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except:
+        return None
+
+print(solve() or "")
+EOF
+)
+
+    unset RAW_DIFF_CONTENT
+    unset GEMINI_API_KEY_ENV
 
     [[ -z "$message" || "$message" == "null" ]] && return 1
-    echo "$message"
+    
+    # 記号のクリーニング
+    echo "$message" | sed 's/^`//g; s/`$//g' | xargs
 }
 
 # --- Enhanced Git Commit (gcm) ---
 gcm() {
     if [ -z "$(git diff --cached)" ]; then
-        echo "No changes staged."
+        echo "❌ No changes staged."
         return 1
     fi
 
-    echo "🤖 AI is thinking (Fast Mode)..."
+    echo "🤖 AI is summarizing (Quality Mode)..."
     
     local ai_message
     ai_message=$(_ai_generate_commit_message)
 
     local -a choices
     choices=()
-    # AIが成功した時だけ選択肢の先頭に追加
-    if [[ -n "$ai_message" ]]; then
-        choices+=("$ai_message")
-    fi
-    
-    choices+=("feat: update configuration")
-    choices+=("fix: minor bug fixes")
-    choices+=("docs: update documentation")
-    choices+=("[Manual Input]")
+    [[ -n "$ai_message" ]] && choices+=("$ai_message")
+    choices+=("feat: update configuration" "fix: minor bug fixes" "docs: update documentation" "[Manual Input]")
 
     local selected
     selected=$(printf "%s\n" "${choices[@]}" | fzf --height 40% --reverse --border --header "Select commit message")
@@ -81,10 +96,5 @@ gcm() {
         selected=$manual_message
     fi
 
-    if [[ -n "$selected" ]]; then
-        git commit -m "$selected"
-    else
-        echo "Commit cancelled: Empty message."
-        return 1
-    fi
+    [[ -n "$selected" ]] && git commit -m "$selected"
 }

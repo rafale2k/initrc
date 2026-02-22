@@ -49,9 +49,40 @@ alias tokyo='printf "\e]4;0;#1a1b26\a"'
 
 # Nano (Monokai背景)
 n() {
-    printf "\e]4;0;#272822\a"
-    nano "$@"
-    printf "\e]4;0;#1a1b26\a"
+    local file
+    local bat_cmd
+
+    # bat コマンド判別 (プレビュー用)
+    if command -v batcat &> /dev/null; then
+        bat_cmd="batcat"
+    elif command -v bat &> /dev/null; then
+        bat_cmd="bat"
+    else
+        bat_cmd="cat"
+    fi
+
+    # 引数がある場合は、そのまま nano で開く
+    if [ $# -gt 0 ]; then
+        printf "\e]4;0;#272822\a"  # Monokai背景へ
+        nano "$@"
+        printf "\e]4;0;#1a1b26\a"  # Tokyo Night背景へ戻す
+    else
+        # 引数がない場合は fzf でファイルを選択
+        # fd があれば使い、なければ find でリストアップ
+        if command -v fdfind &> /dev/null || command -v fd &> /dev/null; then
+            local fd_bin=$(command -v fdfind || command -v fd)
+            file=$($fd_bin --type f --hidden --exclude .git | fzf --prompt="Nano File > " --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}" --preview-window=right:60%)
+        else
+            file=$(find . -maxdepth 4 -not -path '*/.*' -o -path './.*' -not -name "." | fzf --prompt="Nano File > " --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}" --preview-window=right:60%)
+        fi
+
+        # ファイルが選択されたら Monokai 背景で開く
+        if [ -n "$file" ]; then
+            printf "\e]4;0;#272822\a"
+            nano "$file"
+            printf "\e]4;0;#1a1b26\a"
+        fi
+    fi
 }
 
 # モダンコマンド置換 (eza)

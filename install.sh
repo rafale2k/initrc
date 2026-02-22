@@ -42,7 +42,7 @@ fi
 # ---------------------------------------------------------
 # 4. モダンツールの自動インストール
 # ---------------------------------------------------------
-REQUIRED_TOOLS=("tree" "git" "curl" "vim" "fzf" "ccze" "sudo" "zsh" "zoxide" "bat" "eza" "fd")
+REQUIRED_TOOLS=("tree" "git" "curl" "vim" "fzf" "ccze" "sudo" "zsh" "zoxide" "bat" "eza" "fd" "jq")
 echo "🛠️  Checking required tools..."
 
 SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")

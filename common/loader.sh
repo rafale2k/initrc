@@ -2,8 +2,8 @@
 # --- common/loader.sh ---
 
 # 1. パスの確定
-export DOTFILES_PATH="$HOME/dotfiles"
 COMMON_DIR="$DOTFILES_PATH/common"
+export DOTFILES_PATH="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
 
 # 【追記】ローカル専用設定があれば読み込む (.gitignore推奨)
 if [ -f "$DOTFILES_PATH/common/.env.local" ]; then
@@ -31,8 +31,27 @@ elif [ -n "$BASH_VERSION" ]; then
     # --- Bash の場合 ---
     BASH_DIR="$DOTFILES_PATH/bash"
     # _omb.sh など、Bash固有の設定があればここで読み込む
-    [ -f "$BASH_DIR/.bashrc" ] && source "$BASH_DIR/.bashrc"
+#    [ -f "$BASH_DIR/.bashrc" ] && source "$BASH_DIR/.bashrc"
 fi
 
 # 4. 変数のクリーンアップ
-unset f ZSH_DIR BASH_DIR COMMON_DIR
+unset f
+
+# ループ変数だけを掃除（パス変数は残す！）
+unset f
+
+# 5. 環境判定とプロンプト・エイリアスの強制適用
+if [ -n "$ZSH_VERSION" ]; then
+    # --- Zsh (一般ユーザー) 用 ---
+    alias reload='exec zsh -l'
+    # プロンプトは既存のテーマがあるようなので、ここでは reload の定義を優先
+elif [ -n "$BASH_VERSION" ]; then
+    # --- Bash (root) 用 ---
+    export PROMPT_COMMAND=""
+    if [ "$EUID" -eq 0 ]; then
+        # root 専用: 赤背景 ROOT
+        export PS1='\[\e[1;37;41m\] ROOT \[\e[0m\] \[\e[01;31m\]\u@\h\[\e[0m\]:\[\033[01;34m\]\w\[\033[00m\]# '
+    fi
+    # Bash 全般で reload を有効化
+    alias reload='source ~/.bashrc'
+fi

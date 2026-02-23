@@ -1,29 +1,39 @@
-# 1. Instant Prompt (最速表示用) - これは先頭でOK
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# ------------------------------------------------------------------------------
+# .zshrc: プロンプト消失回避・修正版
+# ------------------------------------------------------------------------------
+
+# 1. Powerlevel10k インスタントプロンプト (最優先)
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${USER}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${USER}.zsh"
 fi
 
-# 2. 基本パスと環境変数
+# 2. パス定義
+export DOTFILES=$HOME/dotfiles
 export ZSH="$HOME/.oh-my-zsh"
-export DOTFILES_PATH="$HOME/dotfiles"
-export PATH="$DOTFILES_PATH/bin:$PATH"
 
-# 3. テーマ指定
+# 3. テーマ選択 (ここを修正！)
+# Oh My Zsh のカスタムディレクトリにある場合は、この書き方が一番安定するで。
 ZSH_THEME="powerlevel10k/powerlevel10k"
 
-# 4. Oh My Zsh 本体の起動 (ここでテーマやプラグインがロードされる)
+# 4. プラグイン設定
+plugins=(
+    git
+    git-extras
+    docker
+    docker-compose
+    copyfile
+    copypath
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+)
+
+# 5. Oh My Zsh の読み込み
 source $ZSH/oh-my-zsh.sh
 
-# 5. p10k の詳細設定 (テーマロードの直後に読み込む)
+# 6. Powerlevel10k の設定読み込み (テーマが読み込まれた後に実行)
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
-# 6. その他のツール・共通設定 (zoxide, loaderなど)
-zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
-
-if command -v zoxide > /dev/null 2>&1; then
-    eval "$(zoxide init zsh)"
-fi
-
-if [[ -f "$DOTFILES_PATH/common/loader.sh" ]]; then
-    source "$DOTFILES_PATH/common/loader.sh"
+# 7. 共通ローダー (自作エイリアスなど)
+if [ -f "$DOTFILES/common/loader.sh" ]; then
+    source "$DOTFILES/common/loader.sh"
 fi

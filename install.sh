@@ -55,14 +55,18 @@ setup_os "$PM" "$SUDO_CMD"
 # ---------------------------------------------------------
 # 4. モダンツールの自動インストール
 # ---------------------------------------------------------
-REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
+# git-extras と docker を追加
+REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
 echo "🛠️  Installing required tools..."
 
 for tool in "${REQUIRED_TOOLS[@]}"; do
+    # git-extras のようなハイフン入りコマンドは特殊判定が必要な場合があるが基本これでOK
     if ! command -v "$tool" &> /dev/null && ! command -v "${tool}cat" &> /dev/null && ! command -v "${tool}find" &> /dev/null; then
         echo "🎁 $tool is missing. Installing..."
-        if declare -f "install_$tool" > /dev/null; then
-            "install_$tool" "$PM" "$DOTPATH" "$SUDO_CMD"
+        # 関数名として有効な形式（ハイフンをアンダースコアに置換）に変換して確認
+        func_name="install_${tool//-/_}"
+        if declare -f "$func_name" > /dev/null; then
+            "$func_name" "$PM" "$DOTPATH" "$SUDO_CMD"
         else
             $SUDO_CMD $PM install -y "$tool"
         fi
@@ -76,11 +80,9 @@ done
 # ---------------------------------------------------------
 echo "🐚 Setting up Zsh and Oh My Zsh..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    # --unattended を指定しても、~/.zshrc が新規作成される場合がある
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 
-# ★最重要★ Oh My Zsh 導入後に自前の設定ファイルをリンクし直す
 echo "🔗 Enforcement linking Zsh configs (p10k protection)..."
 ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
@@ -119,7 +121,6 @@ if [ -d "$DOTPATH/configs" ]; then
             echo "✅ Linking gitconfig -> $target"
             ln -sf "$config_file" "$target"
 
-            # --- .gitconfig.local の保護と生成 ---
             GIT_LOCAL="$HOME/.gitconfig.local"
             if [ ! -f "$GIT_LOCAL" ]; then
                 echo "👤 Git local settings not found. Let's set up your identity."
@@ -133,8 +134,8 @@ if [ -d "$DOTPATH/configs" ]; then
 
                 cat << EOF > "$GIT_LOCAL"
 [user]
-    name = $git_name
-    email = $git_email
+	name = $git_name
+	email = $git_email
 EOF
                 echo "✅ Created $GIT_LOCAL"
             fi
@@ -144,7 +145,6 @@ EOF
     done
 fi
 
-# 個別リンク（Nano Themes）
 mkdir -p "$HOME/.nano"
 ln -sf "$DOTPATH/editors/my-themes/monokai.nanorc" "$HOME/.nano/monokai.nanorc"
 
@@ -165,7 +165,6 @@ if [ -f "$DOTPATH/bin/monokai-palette.sh" ]; then
     bash "$DOTPATH/bin/monokai-palette.sh"
 fi
 
-# 環境変数の読み込み
 source "$HOME/.dotfiles_env"
 
 echo "✨ All Done! Please restart your shell or run: exec zsh -l"

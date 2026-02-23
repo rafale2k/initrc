@@ -22,6 +22,24 @@ setup_os() {
     esac
 }
 
+# --- git-extras: Git 拡張サブコマンド群のインストール ---
+install_git_extras() {
+    local PM=$1; local SUDO_CMD=$2
+    echo "🛠️  Installing git-extras via $PM..."
+    case "$PM" in
+        "apt")
+            $SUDO_CMD apt install -y git-extras
+            ;;
+        "dnf")
+            # EPEL リポジトリが有効である前提 (setup_os で対応済み)
+            $SUDO_CMD dnf install -y git-extras
+            ;;
+        "brew")
+            brew install git-extras
+            ;;
+    esac
+}
+
 # --- eza: 公式リポジトリ追加またはバイナリ直接展開 ---
 install_eza() {
     local PM=$1; local DOTPATH=$2; local SUDO_CMD=$3
@@ -65,3 +83,47 @@ install_fd() {
         *) $SUDO_CMD $PM install -y fd ;;
     esac
 }
+
+# --- Docker & Docker Compose: 公式リポジトリからのインストール ---
+install_docker() {
+    local PM=$1; local SUDO_CMD=$2
+    echo "🐳 Installing Docker Engine and Compose via $PM..."
+    case "$PM" in
+        "apt")
+            # 依存パッケージとGPGキーの登録
+            $SUDO_CMD apt update
+            $SUDO_CMD apt install -y ca-certificates curl gnupg
+            $SUDO_CMD install -m 0755 -d /etc/apt/keyrings
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | $SUDO_CMD gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            $SUDO_CMD chmod a+r /etc/apt/keyrings/docker.gpg
+
+            # リポジトリの追加
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | $SUDO_CMD tee /etc/apt/sources.list.d/docker.list > /dev/null
+            
+            $SUDO_CMD apt update
+            $SUDO_CMD apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            ;;
+        "dnf")
+            # RHEL/CentOS系は公式リポジトリを追加
+            $SUDO_CMD dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            $SUDO_CMD dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            $SUDO_CMD systemctl enable --now docker
+            ;;
+        "brew")
+            # macOSは Docker Desktop または OrbStack を使うのが一般的やけど、CLIツールだけならこれ
+            brew install docker docker-compose
+            ;;
+    esac
+}
+
+# --- xclip: Linux 用クリップボード連携ツールのインストール ---
+install_xclip() {
+    local PM=$1; local DOTPATH=$2; local SUDO_CMD=$3
+    echo "📋 Installing xclip for clipboard support via $PM..."
+    case "$PM" in
+        "apt") $SUDO_CMD apt install -y xclip ;;
+        "dnf") $SUDO_CMD dnf install -y xclip ;;
+        "brew") echo "🍺 macOS already has pbcopy/pbpaste." ;;
+    esac
+}
+

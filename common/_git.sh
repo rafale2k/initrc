@@ -11,6 +11,7 @@ alias gb='git branch'
 alias gco='git checkout'
 alias gd='git diff'
 alias gdc='git diff --cached'
+unalias gl 2>/dev/null  # 既存の gl を消す
 alias gl='git log --oneline --graph --decorate'
 alias gnw='git diff -w --no-ext-diff' # 空白を無視してdiffを確認
 

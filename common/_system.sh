@@ -107,27 +107,21 @@ n() {
 }
 
 # ---------------------------------------------------------
-# Nano Wrapper (Monokai背景切り替え)
+# Nano Wrapper (無限ループ対策版)
 # ---------------------------------------------------------
 nano() {
-    # 本物の nano のパスを取得
-    local real_nano
-    real_nano=$(command -v nano)
-
-    # 引数がある場合（通常の起動）
-    if [ $# -gt 0 ]; then
-        # 非rootユーザーなら背景色を Monokai (#272822) に変更
+    # 'command' を使うことで、同名の関数ではなく外部バイナリを強制的に呼ぶ
+    if [ $# -gt 0 ] || [ ! -t 0 ]; then
+        # 背景を Monokai に
         [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
         
-        # 本物の nano を実行
-        "$real_nano" "$@"
+        command nano "$@"
         
-        # 終了後に背景色を元の TokyoNight (#1a1b26) に戻す
+        # 背景を TokyoNight に戻す
         [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
     else
-        # 引数なしで nano だけ打った場合も同様
         [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
-        "$real_nano"
+        command nano
         [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
     fi
 }

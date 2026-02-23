@@ -102,7 +102,6 @@ fi
 ZSH_CUSTOM="${HOME}/.oh-my-zsh/custom"
 mkdir -p "${ZSH_CUSTOM}/plugins"
 
-# サブモジュールのプラグインをリンク
 if [ -d "$DOTPATH/zsh/plugins" ]; then
     for plugin_path in "$DOTPATH"/zsh/plugins/*; do
         name=$(basename "$plugin_path")
@@ -114,66 +113,54 @@ if [ -d "$DOTPATH/zsh/plugins" ]; then
 fi
 
 # ---------------------------------------------------------
-# 5. シンボリックリンク (configs/ 配下を自動リンク)
+# 5. シンボリックリンク (configs/ 配下を自動処理)
 # ---------------------------------------------------------
 echo "🔗 Creating symbolic links from configs/..."
-
-# configs/ 配下のファイルをループで回す
 if [ -d "$DOTPATH/configs" ]; then
     for config_file in "$DOTPATH"/configs/*; do
-        # ファイル名のみ取得 (例: gitconfig)
         filename=$(basename "$config_file")
-        # ターゲットは $HOME 配下のドットファイル (例: $HOME/.gitconfig)
         target="$HOME/.$filename"
 
-        # 既存のファイルがリンクでない場合はバックアップ
+        # 既存ファイルのバックアップ（リンクでない場合のみ）
         if [ -e "$target" ] && [ ! -L "$target" ]; then
-            echo "📦 Backing up $target to ${target}.bak"
             mv "$target" "${target}.bak"
         fi
 
-        echo "✅ Linking $filename -> $target"
-        ln -sf "$config_file" "$target"
+        if [ "$filename" == "nanorc" ]; then
+            # nanorc は __DOTPATH__ を置換して実体として書き出す
+            echo "📝 Generating $target (path substitution)..."
+            sed "s|__DOTPATH__|$DOTPATH|g" "$config_file" > "$target"
+        else
+            # それ以外はシンボリックリンク
+            ln -sf "$config_file" "$target"
+        fi
     done
 fi
 
-# 個別設定のリンク (configs以外に置いているもの)
-echo "🔗 Creating additional symbolic links..."
+# 個別リンク（テーマファイルなど）
+echo "🔗 Creating theme and shell links..."
 ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
-[ -f "$DOTPATH/editors/.vimrc" ] && ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
 
-# Nano Setup
-if [ -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
-    echo "✅ Nano syntax highlighting found."
-else
-    echo "⚠️  Nano syntax highlighting submodule missing."
-fi
+# Monokaiテーマを.nanoディレクトリにリンク
+mkdir -p "$HOME/.nano"
+ln -sf "$DOTPATH/editors/my-themes/monokai.nanorc" "$HOME/.nano/monokai.nanorc"
 
 # ---------------------------------------------------------
 # 6. ローカルテンプレート作成 
 # ---------------------------------------------------------
-echo "⚙️  Setting up local environment files..."
 ENV_TEMPLATE="$DOTPATH/common/.env"
 ENV_LOCAL="$DOTPATH/common/.env.local"
-
-if [ -f "$ENV_TEMPLATE" ]; then
-    if [ ! -f "$ENV_LOCAL" ]; then
-        cp "$ENV_TEMPLATE" "$ENV_LOCAL"
-        echo "✅ Created $ENV_LOCAL."
-    fi
-fi
+[ -f "$ENV_TEMPLATE" ] && [ ! -f "$ENV_LOCAL" ] && cp "$ENV_TEMPLATE" "$ENV_LOCAL"
 
 # ---------------------------------------------------------
 # 7. 最終確定
 # ---------------------------------------------------------
 echo "🔐 Finalizing permissions..."
 [ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH"
-chmod 755 "$DOTPATH"
 chmod +x "$DOTPATH/bin/"* 2>/dev/null || true
 
 source "$HOME/.dotfiles_env"
-# Zsh起動中なら再読み込み
 [ -n "$ZSH_VERSION" ] && source "$HOME/.zshrc" 2>/dev/null || true
 
-echo "✨ All Done! Modular Dotfiles are now active."
+echo "✨ All Done!"

@@ -1,0 +1,28 @@
+## ---------------------------------------------------------
+## nano configuration - Managed by initrc
+## ---------------------------------------------------------
+
+set linenumbers
+set softwrap
+set tabsize 4
+set tabstospaces
+set constantshow
+set smarthome
+set autoindent
+
+# --- Monokai Interface Colors ---
+set titlecolor brightwhite,black
+set statuscolor brightwhite,black
+set errorcolor brightwhite,red
+set selectedcolor black,brightmagenta
+set numbercolor brightcyan
+set keycolor brightmagenta
+set functioncolor brightyellow
+
+# --- ハイライト設定 ---
+# 1. 外部のハイライトを一括読み込み
+# (install.sh 実行時に __DOTPATH__ が置換される)
+include "__DOTPATH__/editors/nano-syntax-highlighting/*.nanorc"
+
+# 2. 追加のカスタムテーマ
+include "__DOTPATH__/editors/my-themes/monokai.nanorc"

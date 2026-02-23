@@ -42,7 +42,8 @@ export PATH="$DOTPATH/bin:$PATH"
 # ---------------------------------------------------------
 # 3. モダンツールの自動インストール
 # ---------------------------------------------------------
-REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget" "procps-ng" "util-linux-user")
+# 全OS共通のパッケージリスト
+REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
 echo "🛠️  Checking required tools..."
 
 case "$PM" in
@@ -54,6 +55,9 @@ case "$PM" in
         SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
         $SUDO_CMD dnf install -y epel-release 
         $SUDO_CMD dnf config-manager --set-enabled crb || true
+        # RHEL系特有のパッケージをここで個別に叩く
+        echo "📦 Installing RHEL-specific packages..."
+        $SUDO_CMD dnf install -y procps-ng util-linux-user || true
         ;;
     "brew")
         SUDO_CMD=""
@@ -113,7 +117,7 @@ if [ -d "$DOTPATH/zsh/plugins" ]; then
 fi
 
 # ---------------------------------------------------------
-# 5. シンボリックリンク (configs/ 配下を自動処理)
+# 5. シンボリックリンク & nanorc 動的生成
 # ---------------------------------------------------------
 echo "🔗 Creating symbolic links from configs/..."
 if [ -d "$DOTPATH/configs" ]; then
@@ -121,28 +125,25 @@ if [ -d "$DOTPATH/configs" ]; then
         filename=$(basename "$config_file")
         target="$HOME/.$filename"
 
-        # 既存ファイルのバックアップ（リンクでない場合のみ）
         if [ -e "$target" ] && [ ! -L "$target" ]; then
+            echo "📦 Backing up $target to ${target}.bak"
             mv "$target" "${target}.bak"
         fi
 
         if [ "$filename" == "nanorc" ]; then
-            # nanorc は __DOTPATH__ を置換して実体として書き出す
-            echo "📝 Generating $target (path substitution)..."
+            echo "📝 Generating $target (Path substitution for Monokai)..."
             sed "s|__DOTPATH__|$DOTPATH|g" "$config_file" > "$target"
         else
-            # それ以外はシンボリックリンク
+            echo "✅ Linking $filename -> $target"
             ln -sf "$config_file" "$target"
         fi
     done
 fi
 
 # 個別リンク（テーマファイルなど）
-echo "🔗 Creating theme and shell links..."
+echo "🔗 Creating additional shell & theme links..."
 ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
-
-# Monokaiテーマを.nanoディレクトリにリンク
 mkdir -p "$HOME/.nano"
 ln -sf "$DOTPATH/editors/my-themes/monokai.nanorc" "$HOME/.nano/monokai.nanorc"
 
@@ -163,4 +164,13 @@ chmod +x "$DOTPATH/bin/"* 2>/dev/null || true
 source "$HOME/.dotfiles_env"
 [ -n "$ZSH_VERSION" ] && source "$HOME/.zshrc" 2>/dev/null || true
 
-echo "✨ All Done!"
+# ---------------------------------------------------------
+# 8. ターミナルパレットの強制適用 (rlogin対策)
+# ---------------------------------------------------------
+if [ -f "$DOTPATH/bin/monokai-palette.sh" ]; then
+    echo "🎨 Applying Monokai palette to terminal..."
+    chmod +x "$DOTPATH/bin/monokai-palette.sh"
+    bash "$DOTPATH/bin/monokai-palette.sh"
+fi
+
+echo "✨ All Done! System Recreated."

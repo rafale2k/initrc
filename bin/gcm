@@ -26,7 +26,7 @@ def fetch():
 
     try:
         req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=7) as res:
+        with urllib.request.urlopen(req, timeout=15) as res:
             data = json.loads(res.read().decode("utf-8"))
             text = data['candidates'][0]['content']['parts'][0]['text']
             lines = [l.strip().lstrip('1234567890.+-* ').strip('` ') for l in text.strip().split('\n') if l.strip()]

@@ -44,12 +44,17 @@ echo "✅ Path to 'bin' directory added to .dotfiles_env"
 # ---------------------------------------------------------
 # 3. モダンツールの自動インストール
 # ---------------------------------------------------------
-REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
+# procps-ng (psコマンド), util-linux-user (chshコマンド用) を追加
+REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget" "procps-ng" "util-linux-user")
 echo "🛠️  Checking required tools..."
 
 case "$PM" in
     "apt") $SUDO_CMD apt update -y ;;
-    "dnf") $SUDO_CMD dnf install -y epel-release ;;
+    "dnf") 
+        $SUDO_CMD dnf install -y epel-release 
+        # RHEL/Alma 9系で eza 等を入れるための crb リポジトリ有効化 (推奨)
+        $SUDO_CMD dnf config-manager --set-enabled crb || true
+        ;;
 esac
 
 for tool in "${REQUIRED_TOOLS[@]}"; do
@@ -162,9 +167,12 @@ fi
 # ---------------------------------------------------------
 # 8. 最終調整
 # ---------------------------------------------------------
+# --- 最終調整セクション ---
 echo "🔐 Adjusting permissions..."
 [ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH"
 chmod 755 "$DOTPATH"
+# gcm に実行権限を付与
+[ -f "$DOTPATH/bin/gcm" ] && chmod +x "$DOTPATH/bin/gcm"
 chmod 644 "$HOME/.dotfiles_env"
 
 echo "✨ All Done! Modular Dotfiles are now active."

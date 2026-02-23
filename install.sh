@@ -4,6 +4,19 @@
 DOTPATH=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 
 # ---------------------------------------------------------
+# 0. GitHub SSH 接続テスト (New!)
+# ---------------------------------------------------------
+echo "🔍 Checking GitHub SSH connection..."
+ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new >/dev/null 2>&1
+if [ $? -eq 1 ]; then
+    # ssh -T は成功時にステータス1を返す(認証は通るがシェルは提供されないため)
+    echo "✅ GitHub SSH connection successful."
+else
+    echo "⚠️  GitHub SSH connection failed or not configured."
+    echo "   Continuing anyway, but some git clones might fail if they use SSH."
+fi
+
+# ---------------------------------------------------------
 # 1. OS判別とパッケージマネージャーの設定
 # ---------------------------------------------------------
 if [ "$(uname)" = "Darwin" ]; then
@@ -13,24 +26,21 @@ elif [ -f /etc/redhat-release ]; then
 elif [ -f /etc/debian_version ]; then
     OS="debian"; PM="apt"
 else
-    OS="unknown"
+    OS="unknown"; PM="none"
 fi
 
 echo "🌍 Detected OS: $OS (using $PM)"
 
 # ---------------------------------------------------------
-# 2. パス情報の保存 (loader.sh およびコマンド実行の生命線)
+# 2. パス情報の保存
 # ---------------------------------------------------------
-# 一般ユーザー用の環境設定
 cat << EOF > "$HOME/.dotfiles_env"
 export DOTFILES_PATH="$DOTPATH"
-# dotfiles/bin にパスを通す
 export PATH="\$DOTFILES_PATH/bin:\$PATH"
 EOF
 
 SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
 
-# root環境用 (sudo が利用可能な場合)
 if [ -n "$SUDO_CMD" ] || [ "$EUID" -eq 0 ]; then
     TARGET_ENV="/root/.dotfiles_env"
     $SUDO_CMD sh -c "cat << EOF > $TARGET_ENV
@@ -39,12 +49,9 @@ export PATH=\"$DOTPATH/bin:\\\$PATH\"
 EOF"
 fi
 
-echo "✅ Path to 'bin' directory added to .dotfiles_env"
-
 # ---------------------------------------------------------
 # 3. モダンツールの自動インストール
 # ---------------------------------------------------------
-# procps-ng (psコマンド), util-linux-user (chshコマンド用) を追加
 REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget" "procps-ng" "util-linux-user")
 echo "🛠️  Checking required tools..."
 
@@ -52,7 +59,6 @@ case "$PM" in
     "apt") $SUDO_CMD apt update -y ;;
     "dnf") 
         $SUDO_CMD dnf install -y epel-release 
-        # RHEL/Alma 9系で eza 等を入れるための crb リポジトリ有効化 (推奨)
         $SUDO_CMD dnf config-manager --set-enabled crb || true
         ;;
 esac
@@ -73,7 +79,15 @@ for tool in "${REQUIRED_TOOLS[@]}"; do
                 fi
                 $SUDO_CMD apt install -y "$pkg"
                 ;;
-            "dnf") $SUDO_CMD dnf install -y "$tool" ;;
+            "dnf")
+                if [ "$tool" = "eza" ]; then
+                    echo "📥 eza not found in dnf. Downloading binary..."
+                    curl -L https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz
+                    mv eza "$DOTPATH/bin/" && chmod +x "$DOTPATH/bin/eza"
+                else
+                    $SUDO_CMD dnf install -y "$tool" || echo "⚠️  Failed to install $tool via dnf"
+                fi
+                ;;
         esac
     else
         echo "✅ $tool is already installed."
@@ -81,17 +95,13 @@ for tool in "${REQUIRED_TOOLS[@]}"; do
 done
 
 # ---------------------------------------------------------
-# 4. Zsh / Oh My Zsh & Plugins Setup (New!)
+# 4. Zsh / Oh My Zsh & Plugins Setup
 # ---------------------------------------------------------
 echo "🐚 Setting up Zsh and Oh My Zsh..."
-
-# Oh My Zsh 本体 (User)
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    echo "🎁 Installing Oh My Zsh for $(whoami)..."
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
 
-# Plugins (User)
 ZSH_CUSTOM="${HOME}/.oh-my-zsh/custom"
 PLUGINS_URLS=(
     "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions"
@@ -99,81 +109,36 @@ PLUGINS_URLS=(
 )
 
 for item in "${PLUGINS_URLS[@]}"; do
-    name=${item%%:*}
-    url=${item#*:}
-    if [ ! -d "${ZSH_CUSTOM}/plugins/${name}" ]; then
-        echo "🔌 Cloning $name..."
-        git clone "$url" "${ZSH_CUSTOM}/plugins/${name}"
-    fi
+    name=${item%%:*}; url=${item#*:}
+    [ ! -d "${ZSH_CUSTOM}/plugins/${name}" ] && git clone "$url" "${ZSH_CUSTOM}/plugins/${name}"
 done
 
 # ---------------------------------------------------------
-# 5. シンボリックリンク作成
+# 5. シンボリックリンク / Git / Nano 
 # ---------------------------------------------------------
 echo "🔗 Creating symbolic links..."
-
-# --- User ---
 ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
-ln -sf "$DOTPATH/common/gitignore_global" "$HOME/.gitignore_global"
-[ -f "$DOTPATH/common/inputrc" ] && ln -sf "$DOTPATH/common/inputrc" "$HOME/.inputrc"
 ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
 
-# --- Root (Environment Sync) ---
 if [ -n "$SUDO_CMD" ] || [ "$EUID" -eq 0 ]; then
-    # Zsh & Oh My Zsh for Root (シンボリックリンクで共有)
     $SUDO_CMD ln -sf "$HOME/.oh-my-zsh" "/root/.oh-my-zsh"
     $SUDO_CMD ln -sf "$DOTPATH/zsh/.zshrc" "/root/.zshrc"
-    $SUDO_CMD ln -sf "$DOTPATH/zsh/.p10k.zsh" "/root/.p10k.zsh"
-    
-    # Other configs
-    $SUDO_CMD ln -sf "$DOTPATH/bash/.bashrc" "/root/.bashrc"
-    $SUDO_CMD ln -sf "$DOTPATH/editors/.vimrc" "/root/.vimrc"
-    $SUDO_CMD ln -sf "$DOTPATH/common/gitignore_global" "/root/.gitignore_global"
-    [ -f "$DOTPATH/common/inputrc" ] && $SUDO_CMD ln -sf "$DOTPATH/common/inputrc" "/root/.inputrc"
 fi
 
-# ---------------------------------------------------------
-# 6. Git Setup
-# ---------------------------------------------------------
-echo "📝 Setting up Git..."
-if [ ! -f "$HOME/.gitconfig" ]; then
-    cat << EOF > "$HOME/.gitconfig"
-[user]
-        name = Dassult Rafale
-        email = d.rafale@gmail.com
-[include]
-        path = $DOTPATH/common/gitconfig
-EOF
-else
-    if ! grep -q "path = $DOTPATH/common/gitconfig" "$HOME/.gitconfig"; then
-        echo -e "[include]\n\tpath = $DOTPATH/common/gitconfig" >> "$HOME/.gitconfig"
-    fi
-fi
-
-# ---------------------------------------------------------
-# 7. Nano Syntax Highlighting
-# ---------------------------------------------------------
-echo "📝 Setting up Nano..."
+# Nano Setup
 if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
     git clone https://github.com/galenguyer/nano-syntax-highlighting.git "$DOTPATH/editors/nano-syntax-highlighting"
 fi
 
-if [ -f "$DOTPATH/editors/.nanorc" ]; then
-    sed "s|DOTFILES_REAL_PATH|$DOTPATH|g" "$DOTPATH/editors/.nanorc" > "$HOME/.nanorc"
-    [ -n "$SUDO_CMD" ] && $SUDO_CMD cp "$HOME/.nanorc" "/root/.nanorc"
-fi
-
 # ---------------------------------------------------------
-# 8. 最終調整
+# 6. 最終調整
 # ---------------------------------------------------------
-# --- 最終調整セクション ---
 echo "🔐 Adjusting permissions..."
 [ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH"
 chmod 755 "$DOTPATH"
-# gcm に実行権限を付与
 [ -f "$DOTPATH/bin/gcm" ] && chmod +x "$DOTPATH/bin/gcm"
 chmod 644 "$HOME/.dotfiles_env"
 
 echo "✨ All Done! Modular Dotfiles are now active."
-echo "👉 Run 'exec zsh' or 'source ~/.zshrc' to refresh your session."
+echo "👉 Run 'exec zsh' to refresh your session."

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # ==========================================
 # .zshrc - Modular Edition (The Master Loader)
 # ==========================================
@@ -34,3 +35,17 @@ if command -v zoxide > /dev/null 2>&1; then
 fi
 
 # 履歴設定やエイリアスはすでに zsh/*.zsh から読み込まれています
+=======
+# --- ~/.zshrc ---
+
+# 1. 補完設定 (OMZより前に必要)
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+# 2. ローダーの呼び出し (ここが心臓部)
+if [ -f "$HOME/dotfiles/common/loader.sh" ]; then
+    source "$HOME/dotfiles/common/loader.sh"
+fi
+
+# 3. (もしあれば) インスタントプロンプトなどの設定
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+>>>>>>> e912daa (feat: v1.7.0 - Support AI-optimized Bash/Zsh loader and RHEL/root environment stability)

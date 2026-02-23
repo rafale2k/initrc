@@ -3,8 +3,16 @@
 # 実行されたスクリプトの場所を絶対パスで取得
 DOTPATH=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 
+# 外部関数の読み込み
+if [ -f "$DOTPATH/common/install_functions.sh" ]; then
+    source "$DOTPATH/common/install_functions.sh"
+else
+    echo "❌ Error: common/install_functions.sh not found."
+    exit 1
+fi
+
 # ---------------------------------------------------------
-# 0. GitHub SSH 接続テスト & PATH設定
+# 0. GitHub SSH 接続テスト
 # ---------------------------------------------------------
 echo "🔍 Checking GitHub SSH connection..."
 ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new >/dev/null 2>&1
@@ -15,16 +23,16 @@ else
 fi
 
 # ---------------------------------------------------------
-# 1. OS判別とパッケージマネージャーの設定
+# 1. OS判別 & パッケージマネージャー設定
 # ---------------------------------------------------------
 if [ "$(uname)" = "Darwin" ]; then
-    OS="mac"; PM="brew"
+    OS="mac"; PM="brew"; SUDO_CMD=""
 elif [ -f /etc/redhat-release ]; then
-    OS="rhel"; PM="dnf"
+    OS="rhel"; PM="dnf"; SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
 elif [ -f /etc/debian_version ]; then
-    OS="debian"; PM="apt"
+    OS="debian"; PM="apt"; SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
 else
-    OS="unknown"; PM="none"
+    OS="unknown"; PM="none"; SUDO_CMD=""
 fi
 
 echo "🌍 Detected OS: $OS (using $PM)"
@@ -40,68 +48,42 @@ chmod 644 "$HOME/.dotfiles_env"
 export PATH="$DOTPATH/bin:$PATH"
 
 # ---------------------------------------------------------
-# 3. モダンツールの自動インストール
+# 3. OS初期セットアップ (Update & リポジトリ)
 # ---------------------------------------------------------
-# 全OS共通のパッケージリスト
-REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
-echo "🛠️  Checking required tools..."
+setup_os "$PM" "$SUDO_CMD"
 
-case "$PM" in
-    "apt") 
-        SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
-        $SUDO_CMD apt update -y 
-        ;;
-    "dnf") 
-        SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
-        $SUDO_CMD dnf install -y epel-release 
-        $SUDO_CMD dnf config-manager --set-enabled crb || true
-        # RHEL系特有のパッケージをここで個別に叩く
-        echo "📦 Installing RHEL-specific packages..."
-        $SUDO_CMD dnf install -y procps-ng util-linux-user || true
-        ;;
-    "brew")
-        SUDO_CMD=""
-        ;;
-esac
+# ---------------------------------------------------------
+# 4. モダンツールの自動インストール
+# ---------------------------------------------------------
+REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
+echo "🛠️  Installing required tools..."
 
 for tool in "${REQUIRED_TOOLS[@]}"; do
     if ! command -v "$tool" &> /dev/null && ! command -v "${tool}cat" &> /dev/null && ! command -v "${tool}find" &> /dev/null; then
         echo "🎁 $tool is missing. Installing..."
-        case "$PM" in
-            "brew") brew install "$tool" ;;
-            "apt")
-                pkg="$tool"
-                [ "$tool" = "fd" ] && pkg="fd-find"
-                if [ "$tool" = "eza" ]; then
-                    $SUDO_CMD mkdir -p /etc/apt/keyrings
-                    wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | $SUDO_CMD gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
-                    echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | $SUDO_CMD tee /etc/apt/sources.list.d/gierens.list
-                    $SUDO_CMD apt update
-                fi
-                $SUDO_CMD apt install -y "$pkg"
-                ;;
-            "dnf")
-                if [ "$tool" = "eza" ]; then
-                    curl -L https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz
-                    [ -f "./eza" ] && mv ./eza "$DOTPATH/bin/eza"
-                    chmod +x "$DOTPATH/bin/eza"
-                else
-                    $SUDO_CMD dnf install -y "$tool" || echo "⚠️  Failed to install $tool via dnf"
-                fi
-                ;;
-        esac
+        if declare -f "install_$tool" > /dev/null; then
+            "install_$tool" "$PM" "$DOTPATH" "$SUDO_CMD"
+        else
+            $SUDO_CMD $PM install -y "$tool"
+        fi
     else
         echo "✅ $tool is already installed."
     fi
 done
 
 # ---------------------------------------------------------
-# 4. Zsh / Oh My Zsh & Plugins Setup
+# 5. Zsh / Oh My Zsh & Plugins Setup (上書き対策版)
 # ---------------------------------------------------------
 echo "🐚 Setting up Zsh and Oh My Zsh..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
+    # --unattended を指定しても、~/.zshrc が新規作成される場合がある
     sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
 fi
+
+# ★最重要★ Oh My Zsh 導入後に自前の設定ファイルをリンクし直す
+echo "🔗 Enforcement linking Zsh configs (p10k protection)..."
+ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
+ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 
 ZSH_CUSTOM="${HOME}/.oh-my-zsh/custom"
 mkdir -p "${ZSH_CUSTOM}/plugins"
@@ -117,7 +99,7 @@ if [ -d "$DOTPATH/zsh/plugins" ]; then
 fi
 
 # ---------------------------------------------------------
-# 5. シンボリックリンク & nanorc 動的生成
+# 6. シンボリックリンク & 設定ファイル生成
 # ---------------------------------------------------------
 echo "🔗 Creating symbolic links from configs/..."
 if [ -d "$DOTPATH/configs" ]; then
@@ -131,46 +113,59 @@ if [ -d "$DOTPATH/configs" ]; then
         fi
 
         if [ "$filename" == "nanorc" ]; then
-            echo "📝 Generating $target (Path substitution for Monokai)..."
+            echo "📝 Generating $target (Path substitution)..."
             sed "s|__DOTPATH__|$DOTPATH|g" "$config_file" > "$target"
+        elif [ "$filename" == "gitconfig" ]; then
+            echo "✅ Linking gitconfig -> $target"
+            ln -sf "$config_file" "$target"
+
+            # --- .gitconfig.local の保護と生成 ---
+            GIT_LOCAL="$HOME/.gitconfig.local"
+            if [ ! -f "$GIT_LOCAL" ]; then
+                echo "👤 Git local settings not found. Let's set up your identity."
+                curr_name=$(git config --global user.name || echo "Dassault Rafale")
+                curr_email=$(git config --global user.email || echo "d.rafale@gmail.com")
+                
+                read -p "Enter Git User Name [$curr_name]: " git_name
+                git_name=${git_name:-$curr_name}
+                read -p "Enter Git User Email [$curr_email]: " git_email
+                git_email=${git_email:-$curr_email}
+
+                cat << EOF > "$GIT_LOCAL"
+[user]
+    name = $git_name
+    email = $git_email
+EOF
+                echo "✅ Created $GIT_LOCAL"
+            fi
         else
-            echo "✅ Linking $filename -> $target"
             ln -sf "$config_file" "$target"
         fi
     done
 fi
 
-# 個別リンク（テーマファイルなど）
-echo "🔗 Creating additional shell & theme links..."
-ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
-ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
+# 個別リンク（Nano Themes）
 mkdir -p "$HOME/.nano"
 ln -sf "$DOTPATH/editors/my-themes/monokai.nanorc" "$HOME/.nano/monokai.nanorc"
 
 # ---------------------------------------------------------
-# 6. ローカルテンプレート作成 
+# 7. ローカルテンプレート作成
 # ---------------------------------------------------------
-ENV_TEMPLATE="$DOTPATH/common/.env"
-ENV_LOCAL="$DOTPATH/common/.env.local"
-[ -f "$ENV_TEMPLATE" ] && [ ! -f "$ENV_LOCAL" ] && cp "$ENV_TEMPLATE" "$ENV_LOCAL"
+[ -f "$DOTPATH/common/.env" ] && [ ! -f "$DOTPATH/common/.env.local" ] && cp "$DOTPATH/common/.env" "$DOTPATH/common/.env.local"
 
 # ---------------------------------------------------------
-# 7. 最終確定
+# 8. 最終確定 & パレット適用
 # ---------------------------------------------------------
 echo "🔐 Finalizing permissions..."
-[ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH"
+[ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH" 2>/dev/null || true
 chmod +x "$DOTPATH/bin/"* 2>/dev/null || true
 
-source "$HOME/.dotfiles_env"
-[ -n "$ZSH_VERSION" ] && source "$HOME/.zshrc" 2>/dev/null || true
-
-# ---------------------------------------------------------
-# 8. ターミナルパレットの強制適用 (rlogin対策)
-# ---------------------------------------------------------
 if [ -f "$DOTPATH/bin/monokai-palette.sh" ]; then
-    echo "🎨 Applying Monokai palette to terminal..."
-    chmod +x "$DOTPATH/bin/monokai-palette.sh"
+    echo "🎨 Applying Monokai palette..."
     bash "$DOTPATH/bin/monokai-palette.sh"
 fi
 
-echo "✨ All Done! System Recreated."
+# 環境変数の読み込み
+source "$HOME/.dotfiles_env"
+
+echo "✨ All Done! Please restart your shell or run: exec zsh -l"

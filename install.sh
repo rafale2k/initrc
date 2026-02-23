@@ -7,7 +7,6 @@ DOTPATH=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 # 0. GitHub SSH 接続テスト & PATH設定
 # ---------------------------------------------------------
 echo "🔍 Checking GitHub SSH connection..."
-# 接続テスト (StrictHostKeyCheckingを自動承認して止まらないようにする)
 ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new >/dev/null 2>&1
 if [ $? -eq 1 ]; then
     echo "✅ GitHub SSH connection successful."
@@ -31,20 +30,18 @@ fi
 echo "🌍 Detected OS: $OS (using $PM)"
 
 # ---------------------------------------------------------
-# 2. パス情報の保存 (重要：エイリアス判定の前に読み込ませる)
+# 2. パス情報の保存
 # ---------------------------------------------------------
 cat << EOF > "$HOME/.dotfiles_env"
 export DOTFILES_PATH="$DOTPATH"
 export PATH="\$DOTFILES_PATH/bin:\$PATH"
 EOF
 chmod 644 "$HOME/.dotfiles_env"
-# 現在のプロセスにも即座に反映
 export PATH="$DOTPATH/bin:$PATH"
 
 # ---------------------------------------------------------
 # 3. モダンツールの自動インストール
 # ---------------------------------------------------------
-# RHEL系で必須な procps-ng (ps) と util-linux-user (chsh) を追加
 REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget" "procps-ng" "util-linux-user")
 echo "🛠️  Checking required tools..."
 
@@ -81,7 +78,6 @@ for tool in "${REQUIRED_TOOLS[@]}"; do
                 ;;
             "dnf")
                 if [ "$tool" = "eza" ]; then
-                    echo "📥 eza not found in dnf. Downloading binary from GitHub..."
                     curl -L https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz
                     [ -f "./eza" ] && mv ./eza "$DOTPATH/bin/eza"
                     chmod +x "$DOTPATH/bin/eza"
@@ -96,7 +92,7 @@ for tool in "${REQUIRED_TOOLS[@]}"; do
 done
 
 # ---------------------------------------------------------
-# 4. Zsh / Oh My Zsh & Plugins Setup
+# 4. Zsh / Oh My Zsh & Plugins Setup (★サブモジュール連携に改良)
 # ---------------------------------------------------------
 echo "🐚 Setting up Zsh and Oh My Zsh..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -104,14 +100,15 @@ if [ ! -d "$HOME/.oh-my-zsh" ]; then
 fi
 
 ZSH_CUSTOM="${HOME}/.oh-my-zsh/custom"
-PLUGINS_URLS=(
-    "zsh-autosuggestions:https://github.com/zsh-users/zsh-autosuggestions"
-    "zsh-syntax-highlighting:https://github.com/zsh-users/zsh-syntax-highlighting"
-)
+mkdir -p "${ZSH_CUSTOM}/plugins"
 
-for item in "${PLUGINS_URLS[@]}"; do
-    name=${item%%:*}; url=${item#*:}
-    [ ! -d "${ZSH_CUSTOM}/plugins/${name}" ] && git clone "$url" "${ZSH_CUSTOM}/plugins/${name}"
+# サブモジュールとして管理しているプラグインをリンク
+for plugin_path in "$DOTPATH"/zsh/plugins/*; do
+    name=$(basename "$plugin_path")
+    if [ -d "$plugin_path" ]; then
+        echo "🔗 Linking Zsh plugin: $name"
+        ln -sf "$plugin_path" "${ZSH_CUSTOM}/plugins/${name}"
+    fi
 done
 
 # ---------------------------------------------------------
@@ -122,46 +119,36 @@ ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
 
-# Nano Setup
-if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
-    git clone https://github.com/galenguyer/nano-syntax-highlighting.git "$DOTPATH/editors/nano-syntax-highlighting"
+# Nano Setup (★ここもサブモジュール前提に変更)
+if [ -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
+    echo "✅ Nano syntax highlighting found (submodule)."
+else
+    echo "⚠️  Nano syntax highlighting submodule missing. Run 'git submodule update --init'!"
 fi
-
 
 # ---------------------------------------------------------
 # 6. ローカルテンプレート作成 
 # ---------------------------------------------------------
 echo "⚙️  Setting up local environment files..."
-
-DOTFILES_PATH="$HOME/dotfiles"
-ENV_TEMPLATE="$DOTFILES_PATH/common/.env"
-ENV_LOCAL="$DOTFILES_PATH/common/.env.local"
+ENV_TEMPLATE="$DOTPATH/common/.env"
+ENV_LOCAL="$DOTPATH/common/.env.local"
 
 if [ -f "$ENV_TEMPLATE" ]; then
     if [ ! -f "$ENV_LOCAL" ]; then
-        echo "📄 Creating .env.local from template..."
         cp "$ENV_TEMPLATE" "$ENV_LOCAL"
-        echo "✅ Created $ENV_LOCAL. Please edit it with your API keys."
-    else
-        echo "⏭️  .env.local already exists. Skipping copy."
+        echo "✅ Created $ENV_LOCAL."
     fi
-else
-    echo "⚠️  Warning: .env template not found at $ENV_TEMPLATE"
 fi
 
-echo "✨ Environment setup complete!"
-
 # ---------------------------------------------------------
-# 7. 権限とパスの最終確定 (root対応含む)
+# 7. 最終確定
 # ---------------------------------------------------------
-echo "🔐 Finalizing permissions and environment..."
+echo "🔐 Finalizing permissions..."
 [ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH"
 chmod 755 "$DOTPATH"
 chmod +x "$DOTPATH/bin/"* 2>/dev/null || true
 
-# 最後のダメ押し：現在のシェルに設定を反映させる
 source "$HOME/.dotfiles_env"
 source "$HOME/.zshrc" 2>/dev/null || true
 
 echo "✨ All Done! Modular Dotfiles are now active."
-echo "👉 Run 'exec zsh' to refresh your session."

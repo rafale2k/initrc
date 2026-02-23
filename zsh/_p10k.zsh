@@ -1,24 +1,22 @@
-# ~/dotfiles/zsh/_p10k.zsh
+# --- zsh/_p10k.zsh ---
 
 if [[ -z "$ZSH_COMPDUMP_LOADED" ]]; then
     export ZSH="$HOME/.oh-my-zsh"
     
-<<<<<<< HEAD
-    # --- 修正ポイント：ここ ---
-    # OMZの仕様上、customディレクトリにある場合はフォルダ名だけでOK
-    # もしくは、フォルダ名とファイル名が一致している必要があります
-    ZSH_THEME="powerlevel10k" 
+    # テーマ設定 (Powerlevel10k)
+    ZSH_THEME="powerlevel10k/powerlevel10k"
     
-    # 設定ファイルを OMZ 起動前に読み込む
-=======
-    # ここで先に設定を読み込んでおく
->>>>>>> e912daa (feat: v1.7.0 - Support AI-optimized Bash/Zsh loader and RHEL/root environment stability)
+    # OMZ起動前に p10k の設定ファイルを先行読み込み
     [[ -f "$HOME/dotfiles/zsh/.p10k.zsh" ]] && source "$HOME/dotfiles/zsh/.p10k.zsh"
     
+    # プラグイン設定
     plugins=(git sudo extract docker docker-compose zsh-autosuggestions zsh-syntax-highlighting)
+    
+    # Oh My Zsh 起動
     source $ZSH/oh-my-zsh.sh
+    
     export ZSH_COMPDUMP_LOADED=1
 fi
 
-# OMZ 読み込み後に「ダメ押し」で再度設定ファイルを当てる
+# OMZ 読み込み後に再度設定ファイルを適用（上書き防止のダメ押し）
 [[ -f "$HOME/dotfiles/zsh/.p10k.zsh" ]] && source "$HOME/dotfiles/zsh/.p10k.zsh"

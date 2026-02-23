@@ -19,17 +19,27 @@ fi
 echo "🌍 Detected OS: $OS (using $PM)"
 
 # ---------------------------------------------------------
-# 2. パス情報の保存 (loader.sh の生命線)
+# 2. パス情報の保存 (loader.sh およびコマンド実行の生命線)
 # ---------------------------------------------------------
-echo "export DOTFILES_PATH=\"$DOTPATH\"" > "$HOME/.dotfiles_env"
+# 一般ユーザー用の環境設定
+cat << EOF > "$HOME/.dotfiles_env"
+export DOTFILES_PATH="$DOTPATH"
+# dotfiles/bin にパスを通す
+export PATH="\$DOTFILES_PATH/bin:\$PATH"
+EOF
+
 SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
 
 # root環境用 (sudo が利用可能な場合)
-if [ -n "$SUDO_CMD" ]; then
-    $SUDO_CMD sh -c "echo \"export DOTFILES_PATH=\\\"$DOTPATH\\\"\" > /root/.dotfiles_env"
-else
-    [ "$EUID" -eq 0 ] && echo "export DOTFILES_PATH=\"$DOTPATH\"" > /root/.dotfiles_env
+if [ -n "$SUDO_CMD" ] || [ "$EUID" -eq 0 ]; then
+    TARGET_ENV="/root/.dotfiles_env"
+    $SUDO_CMD sh -c "cat << EOF > $TARGET_ENV
+export DOTFILES_PATH=\"$DOTPATH\"
+export PATH=\"$DOTPATH/bin:\\\$PATH\"
+EOF"
 fi
+
+echo "✅ Path to 'bin' directory added to .dotfiles_env"
 
 # ---------------------------------------------------------
 # 3. モダンツールの自動インストール

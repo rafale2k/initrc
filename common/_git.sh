@@ -44,3 +44,16 @@ gquick() {
     
     echo "✨ Done! Pushed to $branch."
 }
+
+# ------------------------------------------------------------------------------
+# Git-extras & Clipboard Utility Aliases
+# ------------------------------------------------------------------------------
+
+# git-extras: プロジェクトの統計をサクッと確認
+alias gstat='git summary'
+
+# git-extras: 変更のあったファイル名だけをリストアップ（レビュー前に便利）
+alias gdels='git delta'
+
+# copyfile: 直近のコミットハッシュをコピー (git-extras の git-alias を利用)
+alias gcp-hash='git rev-parse HEAD | pbcopy' # macOS用。Linuxなら xclip -sel clip

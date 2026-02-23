@@ -37,6 +37,7 @@
 
 [fetch]
     prune = true
-[user]
-	email = d.rafale@gmail.com
-	name = Dassualt Rafale
+
+# マシン固有の設定があれば読み込む（名前、メールなど）
+[include]
+    path = ~/.gitconfig.local

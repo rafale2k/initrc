@@ -9,12 +9,10 @@ set tabsize 4        # タブ幅
 set tabstospaces     # タブをスペースに変換
 set constantshow     # カーソル位置を常時表示
 set zap              # 選択範囲の一括削除を有効化
-set smooth           # スムーズスクロール
 set smarthome        # Homeキーで先頭/空白以外の先頭を移動
 set autoindent       # 自動インデント
 
 ## --- 2. インターフェース配色 ---
-## rloginのパレット設定に合わせて背景を black (0番) に固定
 set titlecolor brightwhite,black
 set statuscolor brightwhite,black
 set errorcolor brightwhite,red
@@ -24,15 +22,8 @@ set keycolor brightmagenta,black
 set functioncolor brightyellow,black
 
 ## --- 3. シンタックスハイライトの読み込み順序 ---
-
-# (A) まずはサブモジュールの標準ハイライトをすべて読み込む
-# ※ install.sh 実行時に __DOTPATH__ が置換される
+# (A) 標準ハイライトを読み込む
 include "__DOTPATH__/editors/nano-syntax-highlighting/*.nanorc"
 
-# (B) 最後に自分の Monokai テーマを読み込んで上書きする
-# ※ これが最後にあることで、Tokyonight化を防いで Monokai を強制する
+# (B) 最後に Monokai テーマで上書き
 include "__DOTPATH__/editors/my-themes/monokai.nanorc"
-
-## --- 4. 追加の微調整 ---
-# 行末の余計な空白を赤くハイライト (もし Monokai 側になければ)
-# color ,red "[[:space:]]+$"

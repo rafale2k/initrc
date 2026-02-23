@@ -1,0 +1,112 @@
+# --- AI Commit Message Generator (Stable & Multi-Proposal) ---
+_ai_generate_commit_proposals() {
+    [[ -z "$GEMINI_API_KEY" ]] && return 1
+
+    local diff_b64
+    # diffをBase64化。マルチバイト文字や特殊文字をPythonへ安全に渡す
+    diff_b64=$(git diff --cached | head -c 10000 | base64 | tr -d '\n')
+    [[ -z "$diff_b64" ]] && return 1
+
+    export DIFF_B64_DATA="$diff_b64"
+    export GEMINI_API_KEY_ENV="$GEMINI_API_KEY"
+
+    python3 <<'EOF'
+import json
+import urllib.request
+import os
+import base64
+
+def fetch():
+    key = os.environ.get("GEMINI_API_KEY_ENV")
+    b64_diff = os.environ.get("DIFF_B64_DATA", "")
+    if not key or not b64_diff: return
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+
+    sys_inst = (
+        "You are an expert developer. The input is a Base64 encoded git diff. "
+        "Decode it and provide 3 distinct high-quality commit messages in English. "
+        "Format: Conventional Commits (e.g., feat:, fix:, docs:, chore:). "
+        "Output ONLY 3 lines of messages. No numbers, no markdown code blocks."
+    )
+
+    payload = {
+        "system_instruction": {"parts": [{"text": sys_inst}]},
+        "contents": [{"parts": [{"text": f"Base64 Diff:\n{b64_diff}"}]}]
+    }
+
+    try:
+        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=10) as res:
+            data = json.loads(res.read().decode("utf-8"))
+            text = data['candidates'][0]['content']['parts'][0]['text']
+            # 行のクリーンアップ。不要な記号や数字を削除
+            lines = [l.strip().lstrip('1234567890.+-* ').strip('` ') for l in text.strip().split('\n') if l.strip()]
+            for l in lines[:3]: print(l)
+    except Exception as e:
+        pass
+
+fetch()
+EOF
+    unset DIFF_B64_DATA
+    unset GEMINI_API_KEY_ENV
+}
+
+gcm() {
+    # 1. 差分の存在チェック
+    local current_diff
+    current_diff=$(git diff --cached)
+    if [[ -z "$current_diff" ]]; then
+        echo "❌ No changes staged. (Use 'git add' first)"
+        return 1
+    fi
+
+    echo "🤖 AI is thinking (Gemini 1.5 Flash Mode)..."
+
+    # 2. プロポーザル生成
+    local proposals
+    proposals=$(_ai_generate_commit_proposals)
+
+    # 3. 選択肢の構築
+    local -a choices
+    if [[ -n "$proposals" ]]; then
+        while IFS= read -r line; do
+            choices+=("$line")
+        done <<< "$proposals"
+    else
+        echo "⚠️  AI failed to respond. Using defaults."
+    fi
+
+    # デフォルトの選択肢を追加
+    choices+=("feat: update configuration" "fix: minor bug fixes" "[Manual Input]")
+
+    # 4. fzf による選択 (プレビュー機能付き)
+    local selected
+    # fzf の中で git diff --cached --color を表示することで、内容を確認しながら選べる
+    selected=$(printf "%s\n" "${choices[@]}" | fzf \
+        --height 60% \
+        --reverse \
+        --border \
+        --ansi \
+        --header "Select a commit message (ESC to cancel)" \
+        --preview "echo '--- Git Diff (Staged) ---\n'; git diff --cached --color=always" \
+        --preview-window "right:50%:wrap")
+
+    # 5. キャンセル処理
+    [[ -z "$selected" ]] && { echo "Aborted."; return 0; }
+
+    # 6. 手動入力処理
+    if [[ "$selected" == "[Manual Input]" ]]; then
+        echo -n "✍️ Enter your message: "
+        read -r manual_message
+        selected=$manual_message
+    fi
+
+    # 7. コミット実行
+    if [[ -z "$selected" ]]; then
+        echo "❌ Message cannot be empty."
+        return 1
+    fi
+
+    git commit -m "$selected"
+}

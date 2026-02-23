@@ -1,10 +1,20 @@
 #!/bin/bash
-# ==========================================
-# 共通設定ローダー (Zsh & Bash モジュール対応)
-# ==========================================
+# --- common/loader.sh ---
 
-# 1. パスの特定 (Zsh/Bash両対応)
+# 1. パスの確定
+export DOTFILES_PATH="$HOME/dotfiles"
+COMMON_DIR="$DOTFILES_PATH/common"
+
+# 2. 共通スクリプト (_n や _git) の読み込み
+if [ -d "$COMMON_DIR" ]; then
+    for f in "$COMMON_DIR"/_*.sh; do
+        [ -r "$f" ] && source "$f"
+    done
+fi
+
+# 3. Zsh 固有設定の読み込み
 if [ -n "$ZSH_VERSION" ]; then
+<<<<<<< HEAD
     DOT_DIR="${${(%):-%x}:a:h:h}"
     COMMON_DIR="${${(%):-%x}:a:h}"
 else
@@ -13,49 +23,18 @@ else
     SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
     COMMON_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
     DOT_DIR="$(cd "$COMMON_DIR/.." && pwd)"
+=======
+    ZSH_DIR="$DOTFILES_PATH/zsh"
+    # 背景色 (hooks) -> エイリアス (aliases) -> プロンプト (_p10k) の順で強制実行
+    [ -f "$ZSH_DIR/hooks.zsh" ]   && source "$ZSH_DIR/hooks.zsh"
+    [ -f "$ZSH_DIR/options.zsh" ] && source "$ZSH_DIR/options.zsh"
+    [ -f "$ZSH_DIR/aliases.zsh" ] && source "$ZSH_DIR/aliases.zsh"
+    [ -f "$ZSH_DIR/_p10k.zsh" ]   && source "$ZSH_DIR/_p10k.zsh"
+>>>>>>> e912daa (feat: v1.7.0 - Support AI-optimized Bash/Zsh loader and RHEL/root environment stability)
 fi
 
-# 2. common/_*.sh を一括読み込み (共通)
-for f in "$COMMON_DIR"/_*.sh; do
-    [ -r "$f" ] && source "$f"
-done
-
-# 3. 各シェル固有のディレクトリから自動読み込み
-if [ -n "$ZSH_VERSION" ]; then
-    # --- Zsh の場合 ---
-    ZSH_DIR="$DOT_DIR/zsh"
-    if [ -d "$ZSH_DIR" ]; then
-        for f in "$ZSH_DIR"/*.zsh; do
-            fname=$(basename "$f")
-            case "$fname" in
-                .zshrc|.p10k.zsh) continue ;; 
-                *) [ -r "$f" ] && source "$f" ;;
-            esac
-        done
-    fi
-elif [ -n "$BASH_VERSION" ]; then
-    # --- Bash の場合 ---
-    BASH_DIR="$DOT_DIR/bash"
-    if [ -d "$BASH_DIR" ]; then
-        for f in "$BASH_DIR"/*.sh; do
-            fname=$(basename "$f")
-            case "$fname" in
-                .bashrc|_omb.sh) continue ;; # _omb.shは本体で明示的に呼ぶため除外
-                *) [ -r "$f" ] && source "$f" ;;
-            esac
-        done
-    fi
+# 4. Bash 固有設定 (もし Bash なら)
+if [ -n "$BASH_VERSION" ]; then
+    BASH_DIR="$DOTFILES_PATH/bash"
+    [ -f "$BASH_DIR/.bashrc" ] && source "$BASH_DIR/.bashrc"
 fi
-
-# 4. Global Gitignore の適用
-GITIGNORE_GLOBAL="$COMMON_DIR/gitignore_global"
-if [ -r "$GITIGNORE_GLOBAL" ]; then
-    git config --global core.excludesfile "$GITIGNORE_GLOBAL"
-fi
-
-# 5. ローカル設定
-[[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
-[[ -f ~/.bashrc.local ]] && source ~/.bashrc.local
-
-# 変数のクリーンアップ
-unset DOT_DIR COMMON_DIR ZSH_DIR BASH_DIR fname

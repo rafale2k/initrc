@@ -8,9 +8,11 @@ if [ -n "$ZSH_VERSION" ]; then
     DOT_DIR="${${(%):-%x}:a:h:h}"
     COMMON_DIR="${${(%):-%x}:a:h}"
 else
-    # Bash 用のパス取得
-    DOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-    COMMON_DIR="$DOT_DIR/common"
+    # --- Bash 用のパス取得をより堅牢に ---
+    # BASH_SOURCE が取れない場合を考慮し、pwd から推測するフォールバックを追加
+    SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
+    COMMON_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+    DOT_DIR="$(cd "$COMMON_DIR/.." && pwd)"
 fi
 
 # 2. common/_*.sh を一括読み込み (共通)

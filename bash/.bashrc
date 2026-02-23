@@ -1,3 +1,4 @@
+[root@8e9977517646 dotfiles]# cat bash/.bashrc 
 #!/bin/bash
 # 1. 環境変数の読み込み
 [[ -f ~/.dotfiles_env ]] && source ~/.dotfiles_env
@@ -23,7 +24,12 @@ else
 fi
 
 # 4. 共通ローダー
-[[ -f "$DOTFILES_PATH/common/loader.sh" ]] && source "$DOTFILES_PATH/common/loader.sh"
+# 事前に変数をエクスポートしておく
+export DOTFILES_PATH="$HOME/dotfiles"
+
+if [[ -f "$DOTFILES_PATH/common/loader.sh" ]]; then
+    source "$DOTFILES_PATH/common/loader.sh"
+fi
 
 # 5. Zoxide の安全な初期化（最後に行う）
 if command -v zoxide >/dev/null 2>&1; then
@@ -31,4 +37,3 @@ if command -v zoxide >/dev/null 2>&1; then
     eval "$(zoxide init bash --no-aliases)"
     alias z='__zoxide_z'
 fi
-

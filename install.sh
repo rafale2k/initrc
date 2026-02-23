@@ -92,7 +92,7 @@ for tool in "${REQUIRED_TOOLS[@]}"; do
 done
 
 # ---------------------------------------------------------
-# 4. Zsh / Oh My Zsh & Plugins Setup (★サブモジュール連携に改良)
+# 4. Zsh / Oh My Zsh & Plugins Setup
 # ---------------------------------------------------------
 echo "🐚 Setting up Zsh and Oh My Zsh..."
 if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -102,28 +102,52 @@ fi
 ZSH_CUSTOM="${HOME}/.oh-my-zsh/custom"
 mkdir -p "${ZSH_CUSTOM}/plugins"
 
-# サブモジュールとして管理しているプラグインをリンク
-for plugin_path in "$DOTPATH"/zsh/plugins/*; do
-    name=$(basename "$plugin_path")
-    if [ -d "$plugin_path" ]; then
-        echo "🔗 Linking Zsh plugin: $name"
-        ln -sf "$plugin_path" "${ZSH_CUSTOM}/plugins/${name}"
-    fi
-done
+# サブモジュールのプラグインをリンク
+if [ -d "$DOTPATH/zsh/plugins" ]; then
+    for plugin_path in "$DOTPATH"/zsh/plugins/*; do
+        name=$(basename "$plugin_path")
+        if [ -d "$plugin_path" ]; then
+            echo "🔗 Linking Zsh plugin: $name"
+            ln -sf "$plugin_path" "${ZSH_CUSTOM}/plugins/${name}"
+        fi
+    done
+fi
 
 # ---------------------------------------------------------
-# 5. シンボリックリンク / Git / Nano 
+# 5. シンボリックリンク (configs/ 配下を自動リンク)
 # ---------------------------------------------------------
-echo "🔗 Creating symbolic links..."
+echo "🔗 Creating symbolic links from configs/..."
+
+# configs/ 配下のファイルをループで回す
+if [ -d "$DOTPATH/configs" ]; then
+    for config_file in "$DOTPATH"/configs/*; do
+        # ファイル名のみ取得 (例: gitconfig)
+        filename=$(basename "$config_file")
+        # ターゲットは $HOME 配下のドットファイル (例: $HOME/.gitconfig)
+        target="$HOME/.$filename"
+
+        # 既存のファイルがリンクでない場合はバックアップ
+        if [ -e "$target" ] && [ ! -L "$target" ]; then
+            echo "📦 Backing up $target to ${target}.bak"
+            mv "$target" "${target}.bak"
+        fi
+
+        echo "✅ Linking $filename -> $target"
+        ln -sf "$config_file" "$target"
+    done
+fi
+
+# 個別設定のリンク (configs以外に置いているもの)
+echo "🔗 Creating additional symbolic links..."
 ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
-ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
+[ -f "$DOTPATH/editors/.vimrc" ] && ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
 
-# Nano Setup (★ここもサブモジュール前提に変更)
+# Nano Setup
 if [ -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
-    echo "✅ Nano syntax highlighting found (submodule)."
+    echo "✅ Nano syntax highlighting found."
 else
-    echo "⚠️  Nano syntax highlighting submodule missing. Run 'git submodule update --init'!"
+    echo "⚠️  Nano syntax highlighting submodule missing."
 fi
 
 # ---------------------------------------------------------
@@ -149,6 +173,7 @@ chmod 755 "$DOTPATH"
 chmod +x "$DOTPATH/bin/"* 2>/dev/null || true
 
 source "$HOME/.dotfiles_env"
-source "$HOME/.zshrc" 2>/dev/null || true
+# Zsh起動中なら再読み込み
+[ -n "$ZSH_VERSION" ] && source "$HOME/.zshrc" 2>/dev/null || true
 
 echo "✨ All Done! Modular Dotfiles are now active."

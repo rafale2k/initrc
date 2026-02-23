@@ -12,29 +12,22 @@ if [ -d "$COMMON_DIR" ]; then
     done
 fi
 
-# 3. Zsh 固有設定の読み込み
+# 3. 各シェル固有設定の読み込み
 if [ -n "$ZSH_VERSION" ]; then
-<<<<<<< HEAD
-    DOT_DIR="${${(%):-%x}:a:h:h}"
-    COMMON_DIR="${${(%):-%x}:a:h}"
-else
-    # --- Bash 用のパス取得をより堅牢に ---
-    # BASH_SOURCE が取れない場合を考慮し、pwd から推測するフォールバックを追加
-    SCRIPT_PATH="${BASH_SOURCE[0]:-$0}"
-    COMMON_DIR="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
-    DOT_DIR="$(cd "$COMMON_DIR/.." && pwd)"
-=======
+    # --- Zsh の場合 ---
     ZSH_DIR="$DOTFILES_PATH/zsh"
-    # 背景色 (hooks) -> エイリアス (aliases) -> プロンプト (_p10k) の順で強制実行
-    [ -f "$ZSH_DIR/hooks.zsh" ]   && source "$ZSH_DIR/hooks.zsh"
-    [ -f "$ZSH_DIR/options.zsh" ] && source "$ZSH_DIR/options.zsh"
-    [ -f "$ZSH_DIR/aliases.zsh" ] && source "$ZSH_DIR/aliases.zsh"
-    [ -f "$ZSH_DIR/_p10k.zsh" ]   && source "$ZSH_DIR/_p10k.zsh"
->>>>>>> e912daa (feat: v1.7.0 - Support AI-optimized Bash/Zsh loader and RHEL/root environment stability)
-fi
+    # 読み込み順序を固定して、確実にパレットとプロンプトを適用
+    [ -r "$ZSH_DIR/hooks.zsh" ]   && source "$ZSH_DIR/hooks.zsh"
+    [ -r "$ZSH_DIR/options.zsh" ] && source "$ZSH_DIR/options.zsh"
+    [ -r "$ZSH_DIR/aliases.zsh" ] && source "$ZSH_DIR/aliases.zsh"
+    [ -r "$ZSH_DIR/_p10k.zsh" ]   && source "$ZSH_DIR/_p10k.zsh"
 
-# 4. Bash 固有設定 (もし Bash なら)
-if [ -n "$BASH_VERSION" ]; then
+elif [ -n "$BASH_VERSION" ]; then
+    # --- Bash の場合 ---
     BASH_DIR="$DOTFILES_PATH/bash"
+    # _omb.sh など、Bash固有の設定があればここで読み込む
     [ -f "$BASH_DIR/.bashrc" ] && source "$BASH_DIR/.bashrc"
 fi
+
+# 4. 変数のクリーンアップ
+unset f ZSH_DIR BASH_DIR COMMON_DIR

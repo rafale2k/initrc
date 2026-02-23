@@ -37,3 +37,6 @@
 
 [fetch]
     prune = true
+[user]
+	email = d.rafale@gmail.com
+	name = Dassualt Rafale

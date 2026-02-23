@@ -1,24 +1,30 @@
+## Monokai Theme for nano
+## syntax 名を定義し、対象とする拡張子を ".*" (全ファイル) に設定
 syntax "monokai" ".*"
 
-# 基本の色（Monokaiパレット）
-# キーワード (明るいマゼンタ)
-color brightmagenta "\<(if|then|else|elif|fi|for|in|do|done|while|until|case|esac|break|continue|return|exit|source)\>"
+# キーワード (明るいマゼンタ / Monokai Pink)
+color brightmagenta,black "\<(if|then|else|elif|fi|for|in|do|done|while|until|case|esac|break|continue|return|exit|source|function|local|export|alias)\>"
 
-# 文字列 (黄色)
-color yellow ""(\\.|[^"])*"" "'(\\.|[^'])*'"
+# 文字列 (黄色 / Monokai Yellow)
+color yellow,black ""(\\.|[^"])*"" "'(\\.|[^'])*'"
 
-# 変数 (明るいシアン)
-color brightcyan "\$[A-Za-z_][A-Za-z0-9_]*"
+# 変数 (明るいシアン / Monokai Blue)
+color brightcyan,black "\$[A-Za-z_][A-Za-z0-9_]*"
+color brightcyan,black "\$\{[A-Za-z_][A-Za-z0-9_]*\}"
 
-# コメント (シアン)
-color cyan "(^|[[:space:]])#.*"
+# コメント (シアン / Monokai Grey系)
+color cyan,black "(^|[[:space:]])#.*"
 
-# 関数 (明るいグリーン)
-color brightgreen "\<[A-Za-z_][A-Za-z0-9_]*\>\("
+# 関数 (明るいグリーン / Monokai Green)
+color brightgreen,black "\<[A-Za-z_][A-Za-z0-9_]*\>[[:space:]]*\("
 
-# 数字 (マゼンタ)
-color magenta "[0-9]+"
+# 数字 (マゼンタ / Monokai Purple)
+color magenta,black "\<[0-9]+\>"
 
-# カッコ・演算子
-color brightwhite "[(){}\[\]]"
-color brightmagenta "[|&;<>()]"
+# カッコ・演算子 (明るい白)
+color brightwhite,black "[(){}\[\]]"
+color brightmagenta,black "[|&;<>()]"
+color brightmagenta,black "[=+*/-]"
+
+# 行末の余計な空白を赤く光らせる
+color ,red "[[:space:]]+$"

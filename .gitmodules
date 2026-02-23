@@ -1,0 +1,3 @@
+[submodule "editors/nano-syntax-highlighting"]
+	path = editors/nano-syntax-highlighting
+	url = https://github.com/scopatz/nanorc

@@ -6,6 +6,8 @@
 # ターミナル配色制御 (Tokyo Night)
 # ターミナル配色制御 (Tokyo Night)
 set_tokyo_night_colors() {
+    # root (EUID=0) の場合は、色の設定処理自体をスキップして抜ける
+    [ "$EUID" -eq 0 ] && return
     [[ $- != *i* ]] && return
     if [[ "$TERM" == "xterm-256color" || "$TERM" == "xterm" ]]; then
         if [ "$EUID" -ne 0 ]; then

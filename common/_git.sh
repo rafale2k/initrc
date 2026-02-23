@@ -26,3 +26,21 @@ alias gms='git checkout $(git symbolic-ref --short refs/remotes/origin/HEAD | se
 if [ -f "$HOME/dotfiles/bin/gcm" ]; then
     alias gcm="$HOME/dotfiles/bin/gcm"
 fi
+
+gquick() {
+    local msg=$1
+    if [ -z "$msg" ]; then
+        msg="Quick sync: $(date '+%Y-%m-%d %H:%M:%S')"
+    fi
+
+    echo "🚀 Starting quick sync..."
+    git add -A
+    git commit -m "$msg"
+    
+    # 現在のブランチ名を取得して push
+    local branch
+    branch=$(git symbolic-ref --short HEAD)
+    git push origin "$branch"
+    
+    echo "✨ Done! Pushed to $branch."
+}

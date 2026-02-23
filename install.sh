@@ -44,7 +44,7 @@ echo "✅ Path to 'bin' directory added to .dotfiles_env"
 # ---------------------------------------------------------
 # 3. モダンツールの自動インストール
 # ---------------------------------------------------------
-REQUIRED_TOOLS=("tree" "git" "curl" "vim" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
+REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
 echo "🛠️  Checking required tools..."
 
 case "$PM" in

@@ -5,6 +5,11 @@
 export DOTFILES_PATH="$HOME/dotfiles"
 COMMON_DIR="$DOTFILES_PATH/common"
 
+# 【追記】ローカル専用設定があれば読み込む (.gitignore推奨)
+if [ -f "$DOTFILES_PATH/common/.env.local" ]; then
+    source "$DOTFILES_PATH/common/.env.local"
+fi
+
 # 2. 共通スクリプト (_n や _git) の読み込み
 if [ -d "$COMMON_DIR" ]; then
     for f in "$COMMON_DIR"/_*.sh; do

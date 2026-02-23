@@ -127,8 +127,32 @@ if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
     git clone https://github.com/galenguyer/nano-syntax-highlighting.git "$DOTPATH/editors/nano-syntax-highlighting"
 fi
 
+
 # ---------------------------------------------------------
-# 6. 権限とパスの最終確定 (root対応含む)
+# 6. ローカルテンプレート作成 
+# ---------------------------------------------------------
+echo "⚙️  Setting up local environment files..."
+
+DOTFILES_PATH="$HOME/dotfiles"
+ENV_TEMPLATE="$DOTFILES_PATH/common/.env"
+ENV_LOCAL="$DOTFILES_PATH/common/.env.local"
+
+if [ -f "$ENV_TEMPLATE" ]; then
+    if [ ! -f "$ENV_LOCAL" ]; then
+        echo "📄 Creating .env.local from template..."
+        cp "$ENV_TEMPLATE" "$ENV_LOCAL"
+        echo "✅ Created $ENV_LOCAL. Please edit it with your API keys."
+    else
+        echo "⏭️  .env.local already exists. Skipping copy."
+    fi
+else
+    echo "⚠️  Warning: .env template not found at $ENV_TEMPLATE"
+fi
+
+echo "✨ Environment setup complete!"
+
+# ---------------------------------------------------------
+# 7. 権限とパスの最終確定 (root対応含む)
 # ---------------------------------------------------------
 echo "🔐 Finalizing permissions and environment..."
 [ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH"

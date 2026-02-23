@@ -1,6 +1,4 @@
 #!/bin/bash
-# ~/dotfiles/bin/gcm の中に追記してテスト
-echo "Debug: API_KEY is [$GEMINI_API_KEY]"
 
 _ai_generate_commit_proposals() {
     [[ -z "$GEMINI_API_KEY" ]] && return 1

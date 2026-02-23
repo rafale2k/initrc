@@ -66,6 +66,11 @@ ZshとBashの両環境で `DOTFILES_PATH` を物理的に解決。Ubuntu/macOS�
 git clone [https://github.com/rafale2k/initrc.git](https://github.com/rafale2k/initrc.git) ~/dotfiles
 cd ~/dotfiles && ./install.sh
 source ~/.zshrc  # または reload
+### 🔑 API Key Setup (for gcm)
+`gcm` (AI Commit) を使用するには Gemini API キーが必要です。
+1. ひな形をコピー: `cp ~/dotfiles/common/.env ~/dotfiles/common/.env.local`
+2. `.env.local` を開き、自身のキーを貼り付け。
+3. `reload` またはシェルを再起動。
 ```
 ---
 © 2026 Rafale / initrc Project.

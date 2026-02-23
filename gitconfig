@@ -1,7 +1,0 @@
-[user]
-	name = Dassult Rafale
-	email = d.rafale@gmail.com
-[include]
-	path = /home/rafale/dotfiles/common/gitconfig
-[core]
-	excludesfile = /home/rafale/dotfiles/common/gitignore_global

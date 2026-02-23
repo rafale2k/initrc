@@ -67,7 +67,8 @@ EZA_BIN=$(command -v eza || which /usr/local/bin/eza 2>/dev/null)
 if [ -x "$EZA_BIN" ]; then
     alias ls="$EZA_BIN --icons --group-directories-first"
     alias ll="$EZA_BIN -alF --icons --git"
-    alias lt="$EZA_BIN -T -L 3 --icons --git"
+    alias lt='$EZA_BIN --tree -a --icons --git --ignore-glob=".git"'
+    alias lt2='$EZA_BIN --tree -a --icons --ignore-glob=".git" --level=2'
     alias la="$EZA_BIN -a --icons --group-directories-first"
 else
     alias ll='ls -alF --color=auto'

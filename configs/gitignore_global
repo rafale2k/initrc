@@ -6,7 +6,7 @@ Thumbs.db
 editors/nano-syntax-highlighting/
 
 # Local/Secret files
-.env
+#.env
 .env.local
 *.local
 .dotfiles_env
@@ -14,3 +14,5 @@ editors/nano-syntax-highlighting/
 # Temporary files
 *.swp
 *~
+*.old
+*.bak

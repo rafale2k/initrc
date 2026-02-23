@@ -4,16 +4,15 @@
 DOTPATH=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
 
 # ---------------------------------------------------------
-# 0. GitHub SSH 接続テスト (New!)
+# 0. GitHub SSH 接続テスト & PATH設定
 # ---------------------------------------------------------
 echo "🔍 Checking GitHub SSH connection..."
+# 接続テスト (StrictHostKeyCheckingを自動承認して止まらないようにする)
 ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new >/dev/null 2>&1
 if [ $? -eq 1 ]; then
-    # ssh -T は成功時にステータス1を返す(認証は通るがシェルは提供されないため)
     echo "✅ GitHub SSH connection successful."
 else
-    echo "⚠️  GitHub SSH connection failed or not configured."
-    echo "   Continuing anyway, but some git clones might fail if they use SSH."
+    echo "⚠️  GitHub SSH connection failed. Continuing anyway..."
 fi
 
 # ---------------------------------------------------------
@@ -32,34 +31,35 @@ fi
 echo "🌍 Detected OS: $OS (using $PM)"
 
 # ---------------------------------------------------------
-# 2. パス情報の保存
+# 2. パス情報の保存 (重要：エイリアス判定の前に読み込ませる)
 # ---------------------------------------------------------
 cat << EOF > "$HOME/.dotfiles_env"
 export DOTFILES_PATH="$DOTPATH"
 export PATH="\$DOTFILES_PATH/bin:\$PATH"
 EOF
-
-SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
-
-if [ -n "$SUDO_CMD" ] || [ "$EUID" -eq 0 ]; then
-    TARGET_ENV="/root/.dotfiles_env"
-    $SUDO_CMD sh -c "cat << EOF > $TARGET_ENV
-export DOTFILES_PATH=\"$DOTPATH\"
-export PATH=\"$DOTPATH/bin:\\\$PATH\"
-EOF"
-fi
+chmod 644 "$HOME/.dotfiles_env"
+# 現在のプロセスにも即座に反映
+export PATH="$DOTPATH/bin:$PATH"
 
 # ---------------------------------------------------------
 # 3. モダンツールの自動インストール
 # ---------------------------------------------------------
+# RHEL系で必須な procps-ng (ps) と util-linux-user (chsh) を追加
 REQUIRED_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget" "procps-ng" "util-linux-user")
 echo "🛠️  Checking required tools..."
 
 case "$PM" in
-    "apt") $SUDO_CMD apt update -y ;;
+    "apt") 
+        SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
+        $SUDO_CMD apt update -y 
+        ;;
     "dnf") 
+        SUDO_CMD=$([ "$EUID" -ne 0 ] && echo "sudo" || echo "")
         $SUDO_CMD dnf install -y epel-release 
         $SUDO_CMD dnf config-manager --set-enabled crb || true
+        ;;
+    "brew")
+        SUDO_CMD=""
         ;;
 esac
 
@@ -81,9 +81,10 @@ for tool in "${REQUIRED_TOOLS[@]}"; do
                 ;;
             "dnf")
                 if [ "$tool" = "eza" ]; then
-                    echo "📥 eza not found in dnf. Downloading binary..."
+                    echo "📥 eza not found in dnf. Downloading binary from GitHub..."
                     curl -L https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz | tar xz
-                    mv eza "$DOTPATH/bin/" && chmod +x "$DOTPATH/bin/eza"
+                    [ -f "./eza" ] && mv ./eza "$DOTPATH/bin/eza"
+                    chmod +x "$DOTPATH/bin/eza"
                 else
                     $SUDO_CMD dnf install -y "$tool" || echo "⚠️  Failed to install $tool via dnf"
                 fi
@@ -121,24 +122,22 @@ ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
 ln -sf "$DOTPATH/editors/.vimrc" "$HOME/.vimrc"
 
-if [ -n "$SUDO_CMD" ] || [ "$EUID" -eq 0 ]; then
-    $SUDO_CMD ln -sf "$HOME/.oh-my-zsh" "/root/.oh-my-zsh"
-    $SUDO_CMD ln -sf "$DOTPATH/zsh/.zshrc" "/root/.zshrc"
-fi
-
 # Nano Setup
 if [ ! -d "$DOTPATH/editors/nano-syntax-highlighting" ]; then
     git clone https://github.com/galenguyer/nano-syntax-highlighting.git "$DOTPATH/editors/nano-syntax-highlighting"
 fi
 
 # ---------------------------------------------------------
-# 6. 最終調整
+# 6. 権限とパスの最終確定 (root対応含む)
 # ---------------------------------------------------------
-echo "🔐 Adjusting permissions..."
+echo "🔐 Finalizing permissions and environment..."
 [ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH"
 chmod 755 "$DOTPATH"
-[ -f "$DOTPATH/bin/gcm" ] && chmod +x "$DOTPATH/bin/gcm"
-chmod 644 "$HOME/.dotfiles_env"
+chmod +x "$DOTPATH/bin/"* 2>/dev/null || true
+
+# 最後のダメ押し：現在のシェルに設定を反映させる
+source "$HOME/.dotfiles_env"
+source "$HOME/.zshrc" 2>/dev/null || true
 
 echo "✨ All Done! Modular Dotfiles are now active."
 echo "👉 Run 'exec zsh' to refresh your session."

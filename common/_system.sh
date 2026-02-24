@@ -135,3 +135,43 @@ alias localip="hostname -I | awk '{print \$1}'"
 alias du10='du -sh * | sort -hr | head -n 10'
 alias mem='ps auxf | sort -nr -k 4 | head -n 10'
 
+# --- クリップボード連携の最適化 (OS / 環境判別版) ---
+clipcopy() {
+    local content
+    if [[ $# -eq 0 ]]; then
+        content=$(cat)
+    else
+        content=$(cat "$1")
+    fi
+
+    # 1. SSH接続中の場合 (Rlogin / OSC 52)
+    # SSH_CLIENT または SSH_TTY があればリモートと判断
+    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+        local base64_str=$(echo -n "$content" | base64 | tr -d '\n')
+        printf "\e]52;c;%s\a" "$base64_str"
+        echo "📋 [Remote] Copied via OSC 52"
+        return
+    fi
+
+    # 2. ローカル環境の場合 (OSごとに分岐)
+    case "$(uname)" in
+        "Darwin") # macOS
+            echo -n "$content" | pbcopy
+            echo "📋 [macOS] Copied via pbcopy"
+            ;;
+        "Linux")
+            if [[ $(grep -i Microsoft /proc/version) ]]; then
+                # WSL (Windows Subsystem for Linux)
+                echo -n "$content" | clip.exe
+                echo "📋 [WSL] Copied via clip.exe"
+            elif command -v xclip >/dev/null 2>&1; then
+                # 純粋なLinux (GUIあり/xclipインストール済み)
+                echo -n "$content" | xclip -selection clipboard
+                echo "📋 [Linux] Copied via xclip"
+            else
+                echo "⚠️  No clipboard tool found. Install xclip or use SSH."
+            fi
+            ;;
+    esac
+}
+# Oh My Zshのプラグインとの競合を防ぐためエイリアスではなく関数を優先

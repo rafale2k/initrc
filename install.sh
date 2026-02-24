@@ -102,7 +102,7 @@ git submodule update --init --recursive
 echo "🖇️  Creating symbolic links..."
 
 # .zshrc
-ln -sf "$DOTPATH/.zshrc" "$HOME/.zshrc"
+ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 
 # .oh-my-zsh 本体のリンク
 if [ -d "$HOME/.oh-my-zsh" ] && [ ! -L "$HOME/.oh-my-zsh" ]; then

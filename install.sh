@@ -124,8 +124,8 @@ if [ -d "$DOTPATH/configs" ]; then
             GIT_LOCAL="$HOME/.gitconfig.local"
             if [ ! -f "$GIT_LOCAL" ]; then
                 echo "👤 Git local settings not found. Let's set up your identity."
-                curr_name=$(git config --global user.name || echo "Dassault Rafale")
-                curr_email=$(git config --global user.email || echo "d.rafale@gmail.com")
+                curr_name=$(git config --global user.name || echo "Jane Doe")
+                curr_email=$(git config --global user.email || echo "your@samplemail.com")
                 
                 read -p "Enter Git User Name [$curr_name]: " git_name
                 git_name=${git_name:-$curr_name}

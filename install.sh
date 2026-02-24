@@ -1,26 +1,22 @@
 #!/bin/bash
 
-# 実行されたスクリプトの場所を絶対パスで取得
-DOTPATH=$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)
+# =================================================================
+# Rafale's dotfiles - Universal Installer (Hybrid & Flat Version)
+# =================================================================
 
-# 外部関数の読み込み
-if [ -f "$DOTPATH/common/install_functions.sh" ]; then
-    source "$DOTPATH/common/install_functions.sh"
-else
-    echo "❌ Error: common/install_functions.sh not found."
-    exit 1
-fi
+set -e
+
+# 実行されたスクリプトの場所を絶対パスで取得
+DOTPATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+cd "$DOTPATH"
+
+echo "🎯 Starting installation from $DOTPATH..."
 
 # ---------------------------------------------------------
 # 0. GitHub SSH 接続テスト
 # ---------------------------------------------------------
 echo "🔍 Checking GitHub SSH connection..."
-ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new >/dev/null 2>&1
-if [ $? -eq 1 ]; then
-    echo "✅ GitHub SSH connection successful."
-else
-    echo "⚠️  GitHub SSH connection failed. Continuing anyway..."
-fi
+ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new >/dev/null 2>&1 || true
 
 # ---------------------------------------------------------
 # 1. OS判別 & パッケージマネージャー設定
@@ -45,126 +41,87 @@ export DOTFILES_PATH="$DOTPATH"
 export PATH="\$DOTFILES_PATH/bin:\$PATH"
 EOF
 chmod 644 "$HOME/.dotfiles_env"
-export PATH="$DOTPATH/bin:$PATH"
 
 # ---------------------------------------------------------
-# 3. OS初期セットアップ (Update & リポジトリ)
+# 3. モダンツールのインストール
 # ---------------------------------------------------------
-setup_os "$PM" "$SUDO_CMD"
-
-# ---------------------------------------------------------
-# 4. モダンツールの自動インストール
-# ---------------------------------------------------------
-# git-extras と docker を追加
-REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
 echo "🛠️  Installing required tools..."
+REQUIRED_TOOLS=("git" "curl" "zsh" "python3")
 
 for tool in "${REQUIRED_TOOLS[@]}"; do
-    # git-extras のようなハイフン入りコマンドは特殊判定が必要な場合があるが基本これでOK
-    if ! command -v "$tool" &> /dev/null && ! command -v "${tool}cat" &> /dev/null && ! command -v "${tool}find" &> /dev/null; then
+    if ! command -v "$tool" &> /dev/null; then
         echo "🎁 $tool is missing. Installing..."
-        # 関数名として有効な形式（ハイフンをアンダースコアに置換）に変換して確認
-        func_name="install_${tool//-/_}"
-        if declare -f "$func_name" > /dev/null; then
-            "$func_name" "$PM" "$DOTPATH" "$SUDO_CMD"
-        else
-            $SUDO_CMD $PM install -y "$tool"
-        fi
-    else
-        echo "✅ $tool is already installed."
+        $SUDO_CMD $PM install -y "$tool" 2>/dev/null || echo "Failed to install $tool, skipping..."
     fi
 done
 
-# ---------------------------------------------------------
-# 5. Zsh / Oh My Zsh & Plugins Setup (上書き対策版)
-# ---------------------------------------------------------
-echo "🐚 Setting up Zsh and Oh My Zsh..."
-if [ ! -d "$HOME/.oh-my-zsh" ]; then
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-fi
-
-echo "🔗 Enforcement linking Zsh configs (p10k protection)..."
-ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
-ln -sf "$DOTPATH/zsh/.p10k.zsh" "$HOME/.p10k.zsh"
-
-ZSH_CUSTOM="${HOME}/.oh-my-zsh/custom"
-mkdir -p "${ZSH_CUSTOM}/plugins"
-
-if [ -d "$DOTPATH/zsh/plugins" ]; then
-    for plugin_path in "$DOTPATH"/zsh/plugins/*; do
-        name=$(basename "$plugin_path")
-        if [ -d "$plugin_path" ]; then
-            echo "🔗 Linking Zsh plugin: $name"
-            ln -sf "$plugin_path" "${ZSH_CUSTOM}/plugins/${name}"
-        fi
-    done
+# zoxide (zコマンド) の自動インストール
+if ! command -v zoxide &> /dev/null; then
+    echo "🚀 Installing zoxide..."
+    curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+    export PATH="$PATH:$HOME/.local/bin"
 fi
 
 # ---------------------------------------------------------
-# 6. シンボリックリンク & 設定ファイル生成
+# 4. サブモジュールの同期
 # ---------------------------------------------------------
-echo "🔗 Creating symbolic links from configs/..."
-if [ -d "$DOTPATH/configs" ]; then
-    for config_file in "$DOTPATH"/configs/*; do
-        filename=$(basename "$config_file")
-        target="$HOME/.$filename"
+echo "🔗 Syncing submodules..."
+git submodule update --init --recursive
 
-        if [ -e "$target" ] && [ ! -L "$target" ]; then
-            echo "📦 Backing up $target to ${target}.bak"
-            mv "$target" "${target}.bak"
-        fi
+# ---------------------------------------------------------
+# 5. シンボリックリンク作成 (フラット構成対応版)
+# ---------------------------------------------------------
+echo "🖇️  Creating symbolic links..."
 
-        if [ "$filename" == "nanorc" ]; then
-            echo "📝 Generating $target (Path substitution)..."
-            sed "s|__DOTPATH__|$DOTPATH|g" "$config_file" > "$target"
-        elif [ "$filename" == "gitconfig" ]; then
-            echo "✅ Linking gitconfig -> $target"
-            ln -sf "$config_file" "$target"
+# .zshrc
+ln -sf "$DOTPATH/.zshrc" "$HOME/.zshrc"
 
-            GIT_LOCAL="$HOME/.gitconfig.local"
-            if [ ! -f "$GIT_LOCAL" ]; then
-                echo "👤 Git local settings not found. Let's set up your identity."
-                curr_name=$(git config --global user.name || echo "Jane Doe")
-                curr_email=$(git config --global user.email || echo "your@samplemail.com")
-                
-                read -p "Enter Git User Name [$curr_name]: " git_name
-                git_name=${git_name:-$curr_name}
-                read -p "Enter Git User Email [$curr_email]: " git_email
-                git_email=${git_email:-$curr_email}
+# .oh-my-zsh 本体のリンク (実体があれば消して張り直す)
+if [ -d "$HOME/.oh-my-zsh" ] && [ ! -L "$HOME/.oh-my-zsh" ]; then
+    rm -rf "$HOME/.oh-my-zsh"
+fi
+ln -sfn "$DOTPATH/oh-my-zsh" "$HOME/.oh-my-zsh"
 
-                cat << EOF > "$GIT_LOCAL"
+# カスタムテーマのリンク (zsh/themes -> OMZ)
+mkdir -p "$HOME/.oh-my-zsh/custom/themes"
+ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
+
+# カスタムプラグインのリンク (zsh/plugins -> OMZ)
+mkdir -p "$HOME/.oh-my-zsh/custom/plugins"
+ln -sfn "$DOTPATH/zsh/plugins/zsh-autosuggestions" "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+ln -sfn "$DOTPATH/zsh/plugins/zsh-syntax-highlighting" "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+
+# .gitconfig
+ln -sf "$DOTPATH/.gitconfig" "$HOME/.gitconfig"
+
+# ---------------------------------------------------------
+# 6. Git Identity 設定
+# ---------------------------------------------------------
+GIT_LOCAL="$HOME/.gitconfig.local"
+if [ ! -f "$GIT_LOCAL" ]; then
+    echo "👤 Git identity setup..."
+    read -p "Enter Git User Name [Jane Doe]: " git_name
+    git_name=${git_name:-"Jane Doe"}
+    read -p "Enter Git User Email [example@email.com]: " git_email
+    git_email=${git_email:-"example@email.com"}
+
+    cat << EOF > "$GIT_LOCAL"
 [user]
-	name = $git_name
-	email = $git_email
+    name = $git_name
+    email = $git_email
 EOF
-                echo "✅ Created $GIT_LOCAL"
-            fi
-        else
-            ln -sf "$config_file" "$target"
-        fi
-    done
+    echo "✅ Created $GIT_LOCAL"
 fi
 
-mkdir -p "$HOME/.nano"
-ln -sf "$DOTPATH/editors/my-themes/monokai.nanorc" "$HOME/.nano/monokai.nanorc"
+# ---------------------------------------------------------
+# 7. 最終確定 & Zsh 切り替え
+# ---------------------------------------------------------
+echo "✨ Installation complete!"
+[ -f "$HOME/.dotfiles_env" ] && source "$HOME/.dotfiles_env"
 
-# ---------------------------------------------------------
-# 7. ローカルテンプレート作成
-# ---------------------------------------------------------
-[ -f "$DOTPATH/common/.env" ] && [ ! -f "$DOTPATH/common/.env.local" ] && cp "$DOTPATH/common/.env" "$DOTPATH/common/.env.local"
-
-# ---------------------------------------------------------
-# 8. 最終確定 & パレット適用
-# ---------------------------------------------------------
-echo "🔐 Finalizing permissions..."
-[ -n "$SUDO_CMD" ] && $SUDO_CMD chown -R $(whoami):$(whoami) "$DOTPATH" 2>/dev/null || true
-chmod +x "$DOTPATH/bin/"* 2>/dev/null || true
-
-if [ -f "$DOTPATH/bin/monokai-palette.sh" ]; then
-    echo "🎨 Applying Monokai palette..."
-    bash "$DOTPATH/bin/monokai-palette.sh"
+if [ "$SHELL" != "$(which zsh)" ]; then
+    echo "🔄 Switching shell to zsh..."
+    exec zsh -l
+else
+    exec zsh -l
 fi
-
-source "$HOME/.dotfiles_env"
-
-echo "✨ All Done! Please restart your shell or run: exec zsh -l"

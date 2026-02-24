@@ -1,0 +1,36 @@
+[33m2e7e8bb[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Quick sync: 2026-02-25 00:43:14
+[33m1d7a219[m Quick sync: 2026-02-25 00:25:22
+[33m4b21c62[m feat: restructure submodules and move p10k to a flat layout
+[33m7c3db1f[m Quick sync: 2026-02-24 23:31:22
+[33m86b19f4[m[33m ([m[1;33mtag: v1.8.0[m[33m)[m feat: Implement modern Docker and Git-extras workflows
+[33mc723db5[m feat: git: Isolate user configuration into local file
+[33m5f7cae8[m wip: nanoのMonokai化（一旦保留、パス置換とリンク構造は整備済み）
+[33m503d978[m feat(nanorc, install): Implement dynamic nanorc generation with path substitution
+[33m09fa4ec[m feat(install): Automate symlinking of dotfiles from configs/
+[33m9d13a9c[m feat: Add zsh-autosuggestions and zsh-syntax-highlighting submodules
+[33ma1d9194[m feat(env): Implement .env.local generation and update install steps
+[33me805904[m refactor(install): streamline root environment handling and finalize session setup
+[33m91c6452[m feat(install): Add GitHub SSH check and robust eza installation
+[33m7061918[m feat(install): Add procps-ng and util-linux-user to required tools
+[33m0888768[m feat: Add nano to required tools list
+[33mc125f00[m Merge branch 'main' of github.com:rafale2k/initrc
+[33m52983bb[m feat: Introduce standalone AI commit message generator (gcm)
+[33md69ce0d[m[33m ([m[1;33mtag: v1.6.0[m[33m)[m feat: complete shell sync for bash/zsh and auto-install plugins
+[33m94b95d5[m[33m ([m[1;31morigin/feature/setup-script[m[33m)[m feat: implement modular install script and finalize directory structure
+[33m988a553[m feat: update configuration
+[33mb56688c[m feat: v1.5.0 - Universal Deployer & Interactive Navigation
+[33me5e32df[m[33m ([m[1;33mtag: v1.1.0[m[33m)[m feat: integrate zoxide for faster directory navigation
+[33md086475[m fix: gitconfig loop
+[33mb9c12c9[m fix: gitconfig install loop
+[33m4d54417[m fix: gitconfig loop
+[33mab7311b[m refactor: refactor: dotfilesの構成を刷新しマルチユーザー(root)対応を強化
+[33m215ffab[m refactor: overhaul environment setup for robustness
+[33m8061873[m refactor: dynamic generation of .nanorc with absolute paths
+[33ma9d05a6[m refactor: save install path
+[33m71cd1cf[m quick update: 2026-02-19 00:22:46
+[33m11fd476[m quick update: 2026-02-19 00:04:34
+[33ma076c75[m quick update: 2026-02-17 18:16:15
+[33m19d1f13[m mod install.sh for .gitconfig_shared
+[33m6303627[m fix: updated install.sh with .inputrc support and permission fixes
+[33m0c75be0[m feat: enable aliases for root user automatically
+[33mfd37b5b[m Initial commit: Professional server setup environment with automated installer

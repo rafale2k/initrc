@@ -1,39 +1,40 @@
 #!/bin/bash
 
 # =================================================================
-# Rafale's dotfiles - Universal Installer (Full Metal Edition)
+# Rafale's dotfiles - Universal Installer (Zero-Enter Edition)
 # =================================================================
 
 set -e
 
-# 実行されたスクリプトの場所を絶対パスで取得
 DOTPATH=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 cd "$DOTPATH"
 
 echo "🎯 Starting installation from $DOTPATH..."
 
 # ---------------------------------------------------------
-# 0. SSH 鍵のセットアップ & GitHub 接続テスト
+# 0. SSH 鍵のセットアップ (完全自動)
 # ---------------------------------------------------------
 echo "🔑 Checking SSH configuration..."
 SSH_KEY="$HOME/.ssh/id_ed25519"
 
 if [ ! -f "$SSH_KEY" ]; then
-    echo "🆕 SSH key not found. Generating a new one..."
+    echo "🆕 Generating a new SSH key (Silent Mode)..."
     mkdir -p "$HOME/.ssh"
     chmod 700 "$HOME/.ssh"
-    ssh-keygen -t ed25519 -N "" -f "$SSH_KEY"
+    # -q で静かに、-f でパス指定、-N "" でパスフレーズなしを完全自動化
+    ssh-keygen -t ed25519 -N "" -f "$SSH_KEY" -q
     echo "✅ New SSH key generated."
     echo "📋 Your public key is:"
     cat "${SSH_KEY}.pub"
-    echo "👉 Add this to GitHub: https://github.com/settings/keys"
-    echo "Press Enter once added to continue..."
-    read
+    echo "-------------------------------------------------------"
+    echo "👉 PLEASE ADD THIS TO: https://github.com/settings/keys"
+    echo "-------------------------------------------------------"
+    # ここは「待たずに」次へ行く
 fi
 
-echo "🔍 Testing GitHub SSH connection..."
-# StrictHostKeyChecking=accept-new で初回接続もスムーズに
-ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new 2>&1 | grep -q "successfully authenticated" || echo "⚠️ SSH Auth failed, but continuing..."
+echo "🔍 GitHub SSH connection test (Non-blocking)..."
+# 接続テストはするが、失敗しても止まらずに警告を出すだけにする
+ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new 2>&1 | grep -q "successfully authenticated" && echo "✅ GitHub Auth Success" || echo "⚠️  GitHub Auth skip (Add key later)"
 
 # ---------------------------------------------------------
 # 1. OS判別 & パッケージマネージャー設定
@@ -48,101 +49,87 @@ else
     OS="unknown"; PM="none"; SUDO_CMD=""
 fi
 
-echo "🌍 Detected OS: $OS (using $PM)"
+# ---------------------------------------------------------
+# 3. Rafale 指定ツールのインストール
+# ---------------------------------------------------------
+echo "🛠️  Installing Rafale's toolset..."
+REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
 
-# ---------------------------------------------------------
-# 2. パス情報の保存
-# ---------------------------------------------------------
-cat << EOF > "$HOME/.dotfiles_env"
-export DOTFILES_PATH="$DOTPATH"
-export PATH="\$DOTFILES_PATH/bin:\$HOME/.local/bin:\$PATH"
-EOF
-chmod 644 "$HOME/.dotfiles_env"
-
-# ---------------------------------------------------------
-# 3. モダンツールのインストール
-# ---------------------------------------------------------
-echo "🛠️  Installing required tools..."
-# OSごとにパッケージ名が違うものを調整
 if [ "$OS" = "debian" ]; then
     $SUDO_CMD $PM update -y
-    TOOLS=("git" "curl" "zsh" "python3" "fzf" "bat")
+    INSTALL_LIST=()
+    for tool in "${REQUIRED_TOOLS[@]}"; do
+        case "$tool" in
+            "fd") INSTALL_LIST+=("fd-find") ;;
+            "bat") INSTALL_LIST+=("batcat") ;;
+            *) INSTALL_LIST+=("$tool") ;;
+        esac
+    done
 elif [ "$OS" = "rhel" ]; then
     $SUDO_CMD $PM install -y epel-release
-    TOOLS=("git" "curl" "zsh" "python3" "fzf" "bat")
+    $SUDO_CMD $PM makecache
+    INSTALL_LIST=("${REQUIRED_TOOLS[@]}")
 fi
 
-for tool in "${TOOLS[@]}"; do
-    if ! command -v "$tool" &> /dev/null && [ "$tool" != "bat" ]; then
-        $SUDO_CMD $PM install -y "$tool"
+for tool in "${INSTALL_LIST[@]}"; do
+    CHECK_NAME=$tool
+    [[ "$tool" == "fd-find" ]] && CHECK_NAME="fdfind"
+    [[ "$tool" == "batcat" ]] && CHECK_NAME="batcat"
+    if ! command -v "$CHECK_NAME" &> /dev/null; then
+        $SUDO_CMD $PM install -y "$tool" || true
     fi
 done
 
-# Ubuntuのbatcat対策
-if [ "$OS" = "debian" ] && command -v batcat &> /dev/null; then
+# Ubuntu 用リンク作成
+if [ "$OS" = "debian" ]; then
     mkdir -p "$HOME/.local/bin"
-    ln -sf /usr/bin/batcat "$HOME/.local/bin/bat"
+    [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/.local/bin/bat"
+    [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/.local/bin/fd"
 fi
 
-# zoxide のインストール
-if ! command -v zoxide &> /dev/null; then
-    echo "🚀 Installing zoxide..."
-    curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-fi
-
-# ---------------------------------------------------------
-# 4. サブモジュールの同期
-# ---------------------------------------------------------
 echo "🔗 Syncing submodules..."
 git submodule update --init --recursive
 
 # ---------------------------------------------------------
-# 5. シンボリックリンク作成 (フラット構成対応)
+# 5. シンボリックリンク作成 (zsh/.zshrc)
 # ---------------------------------------------------------
 echo "🖇️  Creating symbolic links..."
-
-# .zshrc
 ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 
-# .oh-my-zsh 本体のリンク
 if [ -d "$HOME/.oh-my-zsh" ] && [ ! -L "$HOME/.oh-my-zsh" ]; then
     rm -rf "$HOME/.oh-my-zsh"
 fi
 ln -sfn "$DOTPATH/oh-my-zsh" "$HOME/.oh-my-zsh"
 
-# カスタムテーマ & プラグイン
 mkdir -p "$HOME/.oh-my-zsh/custom/themes"
 mkdir -p "$HOME/.oh-my-zsh/custom/plugins"
 ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
 ln -sfn "$DOTPATH/zsh/plugins/zsh-autosuggestions" "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
 ln -sfn "$DOTPATH/zsh/plugins/zsh-syntax-highlighting" "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-
-# .gitconfig
 ln -sf "$DOTPATH/.gitconfig" "$HOME/.gitconfig"
 
 # ---------------------------------------------------------
-# 6. Git Identity 設定 (既存コードを継承)
+# 6. Git Identity 設定 (完全固定・Enter不要)
 # ---------------------------------------------------------
 GIT_LOCAL="$HOME/.gitconfig.local"
 if [ ! -f "$GIT_LOCAL" ]; then
-    echo "👤 Git identity setup..."
-    read -p "Enter Git User Name [Jane Doe]: " git_name
-    git_name=${git_name:-"Jane Doe"}
-    read -p "Enter Git User Email [example@email.com]: " git_email
-    git_email=${git_email:-"example@email.com"}
+    echo "👤 Setting up Git identity (Automatic)..."
+    # read を排除して直接書き込む
+    GIT_NAME="Rafale"
+    GIT_EMAIL="rafale2k@users.noreply.github.com"
 
     cat << EOF > "$GIT_LOCAL"
 [user]
-    name = $git_name
-    email = $git_email
+    name = $GIT_NAME
+    email = $GIT_EMAIL
 EOF
-    echo "✅ Created $GIT_LOCAL"
+    echo "✅ Created $GIT_LOCAL without prompt."
 fi
 
 # ---------------------------------------------------------
 # 7. 最終確定 & Zsh 切り替え
 # ---------------------------------------------------------
-echo "✨ Installation complete!"
+echo "✨ Installation complete! Transitioning to Zsh..."
 [ -f "$HOME/.dotfiles_env" ] && source "$HOME/.dotfiles_env"
 
 exec zsh -l

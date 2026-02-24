@@ -25,31 +25,33 @@ fi
 fe() {
     local file
     local bat_cmd
-    local fd_cmd
-
-    if command -v batcat &> /dev/null; then
-        bat_cmd="batcat"
-    elif command -v bat &> /dev/null; then
-        bat_cmd="bat"
+    
+    # 1. bat があるかチェック（batcat は Debian 系やから Alma なら bat かな）
+    if command -v bat &> /dev/null; then
+        bat_cmd="bat --style=numbers --color=always --line-range :500"
+    elif command -v batcat &> /dev/null; then
+        bat_cmd="batcat --style=numbers --color=always --line-range :500"
     else
         bat_cmd="cat"
     fi
 
-    if command -v fdfind &> /dev/null; then
-        fd_cmd="fdfind"
-    elif command -v fd &> /dev/null; then
-        fd_cmd="fd"
-    else
-        fd_cmd="find . -maxdepth 4 -not -path '*/.*' -o -path './.*' -not -name '.'"
-    fi
+    # 2. fzf でファイルを選択（find の結果を直接パイプで渡す）
+    # バッククォートや複雑な変数代入を避けて、直接パイプラインを書くのが一番安全！
+    file=$(find . -maxdepth 4 -not -path '*/.*' -o -path './.*' -not -name '.' 2> /dev/null | fzf \
+        --preview "$bat_cmd {}" \
+        --preview-window=right:60% \
+        --height 80% \
+        --layout=reverse --border)
 
-    if [[ "$fd_cmd" == *"fd"* ]]; then
-        file=$($fd_cmd --type f --hidden --exclude .git | fzf --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}" --preview-window=right:60%)
-    else
-        file=$($fd_cmd | fzf --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}" --preview-window=right:60%)
+    # 3. 選択されたら開く（n = nvim のエイリアスが効くはず）
+    if [[ -n "$file" ]]; then
+        # ディレクトリなら cd、ファイルなら n (nvim)
+        if [[ -d "$file" ]]; then
+            cd "$file"
+        else
+            n "$file"
+        fi
     fi
-    
-    [ -n "$file" ] && ${EDITOR:-vim} "$file"
 }
 
 alias h='history | fzf'

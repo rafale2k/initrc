@@ -135,7 +135,8 @@ alias localip="hostname -I | awk '{print \$1}'"
 alias du10='du -sh * | sort -hr | head -n 10'
 alias mem='ps auxf | sort -nr -k 4 | head -n 10'
 
-# --- クリップボード連携の最適化 (OS / 環境判別版) ---
+# --- クリップボード連携の最適化 (Docker / SSH / OS 判別版) ---
+# Oh My Zsh などのプラグインによる上書きを防ぐため、関数の最後に unalias を実行。
 clipcopy() {
     local content
     if [[ $# -eq 0 ]]; then
@@ -144,12 +145,12 @@ clipcopy() {
         content=$(cat "$1")
     fi
 
-    # 1. SSH接続中の場合 (Rlogin / OSC 52)
-    # SSH_CLIENT または SSH_TTY があればリモートと判断
-    if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+    # 1. SSH接続中 または Dockerコンテナ内の場合 (OSC 52 を使用)
+    # .dockerenv が存在するか、SSH系変数がセットされていればシーケンスをホストへ送る
+    if [ -f /.dockerenv ] || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
         local base64_str=$(echo -n "$content" | base64 | tr -d '\n')
         printf "\e]52;c;%s\a" "$base64_str"
-        echo "📋 [Remote] Copied via OSC 52"
+        echo "📋 [OSC 52] Copied to host clipboard"
         return
     fi
 
@@ -160,7 +161,7 @@ clipcopy() {
             echo "📋 [macOS] Copied via pbcopy"
             ;;
         "Linux")
-            if [[ $(grep -i Microsoft /proc/version) ]]; then
+            if [[ $(grep -i Microsoft /proc/version 2>/dev/null) ]]; then
                 # WSL (Windows Subsystem for Linux)
                 echo -n "$content" | clip.exe
                 echo "📋 [WSL] Copied via clip.exe"
@@ -169,9 +170,20 @@ clipcopy() {
                 echo -n "$content" | xclip -selection clipboard
                 echo "📋 [Linux] Copied via xclip"
             else
-                echo "⚠️  No clipboard tool found. Install xclip or use SSH."
+                # ツールがない場合の最終手段として OSC 52 を試行
+                local base64_str=$(echo -n "$content" | base64 | tr -d '\n')
+                printf "\e]52;c;%s\a" "$base64_str"
+                echo "📋 [Fallback] Tried OSC 52"
             fi
             ;;
     esac
 }
+
+# 3. エイリアス競合の排除
+# Oh My Zsh のプラグインなどが clipcopy をエイリアスとして定義している場合、
+# それを解除して上記の関数を確実に優先させる。
+if alias clipcopy >/dev/null 2>&1; then
+    unalias clipcopy
+fi
+
 # Oh My Zshのプラグインとの競合を防ぐためエイリアスではなく関数を優先

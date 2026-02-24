@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =================================================================
-# Rafale's dotfiles - Universal Installer (Hybrid & Flat Version)
+# Rafale's dotfiles - Universal Installer (Full Metal Edition)
 # =================================================================
 
 set -e
@@ -13,10 +13,27 @@ cd "$DOTPATH"
 echo "🎯 Starting installation from $DOTPATH..."
 
 # ---------------------------------------------------------
-# 0. GitHub SSH 接続テスト
+# 0. SSH 鍵のセットアップ & GitHub 接続テスト
 # ---------------------------------------------------------
-echo "🔍 Checking GitHub SSH connection..."
-ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new >/dev/null 2>&1 || true
+echo "🔑 Checking SSH configuration..."
+SSH_KEY="$HOME/.ssh/id_ed25519"
+
+if [ ! -f "$SSH_KEY" ]; then
+    echo "🆕 SSH key not found. Generating a new one..."
+    mkdir -p "$HOME/.ssh"
+    chmod 700 "$HOME/.ssh"
+    ssh-keygen -t ed25519 -N "" -f "$SSH_KEY"
+    echo "✅ New SSH key generated."
+    echo "📋 Your public key is:"
+    cat "${SSH_KEY}.pub"
+    echo "👉 Add this to GitHub: https://github.com/settings/keys"
+    echo "Press Enter once added to continue..."
+    read
+fi
+
+echo "🔍 Testing GitHub SSH connection..."
+# StrictHostKeyChecking=accept-new で初回接続もスムーズに
+ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new 2>&1 | grep -q "successfully authenticated" || echo "⚠️ SSH Auth failed, but continuing..."
 
 # ---------------------------------------------------------
 # 1. OS判別 & パッケージマネージャー設定
@@ -38,7 +55,7 @@ echo "🌍 Detected OS: $OS (using $PM)"
 # ---------------------------------------------------------
 cat << EOF > "$HOME/.dotfiles_env"
 export DOTFILES_PATH="$DOTPATH"
-export PATH="\$DOTFILES_PATH/bin:\$PATH"
+export PATH="\$DOTFILES_PATH/bin:\$HOME/.local/bin:\$PATH"
 EOF
 chmod 644 "$HOME/.dotfiles_env"
 
@@ -46,20 +63,31 @@ chmod 644 "$HOME/.dotfiles_env"
 # 3. モダンツールのインストール
 # ---------------------------------------------------------
 echo "🛠️  Installing required tools..."
-REQUIRED_TOOLS=("git" "curl" "zsh" "python3")
+# OSごとにパッケージ名が違うものを調整
+if [ "$OS" = "debian" ]; then
+    $SUDO_CMD $PM update -y
+    TOOLS=("git" "curl" "zsh" "python3" "fzf" "bat")
+elif [ "$OS" = "rhel" ]; then
+    $SUDO_CMD $PM install -y epel-release
+    TOOLS=("git" "curl" "zsh" "python3" "fzf" "bat")
+fi
 
-for tool in "${REQUIRED_TOOLS[@]}"; do
-    if ! command -v "$tool" &> /dev/null; then
-        echo "🎁 $tool is missing. Installing..."
-        $SUDO_CMD $PM install -y "$tool" 2>/dev/null || echo "Failed to install $tool, skipping..."
+for tool in "${TOOLS[@]}"; do
+    if ! command -v "$tool" &> /dev/null && [ "$tool" != "bat" ]; then
+        $SUDO_CMD $PM install -y "$tool"
     fi
 done
 
-# zoxide (zコマンド) の自動インストール
+# Ubuntuのbatcat対策
+if [ "$OS" = "debian" ] && command -v batcat &> /dev/null; then
+    mkdir -p "$HOME/.local/bin"
+    ln -sf /usr/bin/batcat "$HOME/.local/bin/bat"
+fi
+
+# zoxide のインストール
 if ! command -v zoxide &> /dev/null; then
     echo "🚀 Installing zoxide..."
     curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-    export PATH="$PATH:$HOME/.local/bin"
 fi
 
 # ---------------------------------------------------------
@@ -69,25 +97,23 @@ echo "🔗 Syncing submodules..."
 git submodule update --init --recursive
 
 # ---------------------------------------------------------
-# 5. シンボリックリンク作成 (フラット構成対応版)
+# 5. シンボリックリンク作成 (フラット構成対応)
 # ---------------------------------------------------------
 echo "🖇️  Creating symbolic links..."
 
 # .zshrc
 ln -sf "$DOTPATH/.zshrc" "$HOME/.zshrc"
 
-# .oh-my-zsh 本体のリンク (実体があれば消して張り直す)
+# .oh-my-zsh 本体のリンク
 if [ -d "$HOME/.oh-my-zsh" ] && [ ! -L "$HOME/.oh-my-zsh" ]; then
     rm -rf "$HOME/.oh-my-zsh"
 fi
 ln -sfn "$DOTPATH/oh-my-zsh" "$HOME/.oh-my-zsh"
 
-# カスタムテーマのリンク (zsh/themes -> OMZ)
+# カスタムテーマ & プラグイン
 mkdir -p "$HOME/.oh-my-zsh/custom/themes"
-ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
-
-# カスタムプラグインのリンク (zsh/plugins -> OMZ)
 mkdir -p "$HOME/.oh-my-zsh/custom/plugins"
+ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
 ln -sfn "$DOTPATH/zsh/plugins/zsh-autosuggestions" "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
 ln -sfn "$DOTPATH/zsh/plugins/zsh-syntax-highlighting" "$HOME/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
 
@@ -95,7 +121,7 @@ ln -sfn "$DOTPATH/zsh/plugins/zsh-syntax-highlighting" "$HOME/.oh-my-zsh/custom/
 ln -sf "$DOTPATH/.gitconfig" "$HOME/.gitconfig"
 
 # ---------------------------------------------------------
-# 6. Git Identity 設定
+# 6. Git Identity 設定 (既存コードを継承)
 # ---------------------------------------------------------
 GIT_LOCAL="$HOME/.gitconfig.local"
 if [ ! -f "$GIT_LOCAL" ]; then
@@ -119,9 +145,4 @@ fi
 echo "✨ Installation complete!"
 [ -f "$HOME/.dotfiles_env" ] && source "$HOME/.dotfiles_env"
 
-if [ "$SHELL" != "$(which zsh)" ]; then
-    echo "🔄 Switching shell to zsh..."
-    exec zsh -l
-else
-    exec zsh -l
-fi
+exec zsh -l

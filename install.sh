@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =================================================================
-# Rafale's dotfiles - Universal Installer (Zero-Enter Edition)
+# Rafale's dotfiles - Universal Installer (Final Automated Edition)
 # =================================================================
 
 set -e
@@ -21,7 +21,6 @@ if [ ! -f "$SSH_KEY" ]; then
     echo "🆕 Generating a new SSH key (Silent Mode)..."
     mkdir -p "$HOME/.ssh"
     chmod 700 "$HOME/.ssh"
-    # -q で静かに、-f でパス指定、-N "" でパスフレーズなしを完全自動化
     ssh-keygen -t ed25519 -N "" -f "$SSH_KEY" -q
     echo "✅ New SSH key generated."
     echo "📋 Your public key is:"
@@ -29,11 +28,9 @@ if [ ! -f "$SSH_KEY" ]; then
     echo "-------------------------------------------------------"
     echo "👉 PLEASE ADD THIS TO: https://github.com/settings/keys"
     echo "-------------------------------------------------------"
-    # ここは「待たずに」次へ行く
 fi
 
 echo "🔍 GitHub SSH connection test (Non-blocking)..."
-# 接続テストはするが、失敗しても止まらずに警告を出すだけにする
 ssh -T git@github.com -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new 2>&1 | grep -q "successfully authenticated" && echo "✅ GitHub Auth Success" || echo "⚠️  GitHub Auth skip (Add key later)"
 
 # ---------------------------------------------------------
@@ -49,18 +46,30 @@ else
     OS="unknown"; PM="none"; SUDO_CMD=""
 fi
 
+echo "🌍 Detected OS: $OS (using $PM)"
+
+# ---------------------------------------------------------
+# 2. パス情報の保存
+# ---------------------------------------------------------
+cat << EOF > "$HOME/.dotfiles_env"
+export DOTFILES_PATH="$DOTPATH"
+export PATH="\$DOTFILES_PATH/bin:\$HOME/.local/bin:\$PATH"
+EOF
+chmod 644 "$HOME/.dotfiles_env"
+
 # ---------------------------------------------------------
 # 3. Rafale 指定ツールのインストール
 # ---------------------------------------------------------
 echo "🛠️  Installing Rafale's toolset..."
-REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd" "jq" "wget")
+
+# ツールリスト（OSによる名前の違いを吸収）
+REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd-find" "jq" "wget")
 
 if [ "$OS" = "debian" ]; then
     $SUDO_CMD $PM update -y
     INSTALL_LIST=()
     for tool in "${REQUIRED_TOOLS[@]}"; do
         case "$tool" in
-            "fd") INSTALL_LIST+=("fd-find") ;;
             "bat") INSTALL_LIST+=("batcat") ;;
             *) INSTALL_LIST+=("$tool") ;;
         esac
@@ -68,33 +77,57 @@ if [ "$OS" = "debian" ]; then
 elif [ "$OS" = "rhel" ]; then
     $SUDO_CMD $PM install -y epel-release
     $SUDO_CMD $PM makecache
+    # RHEL系では fd-find はそのまま fd-find というパッケージ名でOK（中身は /usr/bin/fd）
     INSTALL_LIST=("${REQUIRED_TOOLS[@]}")
 fi
 
 for tool in "${INSTALL_LIST[@]}"; do
+    # チェック用の名前（fd, fdfind, bat, batcat などを考慮）
     CHECK_NAME=$tool
     [[ "$tool" == "fd-find" ]] && CHECK_NAME="fdfind"
     [[ "$tool" == "batcat" ]] && CHECK_NAME="batcat"
-    if ! command -v "$CHECK_NAME" &> /dev/null; then
-        $SUDO_CMD $PM install -y "$tool" || true
+    
+    # 既にコマンドが存在するか、またはそのエイリアスがあるか確認
+    if ! command -v "$CHECK_NAME" &> /dev/null && \
+       ! command -v "${CHECK_NAME%-find}" &> /dev/null; then
+        echo "🎁 Installing $tool..."
+        $SUDO_CMD $PM install -y "$tool" || echo "⚠️  Failed to install $tool, skipping..."
     fi
 done
 
-# Ubuntu 用リンク作成
+# ---------------------------------------------------------
+# 4. 特殊なエイリアス設定 (Ubuntu 向け)
+# ---------------------------------------------------------
 if [ "$OS" = "debian" ]; then
     mkdir -p "$HOME/.local/bin"
-    [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/.local/bin/bat"
-    [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/.local/bin/fd"
+    # Ubuntu で fdfind しかない場合は fd にリンク
+    if command -v fdfind &> /dev/null && ! command -v fd &> /dev/null; then
+        ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
+    fi
+    # Ubuntu で batcat しかない場合は bat にリンク
+    if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
+        ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+    fi
 fi
 
+# ---------------------------------------------------------
+# 5. サブモジュールの同期
+# ---------------------------------------------------------
 echo "🔗 Syncing submodules..."
 git submodule update --init --recursive
 
 # ---------------------------------------------------------
-# 5. シンボリックリンク作成 (zsh/.zshrc)
+# 6. シンボリックリンク作成
 # ---------------------------------------------------------
 echo "🖇️  Creating symbolic links..."
-ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
+
+# zoxide init の追記 (存在しない場合のみ)
+ZSHRC_FILE="$DOTPATH/zsh/.zshrc"
+if ! grep -q "zoxide init zsh" "$ZSHRC_FILE"; then
+    echo 'eval "$(zoxide init zsh)"' >> "$ZSHRC_FILE"
+fi
+
+ln -sf "$ZSHRC_FILE" "$HOME/.zshrc"
 
 if [ -d "$HOME/.oh-my-zsh" ] && [ ! -L "$HOME/.oh-my-zsh" ]; then
     rm -rf "$HOME/.oh-my-zsh"
@@ -109,25 +142,24 @@ ln -sfn "$DOTPATH/zsh/plugins/zsh-syntax-highlighting" "$HOME/.oh-my-zsh/custom/
 ln -sf "$DOTPATH/.gitconfig" "$HOME/.gitconfig"
 
 # ---------------------------------------------------------
-# 6. Git Identity 設定 (完全固定・Enter不要)
+# 7. Git Identity 設定 (Jane Doe 仕様)
 # ---------------------------------------------------------
 GIT_LOCAL="$HOME/.gitconfig.local"
 if [ ! -f "$GIT_LOCAL" ]; then
     echo "👤 Setting up Git identity (Automatic)..."
-    # read を排除して直接書き込む
-    GIT_NAME="Rafale"
-    GIT_EMAIL="rafale2k@users.noreply.github.com"
+    GIT_NAME="Jane Doe"
+    GIT_EMAIL="example@email.com"
 
     cat << EOF > "$GIT_LOCAL"
 [user]
     name = $GIT_NAME
     email = $GIT_EMAIL
 EOF
-    echo "✅ Created $GIT_LOCAL without prompt."
+    echo "✅ Created $GIT_LOCAL with identity: $GIT_NAME"
 fi
 
 # ---------------------------------------------------------
-# 7. 最終確定 & Zsh 切り替え
+# 8. 完了
 # ---------------------------------------------------------
 echo "✨ Installation complete! Transitioning to Zsh..."
 [ -f "$HOME/.dotfiles_env" ] && source "$HOME/.dotfiles_env"

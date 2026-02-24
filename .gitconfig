@@ -1,9 +1,11 @@
 [init]
-	defaultBranch = main
+    defaultBranch = main
 [user]
-	email = your-github-username@users.noreply.github.com
-	name = Jane Doe
+    email = your-github-username@users.noreply.github.com
+    name = Jane Doe
 [include]
-	path = /home/rafale/dotfiles/gitconfig
+    # 絶対パスではなく、ホームからの相対パスにする
+    path = ~/dotfiles/gitconfig
 [core]
-	excludesfile = /home/rafale/dotfiles/common/gitignore_global
+    # ここも同様
+    excludesfile = ~/dotfiles/common/gitignore_global

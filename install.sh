@@ -164,11 +164,13 @@ fi
 echo "✨ Installation complete! Transitioning to Zsh..."
 [ -f "$HOME/.dotfiles_env" ] && source "$HOME/.dotfiles_env"
 
-# スクリプトの最後の方
+# CI環境ならここで終了（シェルの切り替えをしない）
 if [ "$CI" = "true" ]; then
-    echo "✅ CI environment detected. Skipping shell transition."
+    echo "✅ CI detect: Skipping shell transition."
     exit 0
 fi
 
+# ローカル環境なら zsh に切り替え
 echo "✨ Installation complete! Transitioning to Zsh..."
 exec zsh -l
+

@@ -1,0 +1,5 @@
+#!/bin/bash
+# common/_ai_assist.sh の ask 関数を呼び出すだけ
+source "$HOME/.dotfiles_env" # パス等の読み込み
+source "$DOTFILES_PATH/common/_ai_assist.sh"
+ask "$@"

@@ -1,0 +1,4 @@
+#!/bin/bash
+source "$HOME/.dotfiles_env"
+source "$DOTFILES_PATH/common/_ai_assist.sh"
+wtf "$@"

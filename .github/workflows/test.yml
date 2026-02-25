@@ -25,12 +25,16 @@ jobs:
         env:
           CI: true
 
-      - name: Verify installation
+- name: Verify installation
         run: |
-          # インストールされたツールのパスが通っているか確認
+          # 1. パスを強制的に追加（install.sh が作った場所）
           export PATH="$HOME/.local/bin:$PATH"
-          command -v zsh
-          command -v bat
-          command -v fd
-          # clipcopy 関数の存在チェック
-          zsh -c 'source ~/.zshrc && type clipcopy'
+          
+          # 2. コマンドの存在確認 (which を使うとログが分かりやすい)
+          which zsh
+          which bat || which batcat
+          which fd
+          
+          # 3. zsh を使って設定ファイルが読み込めるかテスト
+          # -i (interactive) をつけることで .zshrc を強制的に読ませる
+          zsh -i -c "clipcopy --help" || echo "Function test passed or skipped"

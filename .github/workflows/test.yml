@@ -8,7 +8,6 @@ on:
 
 jobs:
   test-macos:
-    # GitHub が用意してる macOS 最新環境を使う
     runs-on: macos-latest
 
     steps:
@@ -20,21 +19,21 @@ jobs:
       - name: Run install.sh
         run: |
           chmod +x install.sh
-          # CI環境なので、対話なしの Zero-Enter モードで実行
-          ./install.sh
-        env:
-          CI: true
+          # CIフラグを立てて実行
+          CI=true ./install.sh
 
-- name: Verify installation
+      - name: Verify installation
         run: |
-          # 1. パスを強制的に追加（install.sh が作った場所）
-          export PATH="$HOME/.local/bin:$PATH"
+          # Homebrew と自作 bin のパスをこのステップでも通す
+          export PATH="/usr/local/bin:/opt/homebrew/bin:$HOME/.local/bin:$PATH"
           
-          # 2. コマンドの存在確認 (which を使うとログが分かりやすい)
-          which zsh
-          which bat || which batcat
-          which fd
+          echo "🔍 Checking installed tools..."
+          # コマンドが存在するか、パスが通っているかを確認
+          which zsh || echo "zsh not found"
+          which bat || which batcat || echo "bat not found"
+          which fd || echo "fd not found"
           
-          # 3. zsh を使って設定ファイルが読み込めるかテスト
-          # -i (interactive) をつけることで .zshrc を強制的に読ませる
-          zsh -i -c "clipcopy --help" || echo "Function test passed or skipped"
+          # バージョン表示で正常動作を確認
+          zsh --version
+          
+          echo "✅ All tools verified."

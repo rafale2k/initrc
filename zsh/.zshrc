@@ -8,7 +8,10 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${USER}.zsh" ]]; t
 fi
 
 # 2. パス定義
+typeset -U path
 export DOTFILES=$HOME/dotfiles
+export PATH="$PATH:$HOME/.local/bin"
+export PATH="/usr/local/bin:$PATH"
 export ZSH="$HOME/.oh-my-zsh"
 
 # 3. テーマ選択 (ここを修正！)

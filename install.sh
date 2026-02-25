@@ -63,7 +63,7 @@ chmod 644 "$HOME/.dotfiles_env"
 echo "🛠️  Installing Rafale's toolset..."
 
 # ツールリスト（pipx を追加して LLM ツールを管理できるようにする）
-REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd-find" "jq" "wget" "pipx")
+REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd-find" "jq" "wget" "pipx" "glow")
 INSTALL_LIST=()
 
 if [ "$OS" = "mac" ]; then
@@ -110,6 +110,7 @@ if command -v pipx &> /dev/null; then
     # llm 本体
     if ! command -v llm &> /dev/null; then
         pipx install llm --force
+        pipx ensurepath
     fi
     # Gemini プラグイン
     llm install llm-gemini || echo "⚠️  llm-gemini plugin installation failed."

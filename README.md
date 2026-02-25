@@ -33,6 +33,60 @@ AI 実行エンジンを `llm` (Simon Willison) に統一。
 - **`ask`**: 「100MB以上のファイルを探して」といった自然言語を、実行可能なシェルコマンドへ変換。
 - **`wtf`**: 直前のエラーログを解析し、具体的な解決策を提示。
 
+# 🤖 AI-Powered Docker Tools: Professional Usage
+
+これらのツールは Gemini 3 Flash と連携し、Docker 運用における「調査・判断・実行」を爆速化するために設計されています。
+
+---
+
+## 🐳 dask (Docker Assistant Task)
+自然言語で指示を出すだけで、複雑な Docker コマンドを生成・実行します。
+
+### Usage
+dask "指示内容（クエリ）"
+
+### Examples
+| シチュエーション | クエリ例 |
+| :--- | :--- |
+| **リソース調査** | `dask "一番メモリを食っているコンテナを特定して"` |
+| **一括掃除** | `dask "停止中の全コンテナと未使用ボリュームを削除して"` |
+| **ログ抽出** | `dask "rafale-db のログから 'error' を含む行を抽出して"` |
+| **ネットワーク** | `dask "このコンテナの IP アドレスと所属ネットワークを見せて"` |
+| **一括操作** | `dask "名前に 'test' がつくコンテナをすべて再起動して"` |
+
+---
+
+## 🔍 dinv (Docker Inspector)
+コンテナ内の設定ファイルやログを SRE 視点で精密診断します。
+
+### Usage
+dinv [CONTAINER] [FILE_PATH] "[追加の指示]"
+
+### Examples
+| 対象ファイル | コマンド例 | 診断内容 |
+| :--- | :--- | :--- |
+| **MySQL 設定** | `dinv maria-db /etc/mysql/my.cnf` | メモリ割当、ログ保持期間、チューニング診断 |
+| **Nginx 設定** | `dinv nginx-proxy /etc/nginx/nginx.conf` | パフォーマンス、セキュリティ、記述ミス確認 |
+| **PHP 設定** | `dinv wp-app /usr/local/etc/php/php.ini` | メモリ制限、アップロード上限、タイムアウト値 |
+| **スローログ** | `dinv maria-db /var/log/mysql/slow.log` | 重いクエリの特定とインデックス改善案 |
+| **OS 状態** | `dinv maria-db /etc/os-release` | イメージのバージョンと脆弱性リスクの確認 |
+
+---
+
+## 🛠️ wtf (Instant Error Analyzer)
+ターミナルに表示されたエラーの正体を即座に解析し、解決策を提示します。
+
+### Usage
+```bash
+# クリップボードにある最後のエラーを解析
+wtf
+
+# 特定のメッセージを直接解析
+wtf "ERROR: connection refused to host 127.0.0.1"
+```
+
+---
+
 ### 🍎 Universal macOS & Linux Support
 Apple Silicon (M1/M2/M3) macOS に正式対応。GitHub Actions による macOS 環境での CI テストを導入し、常に安定したセットアップを提供します。
 

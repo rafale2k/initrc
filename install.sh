@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =================================================================
-# Rafale's dotfiles - Universal Installer (v1.9.1 Final Edition)
+# Rafale's dotfiles - Universal Installer (v1.11.0 AI Edition)
 # =================================================================
 
 set -e
@@ -62,8 +62,8 @@ chmod 644 "$HOME/.dotfiles_env"
 # ---------------------------------------------------------
 echo "🛠️  Installing Rafale's toolset..."
 
-# ツールリスト（OSによる名前の違いを吸収）
-REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd-find" "jq" "wget")
+# ツールリスト（pipx を追加して LLM ツールを管理できるようにする）
+REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd-find" "jq" "wget" "pipx")
 INSTALL_LIST=()
 
 if [ "$OS" = "mac" ]; then
@@ -100,18 +100,36 @@ elif [ "$OS" = "rhel" ]; then
 fi
 
 # ---------------------------------------------------------
-# 4. 特殊なエイリアス（シンボリックリンク）設定
+# 4. AI ツール (llm) のセットアップ
+# ---------------------------------------------------------
+echo "🤖 Setting up AI tools (llm)..."
+# pipx のパスを一時的に通して実行
+export PATH="$HOME/.local/bin:$PATH"
+
+if command -v pipx &> /dev/null; then
+    # llm 本体
+    if ! command -v llm &> /dev/null; then
+        pipx install llm --force
+    fi
+    # Gemini プラグイン
+    llm install llm-gemini || echo "⚠️  llm-gemini plugin installation failed."
+else
+    echo "⚠️  pipx not found. Skipping llm installation."
+fi
+
+# ---------------------------------------------------------
+# 5. 特殊なエイリアス（シンボリックリンク）設定
 # ---------------------------------------------------------
 mkdir -p "$HOME/.local/bin"
 
-# fd へのリンク作成 (Ubuntu: fdfind / Mac: fd)
+# fd へのリンク作成
 if command -v fdfind &> /dev/null; then
     ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
 elif command -v fd &> /dev/null; then
     ln -sf "$(command -v fd)" "$HOME/.local/bin/fd"
 fi
 
-# bat へのリンク作成 (Ubuntu: batcat / Mac: bat)
+# bat へのリンク作成
 if command -v batcat &> /dev/null; then
     ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
 elif command -v bat &> /dev/null; then
@@ -119,13 +137,13 @@ elif command -v bat &> /dev/null; then
 fi
 
 # ---------------------------------------------------------
-# 5. サブモジュールの同期
+# 6. サブモジュールの同期
 # ---------------------------------------------------------
 echo "🔗 Syncing submodules..."
 git submodule update --init --recursive
 
 # ---------------------------------------------------------
-# 6. シンボリックリンク作成
+# 7. シンボリックリンク作成
 # ---------------------------------------------------------
 echo "🖇️  Creating symbolic links..."
 
@@ -151,7 +169,7 @@ ln -sfn "$DOTPATH/zsh/plugins/zsh-syntax-highlighting" "$HOME/.oh-my-zsh/custom/
 ln -sf "$DOTPATH/.gitconfig" "$HOME/.gitconfig"
 
 # ---------------------------------------------------------
-# 7. Git Identity 設定 (Jane Doe 仕様)
+# 8. Git Identity 設定
 # ---------------------------------------------------------
 GIT_LOCAL="$HOME/.gitconfig.local"
 if [ ! -f "$GIT_LOCAL" ]; then
@@ -165,7 +183,7 @@ EOF
 fi
 
 # ---------------------------------------------------------
-# 8. 完了
+# 9. 完了
 # ---------------------------------------------------------
 [ -f "$HOME/.dotfiles_env" ] && source "$HOME/.dotfiles_env"
 

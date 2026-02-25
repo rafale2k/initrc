@@ -1,66 +1,71 @@
 #!/bin/bash
 
+# =================================================================
+# gcm v2.0 - AI-Driven Commit Assistant (120% Edition)
+# =================================================================
+
 _ai_generate_commit_proposals() {
-    [[ -z "$GEMINI_API_KEY" ]] && return 1
-    local raw_diff=$(git diff --cached | head -c 10000)
-    [[ -z "$raw_diff" ]] && return 1
+    [[ -z "$GEMINI_API_KEY" ]] && { echo "❌ GEMINI_API_KEY not set"; return 1; }
 
-    # PythonでAPIを叩く
-    export DIFF_DATA="$raw_diff"
-    export GKEY="$GEMINI_API_KEY"
+    # 1. Diff の統計情報を取得 (コンテキスト理解用)
+    local diff_stat=$(git diff --cached --stat)
+    # 2. Diff の中身を取得 (最大 15000 文字程度に制限)
+    local full_diff=$(git diff --cached | head -c 15000)
 
-    python3 <<'PYEOF'
-import json, urllib.request, os, sys
+    # 3. システムプロンプトの定義
+    local system_prompt="You are an expert software engineer.
+Analyze the provided 'git diff' and output exactly 3 distinct, high-quality commit messages.
+Rules:
+- Format: Conventional Commits (e.g., feat:, fix:, refactor:, chore:, docs:)
+- Style: Imperative mood, concise (max 50 chars for summary).
+- Output: ONLY the 3 lines of messages, no numbers, no explanations."
 
-def fetch():
-    key = os.environ.get("GKEY")
-    diff = os.environ.get("DIFF_DATA", "")
-    # 2026年現在の最新安定版エンドポイント
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={key}"
-    
-    payload = {
-        "contents": [{
-            "parts": [{"text": f"Provide 3 distinct git commit messages in English. Conventional Commits format. Output ONLY 3 lines.\n\nDiff:\n{diff}"}]
-        }]
-    }
-
-    try:
-        req = urllib.request.Request(url, data=json.dumps(payload).encode("utf-8"), headers={"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=15) as res:
-            data = json.loads(res.read().decode("utf-8"))
-            text = data['candidates'][0]['content']['parts'][0]['text']
-            lines = [l.strip().lstrip('1234567890.+-* ').strip('` ') for l in text.strip().split('\n') if l.strip()]
-            for l in lines[:3]: print(l)
-    except Exception as e:
-        print(f"DEBUG: Error: {e}", file=sys.stderr)
-
-fetch()
-PYEOF
-    unset DIFF_DATA GKEY
+    # 4. llm コマンドで生成 (llm-gemini プラグインを使用)
+    # 統計情報と詳細 Diff を組み合わせて投げる
+    echo -e "Context - File Statistics:\n$diff_stat\n\nActual Diff:\n$full_diff" | \
+    llm -m gemini-2.0-flash-exp -s "$system_prompt" 2>/dev/null
 }
 
 gcm() {
     local diff=$(git diff --cached)
     [[ -z "$diff" ]] && { echo "❌ No changes staged."; return 1; }
 
-    echo "🤖 AI is thinking (Gemini 2.5 Flash)..."
-    local proposals=$(_ai_generate_commit_proposals)
+    echo "🤖 AI is analyzing your changes (Gemini 2.0 Flash via llm)..."
+    
+    # AI 案を取得
+    local proposals
+    proposals=$(_ai_generate_commit_proposals)
 
+    # fzf 用の選択肢を作成
     local choices=""
-    [[ -n "$proposals" ]] && choices="$proposals"$'\n'"---"
-    choices="$choices"$'\n'"feat: update configuration"$'\n'"fix: minor bug fixes"$'\n'"[Manual Input]"
+    choices+="$proposals"
+    choices+=$'\n---\n[Manual Input]'
 
-    local selected=$(echo "$choices" | grep -v '^$' | fzf \
+    # fzf で選択
+    local selected
+    selected=$(echo "$choices" | grep -v '^$' | fzf \
         --height 60% --reverse --border --ansi \
-        --header "Select AI proposal (ESC to cancel)" \
+        --header "Select AI Proposal for Commit (ESC to cancel)" \
         --preview "git diff --cached --color=always" \
         --preview-window "right:50%:wrap")
 
     [[ -z "$selected" || "$selected" == "---" ]] && { echo "Aborted."; return 0; }
+
+    # 手入力モード
     if [[ "$selected" == "[Manual Input]" ]]; then
         echo -n "✍️ Enter message: " ; read -r msg ; selected=$msg
     fi
-    [[ -n "$selected" ]] && git commit -m "$selected"
+
+    if [[ -n "$selected" ]]; then
+        # コミット実行
+        git commit -m "$selected"
+        
+        # クリップボードにもコピー (v1.10.0 で導入した clipcopy を活用)
+        if command -v clipcopy &>/dev/null; then
+            echo -n "$selected" | clipcopy
+            echo "📋 Message copied to clipboard."
+        fi
+    fi
 }
 
 gcm

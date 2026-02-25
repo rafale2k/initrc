@@ -2,7 +2,7 @@
 # --- common/loader.sh ---
 
 # 1. パスの確定
-export DOTFILES_PATH="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")/.." && pwd)"
+export DOTFILES_PATH="$(cd "$(dirname "${(:-%x):-$0}")/.." && pwd)"
 COMMON_DIR="$DOTFILES_PATH/common"
 
 # 2. ローカル環境変数を読み込む (出力は一切出さない)

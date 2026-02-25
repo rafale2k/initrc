@@ -1,0 +1,36 @@
+name: macOS Install Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-macos:
+    # GitHub が用意してる macOS 最新環境を使う
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Run install.sh
+        run: |
+          chmod +x install.sh
+          # CI環境なので、対話なしの Zero-Enter モードで実行
+          ./install.sh
+        env:
+          CI: true
+
+      - name: Verify installation
+        run: |
+          # インストールされたツールのパスが通っているか確認
+          export PATH="$HOME/.local/bin:$PATH"
+          command -v zsh
+          command -v bat
+          command -v fd
+          # clipcopy 関数の存在チェック
+          zsh -c 'source ~/.zshrc && type clipcopy'

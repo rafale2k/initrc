@@ -26,13 +26,13 @@ jobs:
           echo "/usr/local/bin" >> $GITHUB_PATH
           echo "$HOME/.local/bin" >> $GITHUB_PATH
           
-          # パスが反映されるのを待つため、このステップ内でパスを通す
+          # このステップ内でも即時反映させる
           export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
           
           echo "🔍 Checking versions..."
           zsh --version
-          # bat や fd がインストールされていれば表示される
-          command -v bat || echo "bat not found"
-          command -v fd || echo "fd not found"
+          # bat や fd がインストールされていれば which でパスが出るはず
+          which bat || echo "bat not found"
+          which fd || echo "fd not found"
           
           echo "✅ All checks passed!"

@@ -85,6 +85,13 @@ wtf
 wtf "ERROR: connection refused to host 127.0.0.1"
 ```
 
+## 💡 Troubleshooting Workflow (Combo)
+wtf: 発生したエラーを解析し、原因の目星をつける。
+
+dask: 原因と思われるファイルをコンテナ内から特定する。
+
+dinv: 特定したファイルを精密解析し、具体的な修正案を得る。
+
 ---
 
 ### 🍎 Universal macOS & Linux Support

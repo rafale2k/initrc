@@ -5,47 +5,48 @@
 # =================================================================
 
 _ai_generate_commit_proposals() {
-    [[ -z "$GEMINI_API_KEY" ]] && { echo "❌ GEMINI_API_KEY not set"; return 1; }
+    # 1. APIキーのチェック
+    if [[ -z "$GEMINI_API_KEY" ]]; then
+        echo "❌ GEMINI_API_KEY is not set in ~/.dotfiles_env" >&2
+        return 1
+    fi
 
-    # 1. Diff の統計情報を取得 (コンテキスト理解用)
+    # 2. Diff の統計情報と中身を取得
     local diff_stat=$(git diff --cached --stat)
-    # 2. Diff の中身を取得 (最大 15000 文字程度に制限)
     local full_diff=$(git diff --cached | head -c 15000)
 
-    # 3. システムプロンプトの定義
+    # 3. システムプロンプト (熟練エンジニアの振る舞いを指定)
     local system_prompt="You are an expert software engineer.
 Analyze the provided 'git diff' and output exactly 3 distinct, high-quality commit messages.
 Rules:
-- Format: Conventional Commits (e.g., feat:, fix:, refactor:, chore:, docs:)
+- Format: Conventional Commits (feat:, fix:, refactor:, chore:, docs:)
 - Style: Imperative mood, concise (max 50 chars for summary).
 - Output: ONLY the 3 lines of messages, no numbers, no explanations."
 
-    # 4. llm コマンドで生成 (llm-gemini プラグインを使用)
-    # 統計情報と詳細 Diff を組み合わせて投げる
+    # 4. llm コマンドで生成
     echo -e "Context - File Statistics:\n$diff_stat\n\nActual Diff:\n$full_diff" | \
-    llm -m gemini-2.0-flash-exp -s "$system_prompt" 2>/dev/null
+    llm -m gemini-2.5-flash -s "$system_prompt" 2>/dev/null
 }
 
 gcm() {
     local diff=$(git diff --cached)
-    [[ -z "$diff" ]] && { echo "❌ No changes staged."; return 1; }
+    [[ -z "$diff" ]] && { echo "❌ No changes staged. (Use 'ga' first)"; return 1; }
 
-    echo "🤖 AI is analyzing your changes (Gemini 2.0 Flash via llm)..."
+    echo "🤖 AI is analyzing changes (Gemini via llm)..."
     
-    # AI 案を取得
     local proposals
     proposals=$(_ai_generate_commit_proposals)
 
-    # fzf 用の選択肢を作成
+    # fzf 用の選択肢作成
     local choices=""
     choices+="$proposals"
     choices+=$'\n---\n[Manual Input]'
 
-    # fzf で選択
+    # fzf で選択 (プレビュー付き)
     local selected
     selected=$(echo "$choices" | grep -v '^$' | fzf \
         --height 60% --reverse --border --ansi \
-        --header "Select AI Proposal for Commit (ESC to cancel)" \
+        --header "Select AI Proposal (ESC to cancel)" \
         --preview "git diff --cached --color=always" \
         --preview-window "right:50%:wrap")
 
@@ -57,10 +58,9 @@ gcm() {
     fi
 
     if [[ -n "$selected" ]]; then
-        # コミット実行
         git commit -m "$selected"
         
-        # クリップボードにもコピー (v1.10.0 で導入した clipcopy を活用)
+        # v1.10.0 で導入した clipcopy を活用
         if command -v clipcopy &>/dev/null; then
             echo -n "$selected" | clipcopy
             echo "📋 Message copied to clipboard."

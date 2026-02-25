@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # =================================================================
-# Rafale's dotfiles - Universal Installer (Final Automated Edition)
+# Rafale's dotfiles - Universal Installer (v1.9.1 Final Edition)
 # =================================================================
 
 set -e
@@ -64,50 +64,58 @@ echo "🛠️  Installing Rafale's toolset..."
 
 # ツールリスト（OSによる名前の違いを吸収）
 REQUIRED_TOOLS=("tree" "git" "git-extras" "docker" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "bat" "eza" "fd-find" "jq" "wget")
+INSTALL_LIST=()
 
-if [ "$OS" = "debian" ]; then
+if [ "$OS" = "mac" ]; then
+    # Mac (Homebrew) 向けマッピング
+    for tool in "${REQUIRED_TOOLS[@]}"; do
+        case "$tool" in
+            "fd-find") INSTALL_LIST+=("fd") ;;
+            "ccze")    echo "⏭️  Skipping ccze on Mac (not in default brew)" ;;
+            *)         INSTALL_LIST+=("$tool") ;;
+        esac
+    done
+    # Brewを非対話モードで実行
+    NONINTERACTIVE=1 brew install "${INSTALL_LIST[@]}" || echo "⚠️  Some tools failed to install via brew."
+
+elif [ "$OS" = "debian" ]; then
     $SUDO_CMD $PM update -y
-    INSTALL_LIST=()
     for tool in "${REQUIRED_TOOLS[@]}"; do
         case "$tool" in
             "bat") INSTALL_LIST+=("batcat") ;;
-            *) INSTALL_LIST+=("$tool") ;;
+            *)     INSTALL_LIST+=("$tool") ;;
         esac
     done
+    for tool in "${INSTALL_LIST[@]}"; do
+        $SUDO_CMD $PM install -y "$tool" || echo "⚠️  Failed to install $tool"
+    done
+
 elif [ "$OS" = "rhel" ]; then
     $SUDO_CMD $PM install -y epel-release
     $SUDO_CMD $PM makecache
-    # RHEL系では fd-find はそのまま fd-find というパッケージ名でOK（中身は /usr/bin/fd）
     INSTALL_LIST=("${REQUIRED_TOOLS[@]}")
+    for tool in "${INSTALL_LIST[@]}"; do
+        $SUDO_CMD $PM install -y "$tool" || echo "⚠️  Failed to install $tool"
+    done
 fi
 
-for tool in "${INSTALL_LIST[@]}"; do
-    # チェック用の名前（fd, fdfind, bat, batcat などを考慮）
-    CHECK_NAME=$tool
-    [[ "$tool" == "fd-find" ]] && CHECK_NAME="fdfind"
-    [[ "$tool" == "batcat" ]] && CHECK_NAME="batcat"
-    
-    # 既にコマンドが存在するか、またはそのエイリアスがあるか確認
-    if ! command -v "$CHECK_NAME" &> /dev/null && \
-       ! command -v "${CHECK_NAME%-find}" &> /dev/null; then
-        echo "🎁 Installing $tool..."
-        $SUDO_CMD $PM install -y "$tool" || echo "⚠️  Failed to install $tool, skipping..."
-    fi
-done
+# ---------------------------------------------------------
+# 4. 特殊なエイリアス（シンボリックリンク）設定
+# ---------------------------------------------------------
+mkdir -p "$HOME/.local/bin"
 
-# ---------------------------------------------------------
-# 4. 特殊なエイリアス設定 (Ubuntu 向け)
-# ---------------------------------------------------------
-if [ "$OS" = "debian" ]; then
-    mkdir -p "$HOME/.local/bin"
-    # Ubuntu で fdfind しかない場合は fd にリンク
-    if command -v fdfind &> /dev/null && ! command -v fd &> /dev/null; then
-        ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
-    fi
-    # Ubuntu で batcat しかない場合は bat にリンク
-    if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
-        ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
-    fi
+# fd へのリンク作成 (Ubuntu: fdfind / Mac: fd)
+if command -v fdfind &> /dev/null; then
+    ln -sf "$(command -v fdfind)" "$HOME/.local/bin/fd"
+elif command -v fd &> /dev/null; then
+    ln -sf "$(command -v fd)" "$HOME/.local/bin/fd"
+fi
+
+# bat へのリンク作成 (Ubuntu: batcat / Mac: bat)
+if command -v batcat &> /dev/null; then
+    ln -sf "$(command -v batcat)" "$HOME/.local/bin/bat"
+elif command -v bat &> /dev/null; then
+    ln -sf "$(command -v bat)" "$HOME/.local/bin/bat"
 fi
 
 # ---------------------------------------------------------
@@ -121,7 +129,6 @@ git submodule update --init --recursive
 # ---------------------------------------------------------
 echo "🖇️  Creating symbolic links..."
 
-# zoxide init の追記 (存在しない場合のみ)
 ZSHRC_FILE="$DOTPATH/zsh/.zshrc"
 if ! grep -q "zoxide init zsh" "$ZSHRC_FILE"; then
     echo 'eval "$(zoxide init zsh)"' >> "$ZSHRC_FILE"
@@ -129,11 +136,13 @@ fi
 
 ln -sf "$ZSHRC_FILE" "$HOME/.zshrc"
 
+# Oh My Zsh フォルダの処理
 if [ -d "$HOME/.oh-my-zsh" ] && [ ! -L "$HOME/.oh-my-zsh" ]; then
     rm -rf "$HOME/.oh-my-zsh"
 fi
 ln -sfn "$DOTPATH/oh-my-zsh" "$HOME/.oh-my-zsh"
 
+# カスタムディレクトリの整備
 mkdir -p "$HOME/.oh-my-zsh/custom/themes"
 mkdir -p "$HOME/.oh-my-zsh/custom/plugins"
 ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
@@ -147,29 +156,24 @@ ln -sf "$DOTPATH/.gitconfig" "$HOME/.gitconfig"
 GIT_LOCAL="$HOME/.gitconfig.local"
 if [ ! -f "$GIT_LOCAL" ]; then
     echo "👤 Setting up Git identity (Automatic)..."
-    GIT_NAME="Jane Doe"
-    GIT_EMAIL="example@email.com"
-
     cat << EOF > "$GIT_LOCAL"
 [user]
-    name = $GIT_NAME
-    email = $GIT_EMAIL
+    name = Jane Doe
+    email = example@email.com
 EOF
-    echo "✅ Created $GIT_LOCAL with identity: $GIT_NAME"
+    echo "✅ Created $GIT_LOCAL"
 fi
 
 # ---------------------------------------------------------
 # 8. 完了
 # ---------------------------------------------------------
-echo "✨ Installation complete! Transitioning to Zsh..."
 [ -f "$HOME/.dotfiles_env" ] && source "$HOME/.dotfiles_env"
 
-# CI環境ならここで正常終了させる（シェルの切り替えをしない）
 if [ "$CI" = "true" ]; then
+    echo "✨ Installation complete!"
     echo "✅ CI environment detected. Skipping shell transition."
     exit 0
 fi
 
-# ローカル環境（人間が叩いてる時）なら zsh に切り替え
 echo "✨ Installation complete! Transitioning to Zsh..."
 exec zsh -l

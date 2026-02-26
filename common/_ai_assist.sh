@@ -52,7 +52,7 @@ dask() {
 
     # 賢さを最大化するためのコンテキスト収集
     local context="[Context]\n"
-    [[ -f "docker-compose.yml" ]] && context+="Compose File (head):\n$(cat docker-compose.yml | head -n 50)\n\n"
+    [[ -f "docker-compose.yml" ]] && context+="Compose File (head):\n$(head -n 50 docker-compose.yml)\n\n"
     context+="Container Status:\n$(docker ps --format '{{.Names}} ({{.Status}})')\n"
     # 直近のエラーログを含めることで、トラブル解決の精度を劇的に上げる
     context+="Recent Logs excerpt:\n$(docker compose logs --tail 15 2>/dev/null)\n"

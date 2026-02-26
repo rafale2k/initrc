@@ -8,7 +8,9 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias b='cd -'
-mkcd() { mkdir -p "$1" && cd "$1"; }
+mkcd() { 
+    mkdir -p "$1" && cd "$1" || return 1
+}
 
 # zoxide用のプレビュー設定（zoxideが存在する場合のみ設定）
 if command -v zoxide > /dev/null; then

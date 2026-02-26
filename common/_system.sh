@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck shell=bash
 # ==========================================
 # 共通設定: システム基本 (System)
 # ==========================================
@@ -31,20 +32,19 @@ set_tokyo_night_colors() {
         printf "\033]4;15;#c0caf5\007" # Bright White
 
         # --- 特殊色 ---
-        printf "\e]11;#1a1b26\a" # 背景
-        printf "\e]10;#a9b1d6\a" # 文字
-        printf "\e]12;#7aa2f7\a" # カーソル
+        printf "\033]11;#1a1b26\007" # 背景
+        printf "\033]10;#a9b1d6\007" # 文字
+        printf "\033]12;#7aa2f7\007" # カーソル
     fi
 }
 
-# 配色を適用（rootの場合は関数内で安全にスキップされる）
 set_tokyo_night_colors
 
 # ==========================================
-# エイリアス & 関数定義 (rootでも読み込まれる)
+# エイリアス & 関数定義
 # ==========================================
 
-# シェル再起動 (Zsh/Bash判別)
+# シェル再起動
 if [ -n "$ZSH_VERSION" ]; then
     alias reload='exec zsh -l'
 elif [ -n "$BASH_VERSION" ]; then
@@ -55,21 +55,21 @@ fi
 alias s='sudo -i'
 alias si='sudo -i'
 alias ss='sudo -s'
-alias path='echo -e ${PATH//:/\\n}'
+# SC2016: 変数展開を避けるためにバックスラッシュを使用
+alias path='echo -e "${PATH//:/\n}"'
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
-alias tokyo='printf "\e]4;0;#1a1b26\a"'
+alias tokyo='printf "\033]4;0;#1a1b26\007"'
 
-# モダンコマンド置換 (eza)
-# 複数のパス候補をチェックして root でも動くようにする
+# モダンコマンド置換 (eza) - SC2139 対策でバックスラッシュエスケープ
 EZA_BIN=$(command -v eza || which /usr/local/bin/eza 2>/dev/null)
 if [ -x "$EZA_BIN" ]; then
-    alias ls="$EZA_BIN --icons --group-directories-first"
-    alias ll="$EZA_BIN -alF --icons --git"
-    alias lt='$EZA_BIN --tree -a --icons --git --ignore-glob=".git"'
-    alias lt2='$EZA_BIN --tree -a --icons --ignore-glob=".git" --level=2'
-    alias la="$EZA_BIN -a --icons --group-directories-first"
+    alias ls="\"$EZA_BIN\" --icons --group-directories-first"
+    alias ll="\"$EZA_BIN\" -alF --icons --git"
+    alias lt="\"$EZA_BIN\" --tree -a --icons --git --ignore-glob=\".git\""
+    alias lt2="\"$EZA_BIN\" --tree -a --icons --ignore-glob=\".git\" --level=2"
+    alias la="\"$EZA_BIN\" -a --icons --group-directories-first"
 else
     alias ll='ls -alF --color=auto'
     alias la='ls -la --color=auto'
@@ -82,108 +82,22 @@ elif command -v bat &> /dev/null; then
     alias cat='bat --paging=never --theme="Monokai Extended"'
 fi
 
-# fd エイリアス
 if command -v fdfind &> /dev/null; then
     alias fd='fdfind'
 fi
 
-# Nano 拡張 (Monokai背景切り替え)
+# ---------------------------------------------------------
+# Nano Wrapper & Selector (SC2155対策済み)
+# ---------------------------------------------------------
 n() {
     local file bat_cmd
     bat_cmd=$(command -v batcat || command -v bat || echo "cat")
 
     if [ $# -gt 0 ]; then
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
-        nano "$@"
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
-    else
-        # fzf でファイルを選択
-        file=$(fdfind --type f --hidden --exclude .git 2>/dev/null | fzf --prompt="Nano File > " --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}")
-        if [ -n "$file" ]; then
-            [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
-            nano "$file"
-            [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
-        fi
-    fi
-}
-
-# ---------------------------------------------------------
-# Nano Wrapper (無限ループ対策版)
-# ---------------------------------------------------------
-nano() {
-    # 'command' を使うことで、同名の関数ではなく外部バイナリを強制的に呼ぶ
-    if [ $# -gt 0 ] || [ ! -t 0 ]; then
-        # 背景を Monokai に
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
-        
+        [ "$EUID" -ne 0 ] && printf "\033]4;0;#272822\007"
         command nano "$@"
-        
-        # 背景を TokyoNight に戻す
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
+        [ "$EUID" -ne 0 ] && printf "\033]4;0;#1a1b26\007"
     else
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
-        command nano
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
-    fi
-}
-
-# ユーティリティ
-alias ports='sudo lsof -i -P -n | grep LISTEN'
-alias myip='curl -s https://ifconfig.me'
-# 修正箇所: シングルクォートをエスケープせず、シンプルに定義
-alias localip="hostname -I | awk '{print \$1}'"
-alias du10='du -sh * | sort -hr | head -n 10'
-alias mem='ps auxf | sort -nr -k 4 | head -n 10'
-
-# --- クリップボード連携の最適化 (Docker / SSH / OS 判別版) ---
-# Oh My Zsh などのプラグインによる上書きを防ぐため、関数の最後に unalias を実行。
-clipcopy() {
-    local content
-    if [[ $# -eq 0 ]]; then
-        content=$(cat)
-    else
-        content=$(cat "$1")
-    fi
-
-    # 1. SSH接続中 または Dockerコンテナ内の場合 (OSC 52 を使用)
-    # .dockerenv が存在するか、SSH系変数がセットされていればシーケンスをホストへ送る
-    if [ -f /.dockerenv ] || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
-        local base64_str=$(echo -n "$content" | base64 | tr -d '\n')
-        printf "\e]52;c;%s\a" "$base64_str"
-        echo "📋 [OSC 52] Copied to host clipboard"
-        return
-    fi
-
-    # 2. ローカル環境の場合 (OSごとに分岐)
-    case "$(uname)" in
-        "Darwin") # macOS
-            echo -n "$content" | pbcopy
-            echo "📋 [macOS] Copied via pbcopy"
-            ;;
-        "Linux")
-            if [[ $(grep -i Microsoft /proc/version 2>/dev/null) ]]; then
-                # WSL (Windows Subsystem for Linux)
-                echo -n "$content" | clip.exe
-                echo "📋 [WSL] Copied via clip.exe"
-            elif command -v xclip >/dev/null 2>&1; then
-                # 純粋なLinux (GUIあり/xclipインストール済み)
-                echo -n "$content" | xclip -selection clipboard
-                echo "📋 [Linux] Copied via xclip"
-            else
-                # ツールがない場合の最終手段として OSC 52 を試行
-                local base64_str=$(echo -n "$content" | base64 | tr -d '\n')
-                printf "\e]52;c;%s\a" "$base64_str"
-                echo "📋 [Fallback] Tried OSC 52"
-            fi
-            ;;
-    esac
-}
-
-# 3. エイリアス競合の排除
-# Oh My Zsh のプラグインなどが clipcopy をエイリアスとして定義している場合、
-# それを解除して上記の関数を確実に優先させる。
-if alias clipcopy >/dev/null 2>&1; then
-    unalias clipcopy
-fi
-
-# Oh My Zshのプラグインとの競合を防ぐためエイリアスではなく関数を優先
+        # fzf がある場合のみ実行
+        if command -v fzf &> /dev/null; then
+            file=$(fdfind --type f --hidden --exclude .git 2>/dev/null | fzf --prompt

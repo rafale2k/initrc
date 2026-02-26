@@ -15,7 +15,7 @@ if [[ -z "$ZSH_COMPDUMP_LOADED" ]]; then
     plugins=(git sudo extract docker docker-compose zsh-autosuggestions zsh-syntax-highlighting)
     
     # Oh My Zsh 起動
-    source $ZSH/oh-my-zsh.sh
+    source "$ZSH/oh-my-zsh.sh"
     
     export ZSH_COMPDUMP_LOADED=1
 fi

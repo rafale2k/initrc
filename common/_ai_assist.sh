@@ -27,7 +27,8 @@ ask() {
     local raw_cmd
     raw_cmd=$(llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
     # 不要なマークダウンを取り除き、クリーンなコマンドを抽出
-    local cmd=$(echo "$raw_cmd" | sed -e 's/```[a-z]*//g' -e 's/```//g' | tr -d '`' | xargs)
+    local cmd
+    cmd=$(echo "$raw_cmd" | sed -e 's/```[a-z]*//g' -e 's/```//g' | tr -d '`' | xargs)
 
     [[ -z "$cmd" ]] && { echo "❌ Failed to generate command."; return 1; }
 

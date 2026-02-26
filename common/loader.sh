@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1090,SC1091,SC2034
 # --- common/loader.sh ---
 
 # 1. パスの確定
@@ -28,6 +29,7 @@ if [ -n "$ZSH_VERSION" ]; then
     [ -r "$ZSH_DIR/_p10k.zsh" ]   && source "$ZSH_DIR/_p10k.zsh"   > /dev/null 2>&1
 
 elif [ -n "$BASH_VERSION" ]; then
+    # shellcheck disable=SC2034
     BASH_DIR="$DOTFILES_PATH/bash"
 fi
 

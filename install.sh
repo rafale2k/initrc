@@ -150,6 +150,7 @@ echo "🖇️  Creating symbolic links..."
 
 ZSHRC_FILE="$DOTPATH/zsh/.zshrc"
 if ! grep -q "zoxide init zsh" "$ZSHRC_FILE"; then
+    # shellcheck disable=SC2016
     echo 'eval "$(zoxide init zsh)"' >> "$ZSHRC_FILE"
 fi
 

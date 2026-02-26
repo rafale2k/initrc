@@ -9,4 +9,6 @@ HIST_STAMPS="yyyy-mm-dd"
 zstyle ':completion:*' menu select
 
 # その他
-export ARCHFLAGS="-arch $(uname -m)"
+local ARCHFLAGS
+ARCHFLAGS="-arch $(uname -m)"
+export ARCHFLAGS

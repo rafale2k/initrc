@@ -1,4 +1,5 @@
 # shellcheck shell=bash
+# shellcheck disable=SC1090,SC1091,SC2034
 export OSH="/root/.oh-my-bash"
 
 # 未インストールの場合は自動インストール

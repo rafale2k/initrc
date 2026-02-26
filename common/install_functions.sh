@@ -67,7 +67,7 @@ install_bat() {
             mkdir -p "$DOTPATH/bin"
             ln -sf /usr/bin/batcat "$DOTPATH/bin/bat"
             ;;
-        *) $SUDO_CMD $PM install -y bat ;;
+        *) "$SUDO_CMD" "$PM" install -y bat ;;
     esac
 }
 

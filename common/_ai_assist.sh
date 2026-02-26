@@ -68,8 +68,9 @@ dask() {
     response=$(echo -e "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
 
     # 1行目の解説と2行目以降のコマンドを分離
-    local explanation=$(echo "$response" | head -n 1)
-    local cmd=$(echo "$response" | tail -n +2 | xargs)
+    local explanation cmd
+    explanation=$(echo "$response" | head -n 1)
+    cmd=$(echo "$response" | tail -n +2 | xargs)
 
     [[ -z "$cmd" ]] && { echo "❌ Failed to generate command."; return 1; }
 
@@ -87,7 +88,13 @@ dask() {
 
 # [解析] ログやエラーメッセージの解決策を提示
 wtf() {
-    local context=$( [[ -n "$1" ]] && echo "$1" || { clipcopy --paste 2>/dev/null || pbpaste 2>/dev/null; } )
+    local context
+    if [[ -n "$1" ]]; then
+        context="$1"
+    else
+        context=$(clipcopy --paste 2>/dev/null || pbpaste 2>/dev/null)
+    fi
+    
     [[ -z "$context" ]] && { echo "⚠️ No error context found in arguments or clipboard."; return 1; }
 
     echo "🔍 Analyzing error..."

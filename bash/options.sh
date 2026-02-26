@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 HIST_STAMPS='yyyy-mm-dd'
 
 alias bashconfig='nano ~/.bashrc'

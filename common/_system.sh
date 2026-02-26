@@ -1,4 +1,4 @@
-k#!/bin/bash
+#!/bin/bash
 # shellcheck shell=bash
 # ==========================================
 # 共通設定: システム基本 (System)

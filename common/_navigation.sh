@@ -49,7 +49,7 @@ fe() {
     if [[ -n "$file" ]]; then
         # ディレクトリなら cd、ファイルなら n (nvim)
         if [[ -d "$file" ]]; then
-            cd "$file"
+            cd "$file" || exit
         else
             n "$file"
         fi

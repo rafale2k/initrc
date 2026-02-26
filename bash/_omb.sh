@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 export OSH="/root/.oh-my-bash"
 
 # 未インストールの場合は自動インストール

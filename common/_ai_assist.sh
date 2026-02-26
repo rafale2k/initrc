@@ -24,7 +24,8 @@ ask() {
     local system_prompt="You are a CLI expert. Output ONLY a valid shell command. No markdown, no backticks."
     echo "🤖 Thinking..."
     
-    local raw_cmd=$(llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
+    local raw_cmd
+    raw_cmd=$(llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
     # 不要なマークダウンを取り除き、クリーンなコマンドを抽出
     local cmd=$(echo "$raw_cmd" | sed -e 's/```[a-z]*//g' -e 's/```//g' | tr -d '`' | xargs)
 
@@ -62,7 +63,8 @@ dask() {
     2. Output the command in a NEW line.
     3. Use NO markdown formatting."
 
-    local response=$(echo -e "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
+    local response
+    response=$(echo -e "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
 
     # 1行目の解説と2行目以降のコマンドを分離
     local explanation=$(echo "$response" | head -n 1)
@@ -121,7 +123,8 @@ dinv() {
     fi
 
     echo "🔍 Reading $file_path from $container..."
-    local content=$(docker exec "$container" cat "$file_path" 2>/dev/null)
+    local content
+    content=$(docker exec "$container" cat "$file_path" 2>/dev/null)
     
     if [[ -z "$content" ]]; then
         echo "❌ File not found or empty."

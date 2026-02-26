@@ -1,3 +1,4 @@
+# shellcheck shell=bash
 export TERM=xterm-256color
 
 set_my_root_ps1() {

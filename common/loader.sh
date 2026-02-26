@@ -3,7 +3,7 @@
 
 # 1. パスの確定
 export DOTFILES_PATH
-DOTFILES_PATH="$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)"
+DOTFILES_PATH="$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)" || exit
 COMMON_DIR="$DOTFILES_PATH/common"
 
 # 2. ローカル環境変数を読み込む (出力は一切出さない)

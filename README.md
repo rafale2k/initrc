@@ -94,7 +94,7 @@ cd ~/dotfiles && ./install.sh
 ## 🔑 API Key Setup
 - ~/.dotfiles_env に export GEMINI_API_KEY="your_key" を追記。
 
--エンジンにキーを登録: llm keys set gemini (プロンプトに従い入力
+- エンジンにキーを登録: llm keys set gemini (プロンプトに従い入力
 
 ---
 

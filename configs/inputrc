@@ -23,4 +23,4 @@ set completion-query-items -1
 set bell-style none
 
 # 1行が長くなった時、折り返さずに横スクロールする (好みによりますが、プロンプトが崩れにくくなります)
-# set horizontal-scroll-mode on
+set horizontal-scroll-mode on

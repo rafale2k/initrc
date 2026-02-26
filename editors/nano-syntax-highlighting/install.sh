@@ -46,8 +46,8 @@ esac
 
 _fetch_sources;
 if [ "$UPDATE_LITE" ]; then
-then
   _update_nanorc_lite
+  echo "Updating lite version..."
 else
   _update_nanorc
 fi

@@ -1,4 +1,4 @@
-#!/bin/bash
+k#!/bin/bash
 # shellcheck shell=bash
 # ==========================================
 # 共通設定: システム基本 (System)
@@ -11,30 +11,30 @@ set_tokyo_night_colors() {
     [ "$EUID" -eq 0 ] && return 0
     [ "$TERM" = "linux" ] && return 0
 
-    # 2. xterm 互換環境でのみ色を設定
+    # 2. xterm 互換環境でのみ色を設定 (制御文字をエスケープ形式に変更)
     if [[ "$TERM" == "xterm-256color" || "$TERM" == "xterm" || "$TERM" == "screen-256color" ]]; then
         # --- 16色パレット定義 ---
-        printf "\033]4;0;#1a1b26\007"
-        printf "\033]4;8;#414868\007"
-        printf "\033]4;1;#f7768e\007"
-        printf "\033]4;9;#f7768e\007"
-        printf "\033]4;2;#9ece6a\007"
-        printf "\033]4;10;#9ece6a\007"
-        printf "\033]4;3;#e0af68\007"
-        printf "\033]4;11;#e0af68\007"
-        printf "\033]4;4;#7aa2f7\007"
-        printf "\033]4;12;#7aa2f7\007"
-        printf "\033]4;5;#bb9af7\007"
-        printf "\033]4;13;#bb9af7\007"
-        printf "\033]4;6;#7dcfff\007"
-        printf "\033]4;14;#7dcfff\007"
-        printf "\033]4;7;#a9b1d6\007"
-        printf "\033]4;15;#c0caf5\007"
+        printf "\e]4;0;#1a1b26\a"
+        printf "\e]4;8;#414868\a"
+        printf "\e]4;1;#f7768e\a"
+        printf "\e]4;9;#f7768e\a"
+        printf "\e]4;2;#9ece6a\a"
+        printf "\e]4;10;#9ece6a\a"
+        printf "\e]4;3;#e0af68\a"
+        printf "\e]4;11;#e0af68\a"
+        printf "\e]4;4;#7aa2f7\a"
+        printf "\e]4;12;#7aa2f7\a"
+        printf "\e]4;5;#bb9af7\a"
+        printf "\e]4;13;#bb9af7\a"
+        printf "\e]4;6;#7dcfff\a"
+        printf "\e]4;14;#7dcfff\a"
+        printf "\e]4;7;#a9b1d6\a"
+        printf "\e]4;15;#c0caf5\a"
 
         # --- 特殊色 ---
-        printf "\033]11;#1a1b26\007"
-        printf "\033]10;#a9b1d6\007"
-        printf "\033]12;#7aa2f7\007"
+        printf "\e]11;#1a1b26\a"
+        printf "\e]10;#a9b1d6\a"
+        printf "\e]12;#7aa2f7\a"
     fi
 }
 
@@ -55,22 +55,22 @@ fi
 alias s='sudo -i'
 alias si='sudo -i'
 alias ss='sudo -s'
-# SC2016対策: シングルクォート内で展開させない意図を明確に
+# SC2016対策: PATH展開を遅延させるためシングルクォートを使用
 alias path='echo -e "${PATH//:/\n}"'
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
-alias tokyo='printf "\033]4;0;#1a1b26\007"'
+alias tokyo='printf "\e]4;0;#1a1b26\a"'
 
 # モダンコマンド置換 (eza)
 EZA_BIN=$(command -v eza || command -v /usr/local/bin/eza 2>/dev/null)
 if [ -x "$EZA_BIN" ]; then
-    # SC2139対策: 定義時の展開を防ぐためバックスラッシュを使用
-    alias ls="\"$EZA_BIN\" --icons --group-directories-first"
-    alias ll="\"$EZA_BIN\" -alF --icons --git"
-    alias lt="\"$EZA_BIN\" --tree -a --icons --git --ignore-glob=\".git\""
-    alias lt2="\"$EZA_BIN\" --tree -a --icons --ignore-glob=\".git\" --level=2"
-    alias la="\"$EZA_BIN\" -a --icons --group-directories-first"
+    # SC2139対策: ダブルクォートをやめ、シングルクォートで定義することで実行時に評価させる
+    alias ls='$EZA_BIN --icons --group-directories-first'
+    alias ll='$EZA_BIN -alF --icons --git'
+    alias lt='$EZA_BIN --tree -a --icons --git --ignore-glob=".git"'
+    alias lt2='$EZA_BIN --tree -a --icons --ignore-glob=".git" --level=2'
+    alias la='$EZA_BIN -a --icons --group-directories-first'
 else
     alias ll='ls -alF --color=auto'
     alias la='ls -la --color=auto'
@@ -88,24 +88,23 @@ if command -v fdfind &> /dev/null; then
 fi
 
 # ---------------------------------------------------------
-# Nano Wrapper & Selector (SC1072, SC1073 修正済み)
+# Nano Wrapper & Selector
 # ---------------------------------------------------------
 n() {
     local file bat_cmd
     bat_cmd=$(command -v batcat || command -v bat || echo "cat")
 
     if [ $# -gt 0 ]; then
-        [ "$EUID" -ne 0 ] && printf "\033]4;0;#272822\007"
+        [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
         command nano "$@"
-        [ "$EUID" -ne 0 ] && printf "\033]4;0;#1a1b26\007"
+        [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
     else
-        # fzf がある場合のみ実行 (括弧の閉じ忘れを修正)
         if command -v fzf &> /dev/null; then
             file=$(fdfind --type f --hidden --exclude .git 2>/dev/null | fzf --prompt="Nano File > " --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}")
             if [ -n "$file" ]; then
-                [ "$EUID" -ne 0 ] && printf "\033]4;0;#272822\007"
+                [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
                 command nano "$file"
-                [ "$EUID" -ne 0 ] && printf "\033]4;0;#1a1b26\007"
+                [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
             fi
         else
             command nano
@@ -136,8 +135,9 @@ clipcopy() {
 
     if [ -f /.dockerenv ] || [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
         local base64_str
+        # SC2155対策: 宣言と代入を分離
         base64_str=$(echo -n "$content" | base64 | tr -d '\n')
-        printf "\033]52;c;%s\007" "$base64_str"
+        printf "\e]52;c;%s\a" "$base64_str"
         echo "📋 [OSC 52] Copied to host clipboard"
         return
     fi
@@ -148,7 +148,6 @@ clipcopy() {
             echo "📋 [macOS] Copied via pbcopy"
             ;;
         "Linux")
-            # SC2143対策: grep -q を使用
             if grep -qi Microsoft /proc/version 2>/dev/null; then
                 echo -n "$content" | clip.exe
                 echo "📋 [WSL] Copied via clip.exe"
@@ -158,7 +157,7 @@ clipcopy() {
             else
                 local b64
                 b64=$(echo -n "$content" | base64 | tr -d '\n')
-                printf "\033]52;c;%s\007" "$b64"
+                printf "\e]52;c;%s\a" "$b64"
                 echo "📋 [Fallback] Tried OSC 52"
             fi
             ;;

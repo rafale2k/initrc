@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091,SC2034
 
 # =================================================================
 # Rafale's dotfiles - Universal Installer (v1.11.0 AI Edition)

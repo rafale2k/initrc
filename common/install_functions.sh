@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC1091,SC2034
 
 # --- OSごとの初期セットアップ (リポジトリ更新、RHEL固有ツール等) ---
 setup_os() {
@@ -80,7 +81,7 @@ install_fd() {
             mkdir -p "$DOTPATH/bin"
             ln -sf /usr/bin/fdfind "$DOTPATH/bin/fd"
             ;;
-        *) $SUDO_CMD $PM install -y fd ;;
+        *) "$SUDO_CMD" "$PM" install -y fd ;;
     esac
 }
 

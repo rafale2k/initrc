@@ -1,3 +1,4 @@
+# shellcheck disable=all
 # Generated b
 # Powerlevel10k configuration wizard on 2026-02-23 at 23:11 JST.
 # Based on romkatv/powerlevel10k/config/p10k-rainbow.zsh, checksum 57633.

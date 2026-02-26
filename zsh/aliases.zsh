@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 alias zshconfig="nano ~/dotfiles/zsh/.zshrc"
 alias reload="source ~/.zshrc"
 # Esc 2回で先頭に sudo をつける (Zsh用)

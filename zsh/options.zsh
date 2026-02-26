@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # 履歴設定
 setopt HIST_IGNORE_DUPS
 setopt EXTENDED_HISTORY

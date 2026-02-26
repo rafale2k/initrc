@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # --- zsh/hooks.zsh ---
 
 set_tokyo_night_colors() {

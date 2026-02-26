@@ -1,3 +1,4 @@
+# shellcheck shell=zsh
 # --- zsh/_p10k.zsh ---
 
 if [[ -z "$ZSH_COMPDUMP_LOADED" ]]; then

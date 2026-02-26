@@ -1,3 +1,4 @@
 editors/nano-syntax-highlighting
 common/.env.local
 .gitconfig.local
+common/_local_*.sh

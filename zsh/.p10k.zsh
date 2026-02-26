@@ -50,6 +50,8 @@
     status                  # exit code of the last command
     command_execution_time  # duration of the last command
     background_jobs         # presence of background jobs
+    docker_context          # <--- これが入っているか確認！
+    docker_count
     direnv                  # direnv status (https://direnv.net/)
     asdf                    # asdf version manager (https://github.com/asdf-vm/asdf)
     virtualenv              # python virtual environment (https://docs.python.org/3/library/venv.html)
@@ -1832,6 +1834,16 @@
   # If p10k is already loaded, reload configuration.
   # This works even with POWERLEVEL9K_DISABLE_HOT_RELOAD=true.
   (( ! $+functions[p10k] )) || p10k reload
+}
+
+# カスタムセグメント: docker_count の定義
+function prompt_docker_count() {
+  # 動いているコンテナの数を取得
+  local count=$(docker ps -q | wc -l)
+  if (( count > 0 )); then
+    # 🐳 アイコンと数値を表示（色は青系）
+    p10k segment -f 39 -i '🐳' -t "$count"
+  fi
 }
 
 # Tell `p10k configure` which file it should overwrite.

@@ -5,6 +5,7 @@
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20RHEL-orange)
 ![CI Status](https://github.com/rafale2k/initrc/actions/workflows/test.yml/badge.svg)
 ![Linting](https://img.shields.io/badge/shellcheck-100%25%20passing-brightgreen)
+[![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
 > **"Environment construction in 0 seconds, with AI at your side."**
 > `initrc` は、単なる設定のコピーではありません。実行環境（Mac / SSH / Docker）に合わせてツールを自動調達し、AI 連携とユニバーサル・クリップボードを統合する、エンジニアのための最強スターターキットです。

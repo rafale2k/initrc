@@ -41,3 +41,4 @@ if [ -f "$DOTFILES/common/loader.sh" ]; then
     source "$DOTFILES/common/loader.sh"
 fi
 eval "$(zoxide init zsh)"
+export EDITOR=nano

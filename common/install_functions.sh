@@ -129,7 +129,7 @@ install_docker() {
             # RHEL/CentOS系は公式リポジトリを追加
             $SUDO_CMD dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
             $SUDO_CMD dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-            $SUDO_CMD systemctl enable --now docker
+            $SUDO_CMD systemctl enable --now docker || echo "⚠️  Skipping systemd service start (Container detected)"
             ;;
         "brew")
             # macOSは Docker Desktop または OrbStack を使うのが一般的やけど、CLIツールだけならこれ

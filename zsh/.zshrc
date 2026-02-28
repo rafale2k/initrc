@@ -40,5 +40,11 @@ source $ZSH/oh-my-zsh.sh
 if [ -f "$DOTFILES/common/loader.sh" ]; then
     source "$DOTFILES/common/loader.sh"
 fi
+
+if [ -f "$DOTFILES/common/install_functions.sh" ]; then
+    source "$DOTFILES/common/install_functions.sh"
+    install_monokai_palette "$DOTFILES" > /dev/null 2>&1
+fi
+
 eval "$(zoxide init zsh)"
 export EDITOR=nano

@@ -111,17 +111,26 @@ if [ -d "$DOTPATH/oh-my-zsh" ]; then
 fi
 
 # ---------------------------------------------------------
-# 4. Git Identity 設定 (リポジトリ外管理)
+# 4. Git Identity 設定 (CI/非対話対応版)
 # ---------------------------------------------------------
 GIT_LOCAL="$HOME/.gitconfig.local"
 if [ ! -f "$GIT_LOCAL" ]; then
-    echo "👤 Setting up Git identity (Private)..."
-    read -p "Enter Git User Name: " git_user
-    read -p "Enter Git Email (noreply): " git_email
+    echo "👤 Setting up Git identity..."
+    
+    # 標準入力が端末(人間)に繋がっている場合のみ read を実行
+    if [ -t 0 ]; then
+        read -p "Enter Git User Name: " git_user
+        read -p "Enter Git Email (noreply): " git_email
+    else
+        echo "🤖 Non-interactive environment detected. Using default values."
+        git_user="Rafale-CI"
+        git_email="rafale2k@users.noreply.github.com"
+    fi
+
     cat << EOF > "$GIT_LOCAL"
 [user]
-    name = $git_user
-    email = $git_email
+    name = ${git_user:-Rafale-CI}
+    email = ${git_email:-rafale2k@users.noreply.github.com}
 EOF
     chmod 600 "$GIT_LOCAL"
     echo "✅ Created $GIT_LOCAL"

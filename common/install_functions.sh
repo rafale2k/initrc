@@ -7,8 +7,10 @@ setup_os() {
     echo "🏗️  Starting OS-specific setup for $PM..."
     case "$PM" in
         "apt")
-            echo "🔄 Updating apt repository..."
-            $SUDO_CMD apt update -y
+            echo "🔄 Updating apt repository and installing base tools..."
+            $SUDO_CMD apt update
+            # wget と gnupg が無いと後の処理が死ぬので、ここで確実に確保する
+            $SUDO_CMD apt install -y wget gnupg curl ca-certificat || true
             ;;
         "dnf")
             echo "📦 Setting up RHEL/DNF (EPEL & CRB)..."

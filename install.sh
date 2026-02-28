@@ -82,7 +82,7 @@ install_docker "$PM" "$SUDO_CMD"
 install_xclip "$PM" "$DOTPATH" "$SUDO_CMD"
 
 # 標準パッケージで入る残りのツールを一括インストール
-REMAINING_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "jq" "wget" "pipx" "glow")
+REMAINING_TOOLS=("tree" "git" "curl" "vim" "nano" "fzf" "ccze" "zsh" "zoxide" "jq" "wget" "pipx")
 echo "📦 Installing standard packages: ${REMAINING_TOOLS[*]}"
 
 if [ "$OS" = "debian" ]; then

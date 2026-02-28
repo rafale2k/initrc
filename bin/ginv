@@ -18,6 +18,6 @@ PROMPT="あなたは Git に精通した SRE です。以下の状況から回�
 
 # 3. モデルの指定（2.0-flash がダメなら 2.0-flash-lite または 1.5-flash）
 # ここでは 2.0-flash-lite を優先的に使うように書き換える
-MODEL="gemini-2.0-flash-lite"
+MODEL="gemini-2.5-flash-lite"
 
 echo -e "$PROMPT" | llm -m "$MODEL"

@@ -33,6 +33,38 @@ if [[ -f "$DOTFILES_PATH/common/loader.sh" ]]; then
     source "$DOTFILES_PATH/common/loader.sh"
 fi
 
+copyfile() {
+  if [ -z "$1" ]; then
+    echo "Usage: copyfile <file>"
+    return 1
+  fi
+
+  if [ ! -f "$1" ]; then
+    echo "Error: $1 is not a file."
+    return 1
+  fi
+
+  # --- 判定ロジック：SSH接続中、またはDISPLAY変数が空ならOSC 52を優先 ---
+  if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -z "$DISPLAY" ]; then
+    # base64でエンコードして手元のターミナルに送信
+    printf "\033]52;c;$(base64 < "$1" | tr -d '\n')\007"
+    echo "✅ Copied $1 to local clipboard (via OSC 52 over SSH)"
+    return 0
+  fi
+
+  # --- ローカル（デスクトップ環境）でのフォールバック ---
+  if command -v xclip >/dev/null 2>&1; then
+    cat "$1" | xclip -selection clipboard
+    echo "✅ Copied $1 to clipboard (via xclip)"
+  elif command -v xsel >/dev/null 2>&1; then
+    cat "$1" | xsel --clipboard --input
+    echo "✅ Copied $1 to clipboard (via xsel)"
+  else
+    echo "Error: No clipboard tool found."
+    return 1
+  fi
+}
+
 # 5. Zoxide の安全な初期化（最後に行う）
 # --- 修正後の Zoxide 初期化 (root環境用) ---
 if command -v zoxide >/dev/null 2>&1; then

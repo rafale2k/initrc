@@ -68,7 +68,7 @@ install_bat() {
             mkdir -p "$DOTPATH/bin"
             ln -sf /usr/bin/batcat "$DOTPATH/bin/bat"
             ;;
-        *) "$SUDO_CMD" "$PM" install -y bat ;;
+        *) ${SUDO_CMD} ${PM} install -y bat ;;
     esac
 }
 
@@ -81,7 +81,7 @@ install_fd() {
             mkdir -p "$DOTPATH/bin"
             ln -sf /usr/bin/fdfind "$DOTPATH/bin/fd"
             ;;
-        *) "$SUDO_CMD" "$PM" install -y fd ;;
+        *) ${SUDO_CMD} ${PM} install -y fd ;;
     esac
 }
 

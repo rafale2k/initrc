@@ -174,6 +174,7 @@ fi
 echo "🚀 Finalizing..."
 # zoxide 初期化
 if ! grep -q "zoxide init zsh" "$DOTPATH/zsh/.zshrc"; then
+    # shellcheck disable=SC2016
     echo 'eval "$(zoxide init zsh)"' >> "$DOTPATH/zsh/.zshrc"
 fi
 

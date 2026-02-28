@@ -47,7 +47,7 @@ install_eza() {
     case "$PM" in
         "apt")
             $SUDO_CMD mkdir -p /etc/apt/keyrings
-            wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | $SUDO_CMD gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+            wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | $SUDO_CMD gpg --yes --dearmor -o /etc/apt/keyrings/gierens.gpg
             echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | $SUDO_CMD tee /etc/apt/sources.list.d/gierens.list
             $SUDO_CMD apt update && $SUDO_CMD apt install -y eza
             ;;
@@ -109,7 +109,7 @@ install_docker() {
             $SUDO_CMD apt update
             $SUDO_CMD apt install -y ca-certificates curl gnupg
             $SUDO_CMD install -m 0755 -d /etc/apt/keyrings
-            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | $SUDO_CMD gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+            curl -fsSL https://download.docker.com/linux/ubuntu/gpg | $SUDO_CMD gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
             $SUDO_CMD chmod a+r /etc/apt/keyrings/docker.gpg
 
             # リポジトリの追加

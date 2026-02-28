@@ -81,3 +81,5 @@ if command -v zoxide >/dev/null 2>&1; then
 fi
 source /root/dotfiles/common/loader.sh
 source /root/dotfiles/common/loader.sh
+source /home/rafale/dotfiles/common/loader.sh
+source /home/rafale/dotfiles/common/loader.sh

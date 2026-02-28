@@ -77,6 +77,9 @@ install_bat() {
         *)
             # RHEL/DNFなどは -y が必要。SUDO_CMDが空でも動くようにクォートなしで展開
             ${SUDO_CMD} "${PM}" install -y bat
+            # Ubuntuと違って batcat じゃないから、そのまま使えるかリンクを貼る
+            mkdir -p "$DOTPATH/bin"
+            ln -sf /usr/bin/bat "$DOTPATH/bin/bat"
             ;;
     esac
 }
@@ -96,7 +99,9 @@ install_fd() {
             ;;
         *)
             # RHEL/DNF など、それ以外の場合
-            ${SUDO_CMD} "${PM}" install -y fd
+            mkdir -p "$DOTPATH/bin"
+            # /usr/bin/fd-find からシンボリックリンクを貼る
+            ln -sf /usr/bin/fd-find "$DOTPATH/bin/fd"
             ;;
     esac
 }

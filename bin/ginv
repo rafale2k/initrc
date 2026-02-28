@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# bin/ginv - AI-Powered Git Inspector (Multi-Engine)
+
+# 1. コンテキスト収集（変更なし）
+GIT_CONTEXT=$(cat <<EOF
+--- CURRENT GIT STATUS ---
+$(git status)
+--- RECENT LOG ---
+$(git log --oneline -n 5)
+--- BRANCHES ---
+$(git branch -a)
+EOF
+)
+
+# 2. プロンプト作成
+QUERY="${1:-"現状診断をお願いします。"}"
+PROMPT="あなたは Git に精通した SRE です。以下の状況から回答してください。 $GIT_CONTEXT \n\n QUESTION: $QUERY"
+
+# 3. モデルの指定（2.0-flash がダメなら 2.0-flash-lite または 1.5-flash）
+# ここでは 2.0-flash-lite を優先的に使うように書き換える
+MODEL="gemini-2.0-flash-lite"
+
+echo -e "$PROMPT" | llm -m "$MODEL"

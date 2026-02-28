@@ -74,7 +74,7 @@ install_bat() {
             ;;
         *)
             # RHEL/DNFなどは -y が必要。SUDO_CMDが空でも動くようにクォートなしで展開
-            ${SUDO_CMD} ${PM} install -y bat
+            ${SUDO_CMD} "${PM}" install -y bat
             ;;
     esac
 }
@@ -94,7 +94,7 @@ install_fd() {
             ;;
         *)
             # RHEL/DNF など、それ以外の場合
-            ${SUDO_CMD} ${PM} install -y fd
+            ${SUDO_CMD} "${PM}" install -y fd
             ;;
     esac
 }

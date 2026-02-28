@@ -1,6 +1,6 @@
 # 🚀 initrc: The RC Files Recreator
 
-![Version](https://img.shields.io/badge/version-1.13.0-blue)
+![Version](https://img.shields.io/badge/version-1.14.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20RHEL-orange)
 ![CI Status](https://github.com/rafale2k/initrc/actions/workflows/test.yml/badge.svg)
@@ -15,7 +15,7 @@
 ## 🖼️ Showcase
 
 ### 🤖 1. AI-Driven Workflow (gcm / ask / wtf)
-Gemini 2.0 Flash をエンジンに採用。コミットメッセージ生成、コマンド提案、エラー解析をターミナルから直接実行。
+**Gemini 2.0 Flash** をエンジンに採用。コミットメッセージ生成、コマンド提案、エラー解析をターミナルから直接実行。
 
 ### 📋 2. Universal Clipboard (OSC 52)
 Docker コンテナやリモートサーバーから、ホスト側のクリップボードへ。ネットワークの壁を超えたシームレスなコピーを実現。
@@ -23,36 +23,40 @@ Docker コンテナやリモートサーバーから、ホスト側のクリッ�
 ### 🔍 3. Interactive Operations (fzf + bat)
 ファイル検索、Docker コンテナ選択、Git ログ閲覧。すべてがプレビュー付きのインタラクティブな体験に。
 
+
+
 ---
 
-## 🛠️ "The ShellCheck Edition" - 核心機能 (v1.13.0 Update)
+## 🛠️ "The ShellCheck Edition" - 核心機能 (v1.14.0)
 
 ### ✅ Production-Ready Reliability
-本バージョンより、全てのシェルスクリプトに対して **ShellCheck** による厳密な静的解析を導入。
+本バージョンより、全てのシェルスクリプトに対して **ShellCheck** による厳密な静的解析を導入しました。
 - **バグの根絶**: 構文エラー、不適切な変数展開、未定義変数の参照を徹底排除。
 - **ポータビリティ**: Bash/Zsh 両環境において、一貫した動作を保証するための高度なリファクタリングを実施。
 
 ### 🧠 Unified AI Ecosystem (llm Integration)
-AI 実行エンジンを `llm` (Simon Willison) に統一。
+AI 実行エンジンを `llm` (Simon Willison) に統一し、SRE 業務を強力にバックアップします。
 - **`gcm`**: Git の差分を解析し、最適なコミットメッセージを提案。
 - **`ask`**: 自然言語を、即実行可能なシェルコマンドへ変換。
 - **`wtf`**: 直前のエラーログを解析し、具体的な解決策を提示。
 
 ---
 
-# 🤖 AI-Powered Docker Tools: Professional Usage
+## 🤖 AI-Powered Docker Tools: Professional Usage
 
-## 🐳 dask (Docker Assistant Task)
+### 🐳 `dask` (Docker Assistant Task)
 自然言語で指示を出すだけで、複雑な Docker コマンドを生成・実行します。
-`dask "一番メモリを食っているコンテナを特定して"`
+> `dask "一番メモリを食っているコンテナを特定して"`
 
-## 🔍 dinv (Docker Inspector)
+### 🔍 `dinv` (Docker Inspector)
 コンテナ内の設定ファイルやログを SRE 視点で精密診断します。
-`dinv maria-db /etc/mysql/my.cnf "パフォーマンス設定をチェックして"`
+> `dinv maria-db /etc/mysql/my.cnf "パフォーマンス設定をチェックして"`
 
-## 🛠️ wtf (Instant Error Analyzer)
+### 🛠️ `wtf` (Instant Error Analyzer)
 ターミナルに表示されたエラーの正体を即座に解析し、解決策を提示します。
-`wtf "ERROR: connection refused to host 127.0.0.1"`
+> `wtf "ERROR: connection refused to host 127.0.0.1"`
+
+
 
 ---
 
@@ -75,10 +79,10 @@ AI 実行エンジンを `llm` (Simon Willison) に統一。
 - **`install.sh`**: OS自動判別、`pipx` / `llm` を含むツール群の一括セットアップ。
 - **`bin/`**: AI ツール群の実行ファイル。`llm` をエンジンとしたラッパースクリプト。
 - **`common/`**:
-    - `_ai_assist.sh`: `ask`, `wtf` のコアロジック。ShellCheck 準拠。
-    - `_system.sh`: Tokyo Night 配色制御 & `clipcopy` 搭載。
-    - `_docker.sh`: fzf 連携コンテナ管理。
-    - `_git.sh`: Git-extras 連携エイリアス。
+  - `_ai_assist.sh`: `ask`, `wtf` のコアロジック。ShellCheck 準拠。
+  - `_system.sh`: Tokyo Night 配色制御 & `clipcopy` 搭載。
+  - `_docker.sh`: fzf 連携コンテナ管理。
+  - `_git.sh`: Git-extras 連携エイリアス。
 - **`zsh/`**: `p10k` および `zsh-autosuggestions` 等のプラグイン管理。
 
 ---
@@ -95,7 +99,7 @@ cd ~/dotfiles && ./install.sh
 ## 🔑 API Key Setup
 - ~/.dotfiles_env に export GEMINI_API_KEY="your_key" を追記。
 
-- エンジンにキーを登録: llm keys set gemini (プロンプトに従い入力
+- エンジンにキーを登録: llm keys set gemini # プロンプトに従い API Key を入力
 
 ---
 

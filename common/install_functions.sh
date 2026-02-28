@@ -128,3 +128,11 @@ install_xclip() {
     esac
 }
 
+# install_functions.sh の末尾に追記
+install_monokai_palette() {
+    local DOTPATH=$1
+    echo "🎨 Setting up Monokai Terminal Palette..."
+    # 実行権限を付与
+    chmod +x "$DOTPATH/bin/monokai-palette.sh"
+    # あとは ~/.zshrc の末尾に呼び出しを追記する処理などを書く
+}

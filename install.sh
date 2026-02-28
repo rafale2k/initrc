@@ -186,7 +186,9 @@ else
     [ -f "$DOTPATH/bin/monokai-palette.sh" ] && bash "$DOTPATH/bin/monokai-palette.sh"
 fi
 
-sudo bash -c "echo 'source $DOTFILES_PATH/common/loader.sh' >> /root/.bashrc"
+if [ "$OS" != "mac" ]; then
+    $SUDO_CMD bash -c "[ -f /root/.bashrc ] && (grep -q 'loader.sh' /root/.bashrc || echo 'source $DOTPATH/common/loader.sh' >> /root/.bashrc)"
+fi
 
 echo "✨ Installation complete! Rafale's environment is ready."
 

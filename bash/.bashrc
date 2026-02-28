@@ -79,3 +79,5 @@ if command -v zoxide >/dev/null 2>&1; then
     alias z='__zoxide_z'
     alias zi='zi'
 fi
+source /root/dotfiles/common/loader.sh
+source /root/dotfiles/common/loader.sh

@@ -68,7 +68,14 @@ install_bat() {
             mkdir -p "$DOTPATH/bin"
             ln -sf /usr/bin/batcat "$DOTPATH/bin/bat"
             ;;
-        *) ${SUDO_CMD} ${PM} install -y bat ;;
+        "brew")
+            # Macは sudo 不要、-y も不要
+            brew install bat
+            ;;
+        *)
+            # RHEL/DNFなどは -y が必要。SUDO_CMDが空でも動くようにクォートなしで展開
+            ${SUDO_CMD} ${PM} install -y bat
+            ;;
     esac
 }
 
@@ -81,7 +88,14 @@ install_fd() {
             mkdir -p "$DOTPATH/bin"
             ln -sf /usr/bin/fdfind "$DOTPATH/bin/fd"
             ;;
-        *) ${SUDO_CMD} ${PM} install -y fd ;;
+        "brew")
+            # Macは brew で直接 install (sudoと-yは不要)
+            brew install fd
+            ;;
+        *)
+            # RHEL/DNF など、それ以外の場合
+            ${SUDO_CMD} ${PM} install -y fd
+            ;;
     esac
 }
 

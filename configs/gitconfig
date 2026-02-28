@@ -41,3 +41,5 @@
 # マシン固有の設定があれば読み込む（名前、メールなど）
 [include]
     path = ~/.gitconfig.local
+[user]
+	email = 23348359+rafale2k@users.noreply.github.com

@@ -186,6 +186,8 @@ else
     [ -f "$DOTPATH/bin/monokai-palette.sh" ] && bash "$DOTPATH/bin/monokai-palette.sh"
 fi
 
+sudo bash -c "echo 'source $DOTFILES_PATH/common/loader.sh' >> /root/.bashrc"
+
 echo "✨ Installation complete! Rafale's environment is ready."
 
 if [ "$EUID" -eq 0 ]; then

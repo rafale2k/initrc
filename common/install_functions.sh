@@ -55,24 +55,43 @@ setup_os_repos() {
 # --- 2. 一括インストールフェーズ ---
 install_all_packages() {
     echo "🛠️  Installing all tools and packages..."
-    local pkgs="tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras eza bat fd-find glow"
+    local pkgs="tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras bat fd-find glow"
     
     case "$PM" in
         "apt")
-            ${SUDO_CMD} apt install -y $pkgs docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-            # bat & fd symlinks
+            # Ubuntu/Debianは fd-find という名前
+            ${SUDO_CMD} apt install -y $pkgs fd-find eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            
             mkdir -p "$DOTPATH/bin"
             [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$DOTPATH/bin/bat"
             [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$DOTPATH/bin/fd"
             ;;
+            
         "dnf")
-            ${SUDO_CMD} dnf install -y --allowerasing $pkgs docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            # RHEL系は fd-find。eza は含めない。
+            ${SUDO_CMD} dnf install -y --allowerasing $pkgs fd-find docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+            
+            # 1. eza をバイナリで直接入れる (dnfに頼らない)
+            if ! command -v eza &>/dev/null; then
+                echo "🚚 eza not found in repos. Installing binary directly from GitHub..."
+                local EZA_URL="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
+                curl -Lo /tmp/eza.tar.gz "$EZA_URL"
+                tar -xzf /tmp/eza.tar.gz -C /tmp
+                ${SUDO_CMD} mv /tmp/eza /usr/local/bin/
+                ${SUDO_CMD} chmod +x /usr/local/bin/eza
+                rm -f /tmp/eza.tar.gz
+            fi
+
+            # 2. シンボリックリンク設定
             mkdir -p "$DOTPATH/bin"
-            ln -sf /usr/bin/bat "$DOTPATH/bin/bat"
-            ln -sf /usr/bin/fd-find "$DOTPATH/bin/fd"
+            # AlmaLinuxのbatパッケージは /usr/bin/bat に入る
+            [ -f "/usr/bin/bat" ] && ln -sf /usr/bin/bat "$DOTPATH/bin/bat"
+            # fd-findは /usr/bin/fd-find に入る
+            [ -f "/usr/bin/fd-find" ] && ln -sf /usr/bin/fd-find "$DOTPATH/bin/fd"
             ;;
+            
         "brew")
-            brew install $pkgs docker docker-compose
+            brew install $pkgs fd eza docker docker-compose
             ;;
     esac
     # docker service start

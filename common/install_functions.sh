@@ -108,7 +108,10 @@ deploy_configs() {
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
             ln -sf "$script" "$HOME/bin/$(basename "$script")"
-            [ ! -L "$script" ] && chmod +x "$script" 2>/dev/null || true
+            # 安全な if 文に書き換え
+            if [ ! -L "$script" ]; then
+                chmod +x "$script" 2>/dev/null || true
+            fi
         fi
     done
     

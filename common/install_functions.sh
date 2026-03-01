@@ -116,6 +116,19 @@ deploy_configs() {
     ln -sf "$DOTPATH/configs/gitignore_global" "$HOME/.gitignore_global"
     ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 
+    # --- サブモジュールのプラグインを Oh My Zsh に認識させる ---
+    echo "🔗 Linking zsh plugins from submodules..."
+    local zsh_custom_plugins="$HOME/.oh-my-zsh/custom/plugins"
+    mkdir -p "$zsh_custom_plugins"
+
+    # dotfiles/zsh/plugins/ 内にある各プラグイン（サブモジュール）をリンク
+    # ※ディレクトリ名は君の構成に合わせて調整してな
+    for plugin_path in "$DOTPATH/zsh/plugins"/*; do
+        if [ -d "$plugin_path" ]; then
+            ln -sf "$plugin_path" "$zsh_custom_plugins/$(basename "$plugin_path")"
+        fi
+    done
+
     echo "🚀 Deploying custom scripts from bin/ to ~/bin/..."
     mkdir -p "$HOME/bin"
     for script in "$DOTPATH/bin"/*; do

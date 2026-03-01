@@ -98,3 +98,13 @@ deploy_configs() {
         [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
     fi
 }
+
+# --- 6. Rootユーザー用の設定 (共通設定の読み込み) ---
+setup_root_loader() {
+    if [ "$OS" != "mac" ]; then
+        echo "🎨 Configuring loader for root user..."
+        # rootの.bashrcにloader.shを読み込む設定を入れる
+        # ${SUDO_CMD} を使って権限を確保
+        ${SUDO_CMD} bash -c "[ -f /root/.bashrc ] && (grep -q 'loader.sh' /root/.bashrc || echo \"source '${DOTPATH}/common/loader.sh'\" >> /root/.bashrc)"
+    fi
+}

@@ -61,13 +61,12 @@ setup_root_loader
 
 # --- ここから追加：パスの強制確認と設定 ---
 echo "⚙️  Verifying PATH in .zshrc..."
-# \$ を使うことで、ファイルにはリテラルの $HOME が書き込まれる
+# SC2016対応: エスケープしたダブルクォートを使用
 if ! grep -q "export PATH=\"\$HOME/bin:\$PATH\"" "$HOME/.zshrc"; then
     echo "export PATH=\"\$HOME/bin:\$PATH\"" >> "$HOME/.zshrc"
 fi
 
-# 今の実行中のシェル環境にも強制的に反映
 export PATH="$HOME/bin:$PATH"
 
 echo "✨ All processes completed successfully!"
-echo "🚀 Run 'source ~/.zshrc' or just type 'ginv' now!"
+echo "🚀 Run 'exec zsh -l' to start your new environment."

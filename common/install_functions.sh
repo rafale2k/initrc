@@ -1,7 +1,7 @@
 #!/bin/bash
 # common/install_functions.sh
 
-# --- 1. リポジトリ追加フェーズ (OS設定) ---
+# --- 1. リポジトリ追加フェーズ ---
 setup_os_repos() {
     echo "⚙️  Configuring repositories for $PM..."
     case "$PM" in
@@ -9,96 +9,55 @@ setup_os_repos() {
             ${SUDO_CMD} apt update -y -qq
             ${SUDO_CMD} apt install -y -qq wget gnupg curl ca-certificates
             ${SUDO_CMD} mkdir -p /etc/apt/keyrings
-
-            # eza repo
+            # eza, docker, glow のリポジトリ追加 (省略せず実行)
             wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | ${SUDO_CMD} gpg --yes --dearmor -o /etc/apt/keyrings/gierens.gpg
             echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | ${SUDO_CMD} tee /etc/apt/sources.list.d/gierens.list > /dev/null
-
-            # docker repo
             curl -fsSL https://download.docker.com/linux/ubuntu/gpg | ${SUDO_CMD} gpg --yes --dearmor -o /etc/apt/keyrings/docker.gpg
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | ${SUDO_CMD} tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-            # glow repo
             curl -fsSL https://repo.charm.sh/apt/gpg.key | ${SUDO_CMD} gpg --yes --dearmor -o /etc/apt/keyrings/charm.gpg
             echo "deb [signed-by=/etc/apt/keyrings/charm.gpg] https://repo.charm.sh/apt/ * *" | ${SUDO_CMD} tee /etc/apt/sources.list.d/charm.list > /dev/null
-            
-            echo "🔄 Finalizing repository update..."
             ${SUDO_CMD} apt update -y -qq
             ;;
         "dnf")
-            # 1. まず確実に存在するパッケージを入れる
-            ${SUDO_CMD} dnf install -y --allowerasing $pkgs docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-            
-            # 2. eza が入らなかった場合、バイナリを直接インストール
-            if ! command -v eza &>/dev/null; then
-                echo "🚚 eza not found in repos. Installing binary directly..."
-                # 最新版のURL（x86_64）を指定
-                local EZA_URL="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
-                curl -Lo /tmp/eza.tar.gz "$EZA_URL"
-                tar -xzf /tmp/eza.tar.gz -C /tmp
-                ${SUDO_CMD} mv /tmp/eza /usr/local/bin/
-                ${SUDO_CMD} chmod +x /usr/local/bin/eza
-                rm /tmp/eza.tar.gz
-            fi
-
-            # bat & fd symlinks
-            mkdir -p "$DOTPATH/bin"
-            ln -sf /usr/bin/bat "$DOTPATH/bin/bat"
-            ln -sf /usr/bin/fd-find "$DOTPATH/bin/fd"
-            ;;
-        "brew")
-            brew install $pkgs eza docker docker-compose
+            ${SUDO_CMD} dnf install -y -qq epel-release
+            ${SUDO_CMD} dnf config-manager --set-enabled crb || true
+            ${SUDO_CMD} dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+            echo -e "[charm]\nname=Charm\nbaseurl=https://repo.charm.sh/yum/\nenabled=1\ngpgcheck=1\ngpgkey=https://repo.charm.sh/yum/gpg.key" | ${SUDO_CMD} tee /etc/yum.repos.d/charm.repo > /dev/null
+            ${SUDO_CMD} dnf makecache
             ;;
     esac
 }
 
-# --- 2. 一括インストールフェーズ ---
+# --- 2. Oh My Zsh 本体のセットアップ (NEW) ---
+setup_oh_my_zsh() {
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        echo "🌈 Installing Oh My Zsh (headless mode)..."
+        # --unattended: 勝手に zsh を起動させない / --keep-zshrc: 君の .zshrc を上書きさせない
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+    fi
+}
+
+# --- 3. 一括インストールフェーズ ---
 install_all_packages() {
     echo "🛠️  Installing all tools and packages..."
-    local pkgs="tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras bat fd-find glow"
+    local pkgs="tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras bat glow"
     
     case "$PM" in
         "apt")
-            # Ubuntu/Debianは fd-find という名前
             ${SUDO_CMD} apt install -y $pkgs fd-find eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-            
-            mkdir -p "$DOTPATH/bin"
-            [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$DOTPATH/bin/bat"
-            [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$DOTPATH/bin/fd"
             ;;
-            
         "dnf")
-            # RHEL系は fd-find。eza は含めない。
             ${SUDO_CMD} dnf install -y --allowerasing $pkgs fd-find docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-            
-            # 1. eza をバイナリで直接入れる (dnfに頼らない)
+            # eza binary fallback
             if ! command -v eza &>/dev/null; then
-                echo "🚚 eza not found in repos. Installing binary directly from GitHub..."
-                local EZA_URL="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
-                curl -Lo /tmp/eza.tar.gz "$EZA_URL"
-                tar -xzf /tmp/eza.tar.gz -C /tmp
-                ${SUDO_CMD} mv /tmp/eza /usr/local/bin/
-                ${SUDO_CMD} chmod +x /usr/local/bin/eza
-                rm -f /tmp/eza.tar.gz
+                curl -Lo /tmp/eza.tar.gz https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz
+                tar -xzf /tmp/eza.tar.gz -C /tmp && ${SUDO_CMD} mv /tmp/eza /usr/local/bin/ && chmod +x /usr/local/bin/eza
             fi
-
-            # 2. シンボリックリンク設定
-            mkdir -p "$DOTPATH/bin"
-            # AlmaLinuxのbatパッケージは /usr/bin/bat に入る
-            [ -f "/usr/bin/bat" ] && ln -sf /usr/bin/bat "$DOTPATH/bin/bat"
-            # fd-findは /usr/bin/fd-find に入る
-            [ -f "/usr/bin/fd-find" ] && ln -sf /usr/bin/fd-find "$DOTPATH/bin/fd"
-            ;;
-            
-        "brew")
-            brew install $pkgs fd eza docker docker-compose
             ;;
     esac
-    # docker service start
-    [ -d /run/systemd/system ] && ${SUDO_CMD} systemctl enable --now docker || echo "⚠️ Skipping docker service start"
 }
 
-# --- 3. その他ツール & 設定フェーズ ---
+# --- 4. AIツールのセットアップ ---
 setup_ai_tools() {
     echo "🤖 Setting up AI tools (llm)..."
     if command -v pipx >/dev/null 2>&1; then
@@ -107,40 +66,25 @@ setup_ai_tools() {
     fi
 }
 
-# Oh My Zsh本体の準備
-setup_oh_my_zsh() {
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        echo "🌈 Installing Oh My Zsh (headless mode)..."
-        # --unattended で自動起動を防ぎ、--keep-zshrc で既存の .zshrc を保護
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
-    fi
-}
-
+# --- 5. 設定配備 & サブモジュールリンク ---
 deploy_configs() {
     echo "🖇️  Deploying configuration files..."
     ln -sf "$DOTPATH/bash/.bashrc" "$HOME/.bashrc"
-    ln -sf "$DOTPATH/configs/vimrc" "$HOME/.vimrc"
-    ln -sf "$DOTPATH/configs/inputrc" "$HOME/.inputrc"
-    ln -sf "$DOTPATH/configs/gitconfig" "$HOME/.gitconfig"
-    ln -sf "$DOTPATH/configs/gitignore_global" "$HOME/.gitignore_global"
     ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
+    ln -sf "$DOTPATH/configs/vimrc" "$HOME/.vimrc"
+    ln -sf "$DOTPATH/configs/gitconfig" "$HOME/.gitconfig"
 
-# サブモジュールのプラグインを Oh My Zsh の custom フォルダへリンク
+    # サブモジュールのプラグインをリンク
     echo "🔗 Linking zsh plugins from submodules..."
     local zsh_custom_plugins="$HOME/.oh-my-zsh/custom/plugins"
     mkdir -p "$zsh_custom_plugins"
-
-    # dotfiles/zsh/plugins 内の各サブモジュールをループで回す
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
         if [ -d "$plugin_path" ]; then
-            local plugin_name=$(basename "$plugin_path")
-            echo "   -> Linking $plugin_name"
-            ln -sf "$plugin_path" "$zsh_custom_plugins/$plugin_name"
+            ln -sf "$plugin_path" "$zsh_custom_plugins/$(basename "$plugin_path")"
         fi
     done
 
-    # 独自スクリプト (bin/) のデプロイ
-    echo "🚀 Deploying custom scripts from bin/ to ~/bin/..."
+    # bin/ の展開
     mkdir -p "$HOME/bin"
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
@@ -148,11 +92,9 @@ deploy_configs() {
             [ ! -L "$script" ] && chmod +x "$script" 2>/dev/null || true
         fi
     done
-}
-
-setup_root_loader() {
-    if [ "$OS" != "mac" ]; then
-        echo "🎨 Configuring loader for root user..."
-        ${SUDO_CMD} bash -c "[ -f /root/.bashrc ] && (grep -q 'loader.sh' /root/.bashrc || echo \"source '${DOTPATH}/common/loader.sh'\" >> /root/.bashrc)"
+    # Ubuntu 用の bat/fd 補完
+    if [ "$PM" = "apt" ]; then
+        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
+        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
     fi
 }

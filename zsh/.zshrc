@@ -48,3 +48,4 @@ fi
 
 eval "$(zoxide init zsh)"
 export EDITOR=nano
+export PATH="$HOME/bin:$PATH"

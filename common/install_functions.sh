@@ -30,10 +30,27 @@ setup_os_repos() {
 
 # --- 2. Oh My Zsh 本体のセットアップ (NEW) ---
 setup_oh_my_zsh() {
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        echo "🌈 Installing Oh My Zsh (headless mode)..."
-        # --unattended: 勝手に zsh を起動させない / --keep-zshrc: 君の .zshrc を上書きさせない
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+    echo "🌈 Checking Oh My Zsh..."
+    if [ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
+        echo "🚚 Oh My Zsh not found or incomplete. Installing..."
+        # 既存の中途半端なディレクトリがあれば削除
+        rm -rf "$HOME/.oh-my-zsh"
+        
+        # 公式インストーラーを非対話モードで実行
+        # RUNZSH=no: インストール後に勝手にzshを起動させない
+        # CHSH=no: シェル変更を試みない（コンテナでコケる原因）
+        export RUNZSH=no
+        export CHSH=no
+        export KEEP_ZSHRC=yes
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        
+        # インストール後に実体があるか再確認
+        if [ ! -f "$HOME/.oh-my-zsh/oh-my-zsh.sh" ]; then
+            echo "❌ Error: Oh My Zsh installation failed."
+            return 1
+        fi
+    else
+        echo "✅ Oh My Zsh is already installed."
     fi
 }
 

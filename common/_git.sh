@@ -67,7 +67,7 @@ gquick() {
     echo "✨ Done! Pushed to $branch."
 }
 
-# --- GCM (Git Commit Message AI) ---
-if [ -f "$DOTFILES_PATH/bin/gcm" ]; then
-    alias gcm='$DOTFILES_PATH/bin/gcm'
+# ---  aic (Git Commit Message AI) ---
+if [ -f "$DOTFILES_PATH/bin/aic" ]; then
+    alias aic='$DOTFILES_PATH/bin/aic'
 fi

@@ -107,6 +107,15 @@ setup_ai_tools() {
     fi
 }
 
+# Oh My Zsh本体の準備
+setup_oh_my_zsh() {
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        echo "🌈 Installing Oh My Zsh (headless mode)..."
+        # --unattended で自動起動を防ぎ、--keep-zshrc で既存の .zshrc を保護
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended --keep-zshrc
+    fi
+}
+
 deploy_configs() {
     echo "🖇️  Deploying configuration files..."
     ln -sf "$DOTPATH/bash/.bashrc" "$HOME/.bashrc"
@@ -116,19 +125,21 @@ deploy_configs() {
     ln -sf "$DOTPATH/configs/gitignore_global" "$HOME/.gitignore_global"
     ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
 
-    # --- サブモジュールのプラグインを Oh My Zsh に認識させる ---
+# サブモジュールのプラグインを Oh My Zsh の custom フォルダへリンク
     echo "🔗 Linking zsh plugins from submodules..."
     local zsh_custom_plugins="$HOME/.oh-my-zsh/custom/plugins"
     mkdir -p "$zsh_custom_plugins"
 
-    # dotfiles/zsh/plugins/ 内にある各プラグイン（サブモジュール）をリンク
-    # ※ディレクトリ名は君の構成に合わせて調整してな
+    # dotfiles/zsh/plugins 内の各サブモジュールをループで回す
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
         if [ -d "$plugin_path" ]; then
-            ln -sf "$plugin_path" "$zsh_custom_plugins/$(basename "$plugin_path")"
+            local plugin_name=$(basename "$plugin_path")
+            echo "   -> Linking $plugin_name"
+            ln -sf "$plugin_path" "$zsh_custom_plugins/$plugin_name"
         fi
     done
 
+    # 独自スクリプト (bin/) のデプロイ
     echo "🚀 Deploying custom scripts from bin/ to ~/bin/..."
     mkdir -p "$HOME/bin"
     for script in "$DOTPATH/bin"/*; do

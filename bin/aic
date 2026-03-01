@@ -11,12 +11,14 @@ DOTPATH="${DOTPATH:-$(cd "$(dirname "$0")/.." && pwd)}"
 [ -f "$DOTPATH/common/.env.local" ] && source "$DOTPATH/common/.env.local"
 
 _ai_generate_commit_proposals() {
-    # 1. APIキーのチェック (llmコマンド側で設定済みならスルーでもOK)
-    # if [[ -z "$GEMINI_API_KEY" ]]; then
-    #     echo "❌ GEMINI_API_KEY is not set." >&2
-    #     return 1
-    # fi
-
+    if [[ -z "$GEMINI_API_KEY" ]]; then
+        # もし環境変数になく、かつ llm keys にも登録されていない場合だけ警告する
+        if ! llm keys list | grep -q "gemini" 2>/dev/null; then
+            echo "⚠️  GEMINI_API_KEY is not detected in env or llm keys." >&2
+            echo "   Please set it via 'export GEMINI_API_KEY=...' or 'llm keys set gemini'" >&2
+            return 1
+        fi
+    fi
     # 2. Diff の統計情報と中身を取得 (15000文字でカットしてトークン節約)
     local diff_stat=$(git diff --cached --stat)
     local full_diff=$(git diff --cached | head -c 15000)

@@ -3,11 +3,6 @@ name: 🐳 Linux Distros Compatibility Test
 on:
   push:
     branches: [ main ]
-    paths:
-      - 'install.sh'
-      - 'common/**'
-      - 'bin/**'
-      - '.github/workflows/linux-distros.yml'
   pull_request:
     branches: [ main ]
 
@@ -26,24 +21,25 @@ jobs:
             image: "almalinux:9"
             pkg_manager: "dnf"
 
-    # マトリックスで定義したイメージを使用
     container:
       image: ${{ matrix.image }}
       options: --user root
 
     steps:
-      # --- 1. プリインストール (ここが解決の鍵) ---
-      # actions/checkout がサブモジュールを扱えるように、まず Git を入れる
-      - name: 📦 Pre-install Git for Submodules
+      # --- 1. プリインストール & セキュリティ回避 ---
+      - name: 📦 Pre-install Git & Fix Ownership
         run: |
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
+            export DEBIAN_FRONTEND=noninteractive
             apt-get update && apt-get install -y git
           else
-            dnf install -y git
+            # AlmaLinuxのcurl衝突回避のため --allowerasing を付与
+            dnf install -y --allowerasing git
           fi
+          # Git の 'dubious ownership' エラーを回避
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       # --- 2. チェックアウト ---
-      # コンテナ内に Git があるので、recursive オプションが正常に動作する
       - name: 🚚 Checkout Repository
         uses: actions/checkout@v4
         with:
@@ -53,16 +49,18 @@ jobs:
       - name: 📦 Install Remaining Bootstrap Tools
         run: |
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
+            export DEBIAN_FRONTEND=noninteractive
             apt-get install -y sudo curl locales
             locale-gen en_US.UTF-8
           else
-            dnf install -y sudo curl langpacks-en
+            dnf install -y --allowerasing sudo curl langpacks-en
           fi
 
       # --- 4. インストーラー実行 ---
       - name: 🛠️ Execute initrc Installer
         env:
           CI: true
+          DEBIAN_FRONTEND: noninteractive
         run: |
           chmod +x install.sh
           ./install.sh
@@ -70,28 +68,18 @@ jobs:
       # --- 5. ツールとパスの検証 ---
       - name: 🔍 Verify Global Command Links (~/bin)
         run: |
-          # パスを一時的に通して検証
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-          
           echo "--- Checking Modern CLI Tools ---"
-          eza --version || (echo "❌ eza missing" && exit 1)
-          
-          # bat / fd の OS 別リンク解決チェック
-          (bat --version || batcat --version) && echo "✅ bat is ready"
-          (fd --version || fdfind --version) && echo "✅ fd is ready"
+          eza --version
+          (bat --version || batcat --version)
+          (fd --version || fdfind --version)
           
           echo "--- Checking AI Wrappers ---"
-          [ -f "$HOME/bin/ginv" ] && echo "✅ ginv created" || (echo "❌ ginv missing" && exit 1)
+          [ -f "$HOME/bin/ginv" ] && echo "✅ ginv created"
           [ -x "$HOME/bin/ginv" ] && echo "✅ ginv is executable"
 
       # --- 6. 設定ファイルの整合性チェック ---
       - name: 🛡️ Verify Shell Configs & Syntax
         run: |
-          echo "Checking .zshrc path injection..."
-          grep -q 'export PATH="$HOME/bin:$PATH"' "$HOME/.zshrc" && echo "✅ PATH injected into .zshrc"
-          
-          echo "Checking zsh syntax..."
-          zsh -n "$HOME/.zshrc" && echo "✅ .zshrc syntax is valid"
-
-      - name: ✨ Done
-        run: echo "Successfully verified on ${{ matrix.os }}!"
+          grep -q 'export PATH="$HOME/bin:$PATH"' "$HOME/.zshrc"
+          zsh -n "$HOME/.zshrc"

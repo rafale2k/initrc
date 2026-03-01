@@ -43,6 +43,8 @@ setup_os_repos
 # 4. パッケージ一括インストールフェーズ
 install_all_packages
 
+setup_oh_my_zsh
+
 # 5. AIツールのセットアップ
 setup_ai_tools
 

@@ -61,8 +61,9 @@ setup_root_loader
 
 # --- ここから追加：パスの強制確認と設定 ---
 echo "⚙️  Verifying PATH in .zshrc..."
-if ! grep -q 'export PATH="$HOME/bin:$PATH"' "$HOME/.zshrc"; then
-    echo 'export PATH="$HOME/bin:$PATH"' >> "$HOME/.zshrc"
+# \$ を使うことで、ファイルにはリテラルの $HOME が書き込まれる
+if ! grep -q "export PATH=\"\$HOME/bin:\$PATH\"" "$HOME/.zshrc"; then
+    echo "export PATH=\"\$HOME/bin:\$PATH\"" >> "$HOME/.zshrc"
 fi
 
 # 今の実行中のシェル環境にも強制的に反映

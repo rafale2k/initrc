@@ -26,19 +26,28 @@ setup_os_repos() {
             ${SUDO_CMD} apt update -y -qq
             ;;
         "dnf")
-            ${SUDO_CMD} dnf install -y -qq epel-release
-            ${SUDO_CMD} dnf config-manager --set-enabled crb || true
+            # 1. まず確実に存在するパッケージを入れる
+            ${SUDO_CMD} dnf install -y --allowerasing $pkgs docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
             
-            # --- eza 用のリポジトリ (Alma/RHEL用) を追加 ---
-            echo "📦 Adding eza repository for DNF..."
-            ${SUDO_CMD} dnf config-manager --add-repo https://copr.fedorainfracloud.org/coprs/g/eza/eza/repo/centos-stream-9/eza-eza.repo || \
-            echo "⚠️  Failed to add eza repo. Will try alternative later."
+            # 2. eza が入らなかった場合、バイナリを直接インストール
+            if ! command -v eza &>/dev/null; then
+                echo "🚚 eza not found in repos. Installing binary directly..."
+                # 最新版のURL（x86_64）を指定
+                local EZA_URL="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
+                curl -Lo /tmp/eza.tar.gz "$EZA_URL"
+                tar -xzf /tmp/eza.tar.gz -C /tmp
+                ${SUDO_CMD} mv /tmp/eza /usr/local/bin/
+                ${SUDO_CMD} chmod +x /usr/local/bin/eza
+                rm /tmp/eza.tar.gz
+            fi
 
-            # docker & charm(glow) repo
-            ${SUDO_CMD} dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-            echo -e "[charm]\nname=Charm\nbaseurl=https://repo.charm.sh/yum/\nenabled=1\ngpgcheck=1\ngpgkey=https://repo.charm.sh/yum/gpg.key" | ${SUDO_CMD} tee /etc/yum.repos.d/charm.repo > /dev/null
-            
-            ${SUDO_CMD} dnf makecache
+            # bat & fd symlinks
+            mkdir -p "$DOTPATH/bin"
+            ln -sf /usr/bin/bat "$DOTPATH/bin/bat"
+            ln -sf /usr/bin/fd-find "$DOTPATH/bin/fd"
+            ;;
+        "brew")
+            brew install $pkgs eza docker docker-compose
             ;;
     esac
 }

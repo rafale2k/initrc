@@ -6,6 +6,7 @@ DOTPATH=$(cd "$(dirname "$0")" && pwd)
 
 # 共通関数の読み込み
 if [ -f "$DOTPATH/common/install_functions.sh" ]; then
+    # shellcheck source=common/install_functions.sh
     source "$DOTPATH/common/install_functions.sh"
 else
     echo "❌ Error: common/install_functions.sh not found."
@@ -14,7 +15,7 @@ fi
 
 echo "🎯 Starting installation from $DOTPATH..."
 
-# 1. SSH鍵の生成・表示 (復活！)
+# 1. SSH鍵の生成・表示
 echo "🔐 Checking SSH keys..."
 mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
@@ -33,26 +34,25 @@ elif [ -f /etc/redhat-release ]; then
 fi
 echo "🌍 Detected OS: $OS (using $PM)"
 
-# 環境変数をエクスポート（各関数で使用）
 export PM OS SUDO_CMD DOTPATH
 
-# 3. 実行シークエンス (この順序が正解)
-setup_os_repos          # リポジトリ準備 (apt/dnf update 最小化)
-install_all_packages    # パッケージ一括 (zsh含む)
-setup_oh_my_zsh         # ~/.oh-my-zsh 本体の作成
+# 3. 実行シークエンス
+setup_os_repos          # リポジトリ準備
+install_all_packages    # パッケージ一括インストール
+setup_oh_my_zsh         # Oh My Zsh 本体の作成
 echo "🔗 Syncing submodules..."
 git submodule update --init --recursive
-deploy_configs          # 全設定配備 & サブモジュールプラグインのリンク
+deploy_configs          # 設定配備 & サブモジュールリンク
 setup_ai_tools          # llm & gemini
 
-# 4. Git Identity 設定 (復活！)
+# 4. Git Identity 設定
 if [ -z "$(git config --global user.name)" ]; then
     echo "👤 Setting up Git identity..."
     git config --global user.name "rafale2k"
     git config --global user.email "rafale2k@example.com"
 fi
 
-# 5. 最終仕上げ (Root対応)
+# 5. Root対応
 setup_root_loader
 
 echo "✨ All processes completed successfully!"

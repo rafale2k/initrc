@@ -1,0 +1,78 @@
+name: 🐳 Linux Distros Compatibility Test
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'install.sh'
+      - 'common/**'
+      - 'bin/**'
+      - '.github/workflows/linux-distros.yml'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  matrix-test:
+    name: 🚀 ${{ matrix.os }} Build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: "Ubuntu 24.04"
+            image: "ubuntu:24.04"
+            pkg_manager: "apt"
+          - os: "AlmaLinux 9"
+            image: "almalinux:9"
+            pkg_manager: "dnf"
+
+    container:
+      image: ${{ matrix.image }}
+      options: --user root
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 📦 Install Bootstrap Tools (${{ matrix.pkg_manager }})
+        run: |
+          if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
+            apt-get update && apt-get install -y sudo git curl locales
+            locale-gen en_US.UTF-8
+          else
+            dnf install -y sudo git curl langpacks-en
+          fi
+
+      - name: 🛠️ Execute initrc Installer
+        env:
+          # CI環境での実行を明示
+          CI: true
+        run: |
+          chmod +x install.sh
+          ./install.sh
+
+      - name: 🔍 Verify Global Command Links (~/bin)
+        run: |
+          # パスを反映させてコマンドの存在チェック
+          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          
+          echo "--- Checking Modern CLI Tools ---"
+          eza --version || (echo "❌ eza missing" && exit 1)
+          
+          # bat / fd のリンク解決チェック
+          (bat --version || batcat --version) && echo "✅ bat is ready"
+          (fd --version || fdfind --version) && echo "✅ fd is ready"
+          
+          echo "--- Checking AI Wrappers ---"
+          [ -f "$HOME/bin/ginv" ] && echo "✅ ginv created" || (echo "❌ ginv missing" && exit 1)
+          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv is executable"
+
+      - name: 🛡️ Verify Shell Configs
+        run: |
+          echo "Checking .zshrc path injection..."
+          grep -q 'export PATH="$HOME/bin:$PATH"' "$HOME/.zshrc" && echo "✅ PATH injected into .zshrc"
+
+      - name: 🐚 Zsh Syntax Check
+        run: |
+          zsh -n "$HOME/.zshrc" && echo "✅ .zshrc syntax is valid"

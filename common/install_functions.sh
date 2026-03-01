@@ -28,9 +28,16 @@ setup_os_repos() {
         "dnf")
             ${SUDO_CMD} dnf install -y -qq epel-release
             ${SUDO_CMD} dnf config-manager --set-enabled crb || true
+            
+            # --- eza 用のリポジトリ (Alma/RHEL用) を追加 ---
+            echo "📦 Adding eza repository for DNF..."
+            ${SUDO_CMD} dnf config-manager --add-repo https://copr.fedorainfracloud.org/coprs/g/eza/eza/repo/centos-stream-9/eza-eza.repo || \
+            echo "⚠️  Failed to add eza repo. Will try alternative later."
+
             # docker & charm(glow) repo
             ${SUDO_CMD} dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
             echo -e "[charm]\nname=Charm\nbaseurl=https://repo.charm.sh/yum/\nenabled=1\ngpgcheck=1\ngpgkey=https://repo.charm.sh/yum/gpg.key" | ${SUDO_CMD} tee /etc/yum.repos.d/charm.repo > /dev/null
+            
             ${SUDO_CMD} dnf makecache
             ;;
     esac

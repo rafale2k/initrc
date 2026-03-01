@@ -101,6 +101,17 @@ deploy_configs() {
         fi
     done
 
+    # --- テーマのリンク (追加！) ---
+    echo "🎨 Linking zsh themes from submodules..."
+    local zsh_custom_themes="$HOME/.oh-my-zsh/custom/themes"
+    mkdir -p "$zsh_custom_themes"
+    
+    # サブモジュールの p10k をリンク
+    # ※もしパスが違う（zsh/themes/ じゃない等）なら、ここを実体のパスに合わせてな
+    if [ -d "$DOTPATH/zsh/themes/powerlevel10k" ]; then
+        ln -sf "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom_themes/powerlevel10k"
+    fi
+
     # bin/ の展開
     mkdir -p "$HOME/bin"
     for script in "$DOTPATH/bin"/*; do

@@ -4,6 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20AlmaLinux-orange)
 ![CI Status](https://github.com/rafale2k/initrc/actions/workflows/test.yml/badge.svg)
+![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
 ![Linting](https://img.shields.io/badge/shellcheck-100%25%20passing-brightgreen)
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 

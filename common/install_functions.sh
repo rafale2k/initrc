@@ -123,7 +123,23 @@ deploy_configs() {
 
 setup_root_loader() {
     if [ "$OS" != "mac" ]; then
-        echo "🎨 Configuring loader for root user..."
-        ${SUDO_CMD} bash -c "[ -f /root/.bashrc ] && (grep -q 'loader.sh' /root/.bashrc || echo \"source '${DOTPATH}/common/loader.sh'\" >> /root/.bashrc)"
+        echo "🎨 Configuring loader and PATH for root user..."
+        
+        # 共通の読み込み行とPATH設定を定義
+        local LOADER_CMD="source '${DOTPATH}/common/loader.sh'"
+        local PATH_CMD="export PATH=\"\$HOME/bin:\$PATH\""
+
+        # .bashrc と .zshrc 両方に対して処理を行う
+        for rcfile in "/root/.bashrc" "/root/.zshrc"; do
+            ${SUDO_CMD} bash -c "
+                if [ -f $rcfile ]; then
+                    # loader.sh の読み込み設定
+                    grep -q 'loader.sh' $rcfile || echo '$LOADER_CMD' >> $rcfile
+                    # PATHの設定（~/bin を優先）
+                    grep -q 'export PATH=' $rcfile || echo '$PATH_CMD' >> $rcfile
+                    echo '✅ Updated $rcfile'
+                fi
+            "
+        done
     fi
 }

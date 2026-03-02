@@ -87,38 +87,58 @@ EOF
 
 deploy_configs() {
     echo "🖇️  Deploying configuration files..."
-    ln -sf "$DOTPATH/bash/.bashrc" "$HOME/.bashrc"
-    ln -sf "$DOTPATH/zsh/.zshrc" "$HOME/.zshrc"
-    ln -sf "$DOTPATH/configs/vimrc" "$HOME/.vimrc"
-    ln -sf "$DOTPATH/configs/gitconfig" "$HOME/.gitconfig"
-    ln -sf "$DOTPATH/configs/inputrc" "$HOME/.inputrc"
-    ln -sf "$DOTPATH/configs/gitignore_global" "$HOME/.gitignore_global"
+    
+    # 実行ユーザーのホームディレクトリを確実に取得
+    local TARGET_HOME=$HOME
+    # rootユーザーの場合は /root 、一般ユーザーなら /home/user になる
+    echo "Deploying configs to: $TARGET_HOME"
+    echo "Using DOTPATH: $DOTPATH"
+    
+    # --- 1. 標準的なシンボリックリンクの作成 ---
+    ln -sf "$DOTPATH/bash/.bashrc" "$TARGET_HOME/.bashrc"
+    ln -sf "$DOTPATH/zsh/.zshrc" "$TARGET_HOME/.zshrc"
+    ln -sf "$DOTPATH/configs/vimrc" "$TARGET_HOME/.vimrc"
+    ln -sf "$DOTPATH/configs/gitconfig" "$TARGET_HOME/.gitconfig"
+    ln -sf "$DOTPATH/configs/inputrc" "$TARGET_HOME/.inputrc"
+    ln -sf "$DOTPATH/configs/gitignore_global" "$TARGET_HOME/.gitignore_global"
 
+    # --- 2. パス置換が必要な設定 (nanorc) のデプロイ ---
+    if [ -f "$DOTPATH/configs/nanorc" ]; then
+        echo "🔧 Injecting path into nanorc..."
+        # __DOTPATH__ を実際の絶対パスに変換して、ターゲットのホームに書き出す
+        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
+    fi
+
+    # --- 3. Oh-My-Zsh カスタム設定のリンク ---
     echo "🔗 Linking zsh plugins/themes from submodules..."
-    local zsh_custom="$HOME/.oh-my-zsh/custom"
+    local zsh_custom="$TARGET_HOME/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
-
+         
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
         [ -d "$plugin_path" ] && ln -sf "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sf "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
 
-    mkdir -p "$HOME/bin"
-    # dotfiles/bin 下の既存スクリプトをリンク
+    # --- 4. 自作バイナリ (bin/) のデプロイ ---
+    mkdir -p "$TARGET_HOME/bin"
+    echo "🚀 Linking scripts to $TARGET_HOME/bin..."
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
-            ln -sf "$script" "$HOME/bin/$(basename "$script")"
-            # 安全な if 文に書き換え
+            ln -sf "$script" "$TARGET_HOME/bin/$(basename "$script")"
+            # シンボリックリンク本体ではなく、実体ファイルに実行権限を付与
             if [ ! -L "$script" ]; then
                 chmod +x "$script" 2>/dev/null || true
             fi
         fi
     done
-    
+
+    # --- 5. OS固有のエイリアス作成 (bat, fd) ---
     if [ "$PM" = "apt" ]; then
-        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
-        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
+        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$TARGET_HOME/bin/bat"
+        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$TARGET_HOME/bin/fd"
     fi
+
+    echo "✅ Configuration deployment completed for $TARGET_HOME"
 }
 
 setup_root_loader() {

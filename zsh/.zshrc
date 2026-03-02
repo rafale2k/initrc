@@ -37,13 +37,15 @@ source $ZSH/oh-my-zsh.sh
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # 7. 共通ローダー (自作エイリアスなど)
-if [ -f "$DOTFILES/common/loader.sh" ]; then
-    source "$DOTFILES/common/loader.sh"
-fi
+# dotfiles loader
+# ---------------------------------------------------------
+# install.sh で置換されるプレースホルダー
+DOTFILES_ROOT="__DOTPATH__"
 
-if [ -f "$DOTFILES/common/install_functions.sh" ]; then
-    source "$DOTFILES/common/install_functions.sh"
-    install_monokai_palette "$DOTFILES" > /dev/null 2>&1
+# 1. 司令塔 loader.sh を呼び出す
+# これだけで _navigation.sh (_*.sh) も configs/.env も全部読み込まれる
+if [ -f "$DOTFILES_ROOT/common/loader.sh" ]; then
+    source "$DOTFILES_ROOT/common/loader.sh"
 fi
 
 eval "$(zoxide init zsh)"

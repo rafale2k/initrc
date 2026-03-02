@@ -112,6 +112,13 @@ n() {
     fi
 }
 
+if [ -f "$DOTFILES_PATH/scripts/install_functions.sh" ]; then
+    # shellcheck source=scripts/install_functions.sh
+    source "$DOTFILES_PATH/scripts/install_functions.sh"
+    # 関数を呼ぶ (引数に正しいパスを渡す)
+    install_monokai_palette "$DOTFILES_PATH" > /dev/null 2>&1
+fi
+
 # ユーティリティ
 alias ports='sudo lsof -i -P -n | grep LISTEN'
 alias myip='curl -s https://ifconfig.me'

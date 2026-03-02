@@ -4,3 +4,10 @@
 [user]
     name = YOUR_NAME
     email = YOUR_EMAIL@example.com
+[commit]
+    # 必要なら GPG サインの設定とかもここに
+    # gpgsign = true
+
+[core]
+    # マシン固有のエディタ設定があれば
+    # editor = vim

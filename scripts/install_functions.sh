@@ -94,6 +94,20 @@ deploy_configs() {
     echo "Deploying configs to: $TARGET_HOME"
     echo "Using DOTPATH: $DOTPATH"
     
+    # --- .bashrc / .zshrc に DOTPATH を注入してデプロイ ---
+    for rc in "bash/.bashrc" "zsh/.zshrc"; do
+        local target=$(basename "$rc")
+        echo "🔧 Debug: Replacing __DOTPATH__ with $DOTPATH in $target" # これを足す
+    
+        # 絶対に失敗しないように、一時ファイルを使わずに標準出力で確認しながら回す
+        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$TARGET_HOME/$target"
+    
+        # 書き込み後のファイルに __DOTPATH__ が残ってないかチェック
+        if grep -q "__DOTPATH__" "$TARGET_HOME/$target"; then
+            echo "❌ Error: Replacement failed in $target"
+        fi
+    done
+
     # --- 1. 標準的なシンボリックリンクの作成 ---
     ln -sf "$DOTPATH/bash/.bashrc" "$TARGET_HOME/.bashrc"
     ln -sf "$DOTPATH/zsh/.zshrc" "$TARGET_HOME/.zshrc"
@@ -101,11 +115,10 @@ deploy_configs() {
     ln -sf "$DOTPATH/configs/gitconfig" "$TARGET_HOME/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$TARGET_HOME/.inputrc"
     ln -sf "$DOTPATH/configs/gitignore_global" "$TARGET_HOME/.gitignore_global"
-
+    
     # --- 2. パス置換が必要な設定 (nanorc) のデプロイ ---
     if [ -f "$DOTPATH/configs/nanorc" ]; then
         echo "🔧 Injecting path into nanorc..."
-        # __DOTPATH__ を実際の絶対パスに変換して、ターゲットのホームに書き出す
         sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
     fi
 
@@ -113,7 +126,7 @@ deploy_configs() {
     echo "🔗 Linking zsh plugins/themes from submodules..."
     local zsh_custom="$TARGET_HOME/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
-         
+          
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
         [ -d "$plugin_path" ] && ln -sf "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
     done
@@ -125,7 +138,6 @@ deploy_configs() {
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
             ln -sf "$script" "$TARGET_HOME/bin/$(basename "$script")"
-            # シンボリックリンク本体ではなく、実体ファイルに実行権限を付与
             if [ ! -L "$script" ]; then
                 chmod +x "$script" 2>/dev/null || true
             fi
@@ -138,7 +150,35 @@ deploy_configs() {
         [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$TARGET_HOME/bin/fd"
     fi
 
+    # v1.15.3: ローカル設定の初期化を実行
+    deploy_local_configs "$TARGET_HOME"
+
     echo "✅ Configuration deployment completed for $TARGET_HOME"
+}
+
+deploy_local_configs() {
+    local TARGET_HOME=$1
+    echo "📄 Checking local configurations in $TARGET_HOME..."
+
+    # 1. .env の初期化
+    if [ ! -f "$TARGET_HOME/.env" ]; then
+        if [ -f "$DOTPATH/configs/.env.template" ]; then
+            echo "   Initializing .env from template..."
+            cp "$DOTPATH/configs/.env.template" "$TARGET_HOME/.env"
+        else
+            touch "$TARGET_HOME/.env"
+        fi
+    fi
+
+    # 2. .gitconfig.local の初期化
+    if [ ! -f "$TARGET_HOME/.gitconfig.local" ]; then
+        if [ -f "$DOTPATH/configs/.gitconfig.local.template" ]; then
+            echo "   Initializing .gitconfig.local from template..."
+            cp "$DOTPATH/configs/.gitconfig.local.template" "$TARGET_HOME/.gitconfig.local"
+        else
+            touch "$TARGET_HOME/.gitconfig.local"
+        fi
+    fi
 }
 
 setup_root_loader() {

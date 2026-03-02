@@ -8,14 +8,14 @@ DOTFILES_PATH="$(cd "$(dirname "${BASH_SOURCE:-$0}")/.." && pwd)" || exit
 COMMON_DIR="$DOTFILES_PATH/common"
 
 # 2. ローカル環境変数を読み込む (出力は一切出さない)
-if [ -f "$DOTFILES_PATH/common/.env.local" ]; then
-    source "$DOTFILES_PATH/common/.env.local" > /dev/null 2>&1
+if [ -f "$DOTFILES_PATH/configs/.env" ]; then
+    source "$DOTFILES_PATH/configs/.env" > /dev/null 2>&1
 fi
 
 # 3. 共通スクリプトの自動読み込み
 if [ -d "$COMMON_DIR" ]; then
     for f in "$COMMON_DIR"/_*.sh; do
-        # source 時に出力が出てしまうと p10k が警告を出すので、静かに実行
+        # 消したはずの > /dev/null が復活してないかチェック！
         [ -r "$f" ] && source "$f" > /dev/null 2>&1
     done
 fi

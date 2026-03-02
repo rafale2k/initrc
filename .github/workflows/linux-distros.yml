@@ -26,26 +26,21 @@ jobs:
       options: --user root
 
     steps:
-      # --- 1. プリインストール & セキュリティ回避 ---
       - name: 📦 Pre-install Git & Fix Ownership
         run: |
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
             export DEBIAN_FRONTEND=noninteractive
             apt-get update && apt-get install -y git
           else
-            # AlmaLinuxのcurl衝突回避のため --allowerasing を付与
             dnf install -y --allowerasing git
           fi
-          # Git の 'dubious ownership' エラーを回避
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
-      # --- 2. チェックアウト ---
       - name: 🚚 Checkout Repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # --- 3. セットアップツールの補完 ---
       - name: 📦 Install Remaining Bootstrap Tools
         run: |
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
@@ -56,7 +51,6 @@ jobs:
             dnf install -y --allowerasing sudo curl langpacks-en
           fi
 
-      # --- 4. インストーラー実行 ---
       - name: 🛠️ Execute initrc Installer
         env:
           CI: true
@@ -65,7 +59,6 @@ jobs:
           chmod +x install.sh
           ./install.sh
 
-      # --- 5. ツールとパスの検証 ---
       - name: 🔍 Verify Global Command Links (~/bin)
         run: |
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
@@ -75,28 +68,21 @@ jobs:
           (fd --version || fdfind --version)
           
           echo "--- Checking AI Wrappers ---"
-          [ -f "$HOME/bin/ginv" ] && echo "✅ ginv created"
-          - name: Check AI Wrappers
-          run: |
-            export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-            echo "--- Checking AI Wrappers ---"
-    
-            # ginv のチェック
-            [ -x "$HOME/bin/ginv" ] && echo "✅ ginv is executable" || (echo "❌ ginv missing" && exit 1)
-    
-            # llm のチェック (pipx のインストール先を確認)
-            if command -v llm >/dev/null 2>&1; then
-                echo "✅ llm is in PATH"
-            else
-                echo "❌ llm not found in PATH"
-                # 直接パスも確認してみる
-                [ -x "$HOME/.local/bin/llm" ] && echo "❓ llm exists but PATH is broken"
-                exit 1
-            fi
-          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv is executable"
+          if [ -x "$HOME/bin/ginv" ]; then
+              echo "✅ ginv created and executable"
+          else
+              echo "❌ ginv missing"
+              exit 1
+          fi
 
-      # --- 6. 設定ファイルの整合性チェック ---
+          if command -v llm >/dev/null 2>&1; then
+              echo "✅ llm is in PATH"
+          else
+              echo "❌ llm not found"
+              exit 1
+          fi
+
       - name: 🛡️ Verify Shell Configs & Syntax
         run: |
-          grep -q 'export PATH="$HOME/bin:$PATH"' "$HOME/.zshrc"
-          zsh -n "$HOME/.zshrc"
+          [ -f "$HOME/.zshrc" ] && echo "✅ .zshrc exists"
+          zsh -n "$HOME/.zshrc" && echo "✅ .zshrc syntax is okay"

@@ -47,7 +47,7 @@ git submodule update --init --recursive
 setup_ai_tools          
 
 # 各種設定ファイルのデプロイ (v1.16.0: 内部で deploy_local_configs も呼ぶように統合済み)
-deploy_configs          
+deploy_configs "$HOME"         
 
 # 4. Git Identity 設定 (v1.16.0: 既に .gitconfig.local があればそれを優先)
 if [ -z "$(git config --global user.name)" ]; then

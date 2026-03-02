@@ -60,25 +60,26 @@ alias h='history | fzf'
 
 # bashでもzshでも動く共通のfcd
 fcd() {
-  local dir
-  # fd(fdfind) があれば優先、なければ find
-  local fd_cmd=$(command -v fdfind || command -v fd)
+    local dir
+    # fd(fdfind) があれば優先、なければ find
+    local fd_cmd
+    fd_cmd=$(command -v fdfind || command -v fd)
   
-  if [ -n "$fd_cmd" ]; then
-    # eza があるかチェック
-    if command -v eza >/dev/null 2>&1; then
-      # 【ezaあり】ツリープレビュー付きの豪華版
-      dir=$($fd_cmd --type d --hidden --exclude .git . 2> /dev/null | \
-            fzf --height 50% --reverse --border \
-                --preview 'eza -T -L 2 --icons --color=always {} | head -30')
+    if [ -n "$fd_cmd" ]; then
+        # eza があるかチェック
+        if command -v eza >/dev/null 2>&1; then
+            # 【ezaあり】ツリープレビュー付きの豪華版
+            dir=$($fd_cmd --type d --hidden --exclude .git . 2> /dev/null | \
+                fzf --height 50% --reverse --border \
+                    --preview 'eza -T -L 2 --icons --color=always {} | head -30')
+        else
+            # 【ezaなし】シンプルなリスト版
+            dir=$($fd_cmd --type d --hidden --exclude .git . 2> /dev/null | fzf --height 40% --reverse --border)
+        fi
     else
-      # 【ezaなし】シンプルなリスト版
-      dir=$($fd_cmd --type d --hidden --exclude .git . 2> /dev/null | fzf --height 40% --reverse --border)
+        # fd すらない環境用（標準の find）
+        dir=$(find . -maxdepth 3 -type d 2> /dev/null | fzf)
     fi
-  else
-    # fd すらない環境用（標準の find）
-    dir=$(find . -maxdepth 3 -type d 2> /dev/null | fzf)
-  fi
 
-  [ -n "$dir" ] && cd "$dir"
+    [ -n "$dir" ] && cd "$dir" || return
 }

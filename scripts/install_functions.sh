@@ -89,7 +89,9 @@ deploy_configs() {
     echo "🖇️  Deploying configuration files..."
     
     # 実行ユーザーのホームディレクトリを確実に取得
-    local TARGET_HOME=$HOME
+    local target
+    target=$(basename "$rc")
+
     # rootユーザーの場合は /root 、一般ユーザーなら /home/user になる
     echo "Deploying configs to: $TARGET_HOME"
     echo "Using DOTPATH: $DOTPATH"

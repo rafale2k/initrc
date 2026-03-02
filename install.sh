@@ -4,16 +4,16 @@ set -e
 # カレントディレクトリ取得
 DOTPATH=$(cd "$(dirname "$0")" && pwd)
 
-# 共通関数の読み込み
-if [ -f "$DOTPATH/common/install_functions.sh" ]; then
-    # shellcheck source=common/install_functions.sh
-    source "$DOTPATH/common/install_functions.sh"
+# 共通関数の読み込み (v1.16.0: common から scripts へ移動)
+if [ -f "$DOTPATH/scripts/install_functions.sh" ]; then
+    # shellcheck source=scripts/install_functions.sh
+    source "$DOTPATH/scripts/install_functions.sh"
 else
-    echo "❌ Error: common/install_functions.sh not found."
+    echo "❌ Error: scripts/install_functions.sh not found."
     exit 1
 fi
 
-echo "🎯 Starting installation v1.15.0 from $DOTPATH..."
+echo "🎯 Starting installation v1.16.0 from $DOTPATH..."
 
 # 1. SSH鍵の生成
 echo "🔐 Checking SSH keys..."
@@ -36,20 +36,20 @@ echo "🌍 Detected OS: $OS (using $PM)"
 
 export PM OS SUDO_CMD DOTPATH
 
-# 3. 実行シークエンス (この順序が 2026年最新の正解)
+# 3. 実行シークエンス
 setup_os_repos          # リポジトリ準備
 install_all_packages    # パッケージ一括インストール
-setup_oh_my_zsh         # Oh My Zsh 本体の作成
+setup_oh_my_zsh          # Oh My Zsh 本体の作成
 echo "🔗 Syncing submodules..."
 git submodule update --init --recursive
 
-# 先に AI ツール (ginv) を物理的に作成
+# AI ツール (ginv) を物理的に作成
 setup_ai_tools          
 
-# 最後にリンクを貼る (これで ~/bin/ginv が確実にデプロイされる)
+# 各種設定ファイルのデプロイ (v1.16.0: 内部で deploy_local_configs も呼ぶように統合済み)
 deploy_configs          
 
-# 4. Git Identity 設定
+# 4. Git Identity 設定 (v1.16.0: 既に .gitconfig.local があればそれを優先)
 if [ -z "$(git config --global user.name)" ]; then
     echo "👤 Setting up Git identity..."
     git config --global user.name "rafale2k"
@@ -59,14 +59,13 @@ fi
 # 5. Root対応
 setup_root_loader
 
-# --- ここから追加：パスの強制確認と設定 ---
+# --- パスの強制確認と設定 ---
 echo "⚙️  Verifying PATH in .zshrc..."
-# SC2016対応: エスケープしたダブルクォートを使用
 if ! grep -q "export PATH=\"\$HOME/bin:\$PATH\"" "$HOME/.zshrc"; then
     echo "export PATH=\"\$HOME/bin:\$PATH\"" >> "$HOME/.zshrc"
 fi
 
 export PATH="$HOME/bin:$PATH"
 
-echo "✨ All processes completed successfully!"
+echo "✨ All processes completed successfully! (v1.16.0)"
 echo "🚀 Run 'exec zsh -l' to start your new environment."

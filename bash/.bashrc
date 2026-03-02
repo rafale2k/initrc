@@ -29,8 +29,13 @@ fi
 # 事前に変数をエクスポートしておく
 export DOTFILES_PATH="$HOME/dotfiles"
 
-if [[ -f "$DOTFILES_PATH/common/loader.sh" ]]; then
-    source "$DOTFILES_PATH/common/loader.sh"
+# dotfiles loader
+# ---------------------------------------------------------
+# __DOTPATH__ は install.sh 実行時に自動的に置換される
+DOTFILES_ROOT="__DOTPATH__"
+
+if [ -f "$DOTFILES_ROOT/common/loader.sh" ]; then
+    . "$DOTFILES_ROOT/common/loader.sh"
 fi
 
 copyfile() {

@@ -1,6 +1,8 @@
 editors/nano-syntax-highlighting
-common/.env.local
+configs/.env
+configs/.env.local
 .gitconfig.local
+configs/.gitconfig.local
 common/_local_*.sh
 # bin ディレクトリ内の生成されたバイナリ/リンクを無視
 bin/bat

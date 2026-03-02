@@ -19,6 +19,8 @@
 
 ## 🖼️ Showcase
 
+![initrc Showcase Banner](assets/54.png)
+
 ### 🤖 1. Next-Gen AI Workflow (ginv / gcm / ask / wtf)
 **Gemini 2.5 Flash** をエンジンに採用。プロンプト応答、コミットメッセージ生成、エラー解析をターミナルから爆速で実行。`llm` エコシステムに完全統合されています。
 
@@ -82,7 +84,6 @@ AI 実行エンジンを `llm` に統一。2026年最新の **Gemini 2.5 Flash**
 ---
 
 ## 🚀 クイックスタート
-
 ```bash
 git clone --recursive [https://github.com/rafale2k/initrc.git](https://github.com/rafale2k/initrc.git) ~/dotfiles
 cd ~/dotfiles && ./install.sh

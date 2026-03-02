@@ -1,7 +1,5 @@
 # 🚀 initrc: The RC Files Recreator
 
-# 🚀 initrc: The RC Files Recreator
-
 ![Version](https://img.shields.io/badge/version-1.16.0-red)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20AlmaLinux-orange)

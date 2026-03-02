@@ -86,19 +86,21 @@ EOF
 }
 
 deploy_configs() {
-    echo "🖇️  Deploying configuration files..."
+    local TARGET_HOME
+    TARGET_HOME="${1:-$HOME}"  # 引数がなければ $HOME を使う
+    [ -z "$TARGET_HOME" ] && TARGET_HOME="$HOME" # 念のための二重ガード
     
-    # 実行ユーザーのホームディレクトリを確実に取得
-    local target
-    target=$(basename "$rc")
-
+    echo "🖇️  Deploying configuration files to: $TARGET_HOME"
+    
     # rootユーザーの場合は /root 、一般ユーザーなら /home/user になる
     echo "Deploying configs to: $TARGET_HOME"
     echo "Using DOTPATH: $DOTPATH"
     
     # --- .bashrc / .zshrc に DOTPATH を注入してデプロイ ---
     for rc in "bash/.bashrc" "zsh/.zshrc"; do
-        local target=$(basename "$rc")
+        # 実行ユーザーのホームディレクトリを確実に取得
+        local target
+        target=$(basename "$rc")
         echo "🔧 Debug: Replacing __DOTPATH__ with $DOTPATH in $target" # これを足す
     
         # 絶対に失敗しないように、一時ファイルを使わずに標準出力で確認しながら回す

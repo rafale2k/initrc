@@ -1,6 +1,8 @@
 # 🚀 initrc: The RC Files Recreator
 
-![Version](https://img.shields.io/badge/version-1.15.0-blue)
+# 🚀 initrc: The RC Files Recreator
+
+![Version](https://img.shields.io/badge/version-1.16.0-red)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20AlmaLinux-orange)
 ![CI Status](https://github.com/rafale2k/initrc/actions/workflows/test.yml/badge.svg)
@@ -13,7 +15,7 @@
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
 > **"Environment construction in 0 seconds, with Gemini 2.5 at your side."**
-> `initrc` は、単なる設定のコピーではありません。実行環境（Cloud / Docker / Bare-metal）に合わせてツールを自動調達し、最新の AI 連携とシームレスな操作系を統合する、エンジニアのための最強スターターキットです。
+> `initrc` は、実行環境に合わせてツールを自動調達し、最新の AI 連携とシームレスな操作系を統合する、エンジニアのための最強スターターキットです。
 
 ---
 
@@ -24,38 +26,25 @@
 ### 🤖 1. Next-Gen AI Workflow (ginv / gcm / ask / wtf)
 **Gemini 2.5 Flash** をエンジンに採用。プロンプト応答、コミットメッセージ生成、エラー解析をターミナルから爆速で実行。`llm` エコシステムに完全統合されています。
 
-### 📋 2. Universal Clipboard & Path Management
-OSC 52 によるリモート・ローカル間のクリップボード共有に加え、v1.15.0 ではインストーラーによる **PATH の自動修復機能** を搭載。セットアップ直後から全ての自作スクリプトが即座に利用可能です。
+### 📁 2. Structured Configuration (v1.16.0 NEW)
+設定ファイルを `common/` ディレクトリに集約し、アルファベット順に自動ロードする **Dynamic Loader** を搭載。機能追加がファイルを置くだけで完結します。
 
 ### 🔍 3. Interactive Operations (fzf + bat + eza)
-ファイル検索、Docker コンテナ管理。すべてがプレビュー付きのインタラクティブな体験に。AlmaLinux/Ubuntu 両対応のモダンな代替コマンド群（`eza`, `fd`, `bat`）を網羅。
+ファイル検索、Docker コンテナ管理。すべてがプレビュー付きのインタラクティブな体験に。Nano Wrapper (`n`) は編集時にパレットを自動変更する職人仕様です。
 
 ---
 
-## 🛠️ v1.15.0 "The AI-Refined Edition" - 核心機能
+## 🛠️ v1.16.0 "The Structural Refactor" - 核心機能
 
-### ✅ Professional Reliability & ShellCheck
-全てのシェルスクリプトに対して **ShellCheck** による厳密な静的解析を実施。
-- **堅牢なインストーラー**: 依存関係の解決順序を最適化し、`ginv` 等のツール配備とパス通しを一挙に完結。
-- **クロスプラットフォーム**: Ubuntu (Debian系) と AlmaLinux (RHEL系) の両方で、バイナリレベルでの互換動作を保証。
+### 🏗️ Directory-Based Loading (IaC Ready)
+設定ファイルの読み込みロジックを刷新しました。
+- **`common/loader.sh`**: `_*.sh` 形式のファイルをスキャンし、依存関係を考慮して自動読込。
+- **Idempotent Deployment**: `install.sh` が環境パスを `.zshrc` へ自動注入。テンプレート方式により、どのディレクトリに clone しても即座に動作します。
 
 ### 🧠 Unified AI Ecosystem (llm + Gemini 2.5)
 AI 実行エンジンを `llm` に統一。2026年最新の **Gemini 2.5 Flash** をデフォルトモデルとしてプリセットします。
-- **`ginv`**: AI への汎用的な問いかけ。`ginv "このログの異常値を指摘して"`。
+- **`ginv`**: AI への汎用的な問いかけ。
 - **`gcm`**: Git 差分から最適なコミットメッセージを提案。
-- **`wtf`**: 直前のエラーを解析し、具体的な修正コードを提示。
-
----
-
-## 🤖 AI-Powered SRE Tools
-
-### 🐳 `dask` (Docker Assistant Task)
-自然言語で指示を出すだけで、複雑な Docker コマンドを生成・実行。
-> `dask "一番メモリを食っているコンテナを特定して"`
-
-### 🛠️ `wtf` (Instant Error Analyzer)
-ターミナルに表示されたエラーを即座に解析。
-> `wtf "ERROR: connection refused to host 127.0.0.1"`
 
 ---
 
@@ -63,27 +52,27 @@ AI 実行エンジンを `llm` に統一。2026年最新の **Gemini 2.5 Flash**
 
 | Command | Feature | Description |
 | :--- | :--- | :--- |
-| `ginv` | **AI Oracle** | **[NEW]** Gemini 2.5 による汎用 AI 問いかけツール。 |
+| `n` | **Nano Magic** | **[NEW]** `fzf` 検索 ＋ 編集時パレット自動変更機能。 |
+| `ginv` | **AI Oracle** | Gemini 2.5 による汎用 AI 問いかけツール。 |
 | `gcm` | **AI Commit** | 差分解析によるコミットメッセージ生成。 |
 | `wtf` | **AI Fixer** | 直前のエラーを解析し、修正案を提示。 |
-| `copyfile`| **Uni-Copy** | ファイル内容を OSC 52 経由でクリップボードへ。 |
-| `de` / `dl` | **Docker Fzf** | コンテナを `fzf` で選択し Exec または Logs 表示。 |
 | `z` | **Fast Jump** | `zoxide` による学習型ディレクトリ高速移動。 |
 
 ---
 
-## 📂 リポジトリ構造
+## 📂 リポジトリ構造 (v1.16.0)
 
-- **`install.sh`**: OS自動判別、`pipx` / `llm` / `ginv` を含む一括セットアップ。
-- **`bin/`**: AI ツール群の実行ファイル。
-- **`common/`**:
-  - `install_functions.sh`: セットアップのコアロジック。ShellCheck 準拠。
-  - `loader.sh`: 非対話シェルでも設定を共有する共通ローダー。
-- **`zsh/`**: `p10k` および `zsh-autosuggestions` 等のプラグイン・テーマ管理。
+- **`install.sh`**: OS自動判別、`__DOTPATH__` 置換、一括セットアップ。
+- **`common/`**: 
+  - `loader.sh`: 司令塔。各設定ファイルの読込を制御。
+  - `_system.sh`: エイリアス、パレット制御、`n` 関数など。
+- **`scripts/`**: セットアップのコアロジック。
+- **`bin/`**: AI ツール群（`ginv` 等）の実行ファイル。
 
 ---
 
 ## 🚀 クイックスタート
+
 ```bash
 git clone --recursive [https://github.com/rafale2k/initrc.git](https://github.com/rafale2k/initrc.git) ~/dotfiles
 cd ~/dotfiles && ./install.sh

@@ -2,8 +2,10 @@
 
 # --- OS・パッケージマネージャーの判定 ---
 setup_os_repos() {
-    # 呼び出し元から DOTPATH が渡ってこない場合に備えて
-    [ -z "$DOTPATH" ] && DOTPATH=$(cd "$(dirname "$0")/.." && pwd)
+    local DOTPATH_TMP
+    DOTPATH_TMP=$(cd "$(dirname "$0")/.." && pwd)
+    [ -z "$DOTPATH" ] && DOTPATH="$DOTPATH_TMP"
+    
     echo "🌍 Detected OS: $OS (using $PM)"
     
     if [ "$PM" = "apt" ]; then
@@ -11,7 +13,6 @@ setup_os_repos() {
         sudo apt-get update -qq
         sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release
         
-        # lsb_release が万が一失敗した時のフォールバック
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2)
         
@@ -65,10 +66,9 @@ deploy_configs() {
     local TARGET_HOME="${1:-$HOME}"
     [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && TARGET_HOME="$HOME"
     
-    # 【重要】関数内で DOTPATH が空なら再定義する
-    if [ -z "$DOTPATH" ]; then
-        DOTPATH=$(cd "$(dirname "$0")/.." && pwd)
-    fi
+    local DOTPATH_TMP
+    DOTPATH_TMP=$(cd "$(dirname "$0")/.." && pwd)
+    [ -z "$DOTPATH" ] && DOTPATH="$DOTPATH_TMP"
 
     echo "🖇️  Deploying configuration files to: $TARGET_HOME"
     echo "Using DOTPATH: $DOTPATH"
@@ -78,10 +78,10 @@ deploy_configs() {
         local target
         target=$(basename "$rc")
         
-        # テンプレートファイルの存在確認を先にする
+        # ファイルの存在を厳密にチェック
         if [ ! -f "$DOTPATH/$rc" ]; then
-            echo "❌ Error: Template $DOTPATH/$rc not found!"
-            return 1
+            echo "⚠️  Skip: $DOTPATH/$rc not found."
+            continue
         fi
 
         local tmp_rc="/tmp/initrc_$target"
@@ -97,7 +97,7 @@ deploy_configs() {
         rm -f "$tmp_rc"
     done
 
-    # シンボリックリンク
+    # シンボリックリンク (SC2015 対策)
     ln -sf "$DOTPATH/configs/vimrc" "$TARGET_HOME/.vimrc"
     ln -sf "$DOTPATH/configs/gitconfig" "$TARGET_HOME/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$TARGET_HOME/.inputrc"
@@ -107,7 +107,7 @@ deploy_configs() {
         sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
     fi
 
-    # Oh My Zsh リンク
+    # Zsh Custom リンク
     local zsh_custom="$TARGET_HOME/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
     local plugin_path
@@ -118,18 +118,22 @@ deploy_configs() {
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
 
-    # Bin
+    # Bin リンク
     mkdir -p "$TARGET_HOME/bin"
     local script
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
             ln -sf "$script" "$TARGET_HOME/bin/$(basename "$script")"
-            [ ! -L "$script" ] && chmod +x "$script" 2>/dev/null || true
+            if [ ! -L "$script" ]; then
+                chmod +x "$script" 2>/dev/null || true
+            fi
         fi
     done
 
-    [ "$PM" = "apt" ] && [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$TARGET_HOME/bin/bat"
-    [ "$PM" = "apt" ] && [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$TARGET_HOME/bin/fd"
+    if [ "$PM" = "apt" ]; then
+        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$TARGET_HOME/bin/bat"
+        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$TARGET_HOME/bin/fd"
+    fi
 
     deploy_local_configs "$TARGET_HOME"
 }
@@ -144,7 +148,6 @@ setup_ai_tools() {
         pipx inject llm llm-gemini
     fi
     
-    # ginv script creation... (省略せず既存ロジックを維持)
     local ginv_path="$DOTPATH/bin/ginv"
     cat << 'EOF' > "$ginv_path"
 #!/bin/bash
@@ -157,7 +160,7 @@ EOF
     chmod +x "$ginv_path"
 }
 
-# --- Loaderの注入 (二重書き込み防止強化) ---
+# --- Loaderの注入 ---
 setup_root_loader() {
     local TARGET_HOME="${1:-$HOME}"
     [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && return 0

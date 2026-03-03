@@ -8,23 +8,17 @@ setup_os_repos() {
     
     if [ "$PM" = "apt" ]; then
         echo "⚙️  Configuring repositories for apt..."
-        # exit 2 対策: 警告を無視し、戻り値が何であっても続行させる
         sudo apt-get update -qq --allow-releaseinfo-change || true
         sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
-        
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2)
-        
         sudo mkdir -p /etc/apt/keyrings
         wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
         echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
-        
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $codename stable" | sudo tee /etc/apt/sources.list.d/docker.list
-        
         sudo apt-get update -qq --allow-releaseinfo-change || true
     elif [ "$PM" = "dnf" ]; then
-        echo "⚙️  Configuring repositories for dnf..."
         if [ -f /etc/dnf/dnf.conf ]; then
             if ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf; then
                 echo "max_parallel_downloads=10" | sudo tee -a /etc/dnf/dnf.conf
@@ -41,7 +35,6 @@ install_all_packages() {
     if [ "$OS" = "mac" ]; then
         brew install "${common_pkgs[@]}" fd eza docker docker-compose
     elif [ "$PM" = "apt" ]; then
-        # 依存関係でコケないよう一か八か || true
         sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
     elif [ "$PM" = "dnf" ]; then
         sudo dnf install -y -q "${common_pkgs[@]}" fd-find docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
@@ -68,16 +61,18 @@ deploy_configs() {
     safe_replace() {
         local src="$1"
         local dst="$2"
-        if [ ! -f "$src" ]; then return 0; fi
-        # 置換後の内容から「既にloaderの記述があれば消す」処理を挟む（重複の根絶）
-        DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" | grep -v "common/loader.sh" > "$dst"
+        [ ! -f "$src" ] && return 0
+        # パス置換のみを行い、loaderの削除はここではやらない（構文破壊防止）
+        DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
     }
 
     if [ -f "$DOTPATH/bash/.bashrc" ]; then
+        echo "🔧 Overwriting .bashrc..."
         rm -f "$target_home/.bashrc"
         safe_replace "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
     fi
     if [ -f "$DOTPATH/zsh/.zshrc" ]; then
+        echo "🔧 Overwriting .zshrc..."
         rm -f "$target_home/.zshrc"
         safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
     fi
@@ -111,11 +106,6 @@ deploy_configs() {
         fi
     done
 
-    if [ "$PM" = "apt" ]; then
-        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$target_home/bin/bat"
-        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$target_home/bin/fd"
-    fi
-
     deploy_local_configs "$target_home"
 }
 
@@ -140,10 +130,14 @@ setup_root_loader() {
     local loader_line="source '$DOTPATH/common/loader.sh'"
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            # 先に既存のloader行をすべて削除してから、最後に一行だけ追加する（最強の重複対策）
-            local tmp_f="/tmp/clean_rc"
+            # 1. まず loader 行を一時ファイルで完全に消す
+            local tmp_f="/tmp/clean_rc_$(basename "$f")"
             grep -v "common/loader.sh" "$f" > "$tmp_f" || true
+            # 2. 最後に一行だけ追加
             echo "$loader_line" >> "$tmp_f"
+            # 3. ここで「空の if/else」を救済するために、sed で中身が空のブロックを補完するか、
+            # もしくは構文チェックに引っかかるような不正な行を消す。
+            # 今回は「loader を消した後の空行」が問題なので、一番安全な mv を実行。
             mv "$tmp_f" "$f"
         fi
     done

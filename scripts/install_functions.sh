@@ -110,13 +110,26 @@ deploy_configs() {
 
 # --- 🔥 重複と構文エラーを物理的に封じ込める ---
 setup_root_loader() {
-    # 何もしない。
-    # なぜなら：
-    # 1. deploy_configs がテンプレートを上書きする際、既に loader の記述が含まれている。
-    # 2. ここで追記すると Count 2 になって検証で落ちる。
-    # 3. テンプレートをいじると Count 3 になったり構文エラーになったりする。
-    # 結論：テンプレート側の記述（展開済み）を唯一の正解とする。
-    return 0
+    local t="${1:-$HOME}"
+    [ -z "$t" ] || [ "$t" = "/" ] && return 0
+    
+    local loader_line="source '$DOTPATH/common/loader.sh'"
+    
+    for f in "$t/.zshrc" "$t/.bashrc"; do
+        if [ -f "$f" ]; then
+            echo "🧹 Cleaning and fixing $f..."
+            # 1. loader を含む行を完全に除外した一時ファイルを作成
+            local tmp_f
+            tmp_f="/tmp/clean_rc_$(basename "$f")"
+            grep -v "common/loader.sh" "$f" > "$tmp_f" || true
+            
+            # 2. 末尾に「唯一の正解」を1行だけ追加
+            echo "$loader_line" >> "$tmp_f"
+            
+            # 3. 戻す
+            mv "$tmp_f" "$f"
+        fi
+    done
 }
 
 deploy_local_configs() {

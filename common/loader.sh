@@ -2,9 +2,9 @@
 # shellcheck disable=SC1090,SC1091,SC2034
 
 # --- 🚀 INITRC_LOADER_GUARD ---
-# 既にロード済みなら、このファイル自体を即座に終了させる
 if [ -n "${INITRC_LOADER_LOADED:-}" ]; then
-    return 0 2>/dev/null || exit 0
+    return 0 2>/dev/null
+    # exit は書かない（ShellCheck対策 兼 source時の安全策）
 fi
 export INITRC_LOADER_LOADED=1
 

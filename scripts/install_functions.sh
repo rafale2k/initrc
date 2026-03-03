@@ -113,20 +113,27 @@ setup_root_loader() {
     local t="${1:-$HOME}"
     [ -z "$t" ] || [ "$t" = "/" ] && return 0
     
-    local loader_line="source '$DOTPATH/common/loader.sh' # INITRC_LOADER"
+    # 唯一の正解となる行（ユニークなマーカー付き）
+    local marker="# FINAL_LOADER_MARKER"
+    local loader_line="source '$DOTPATH/common/loader.sh' $marker"
     
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            # 1. 重複チェック（既に "# INITRC_LOADER" というコメントがあれば何もしない）
-            if grep -q "# INITRC_LOADER" "$f"; then
-                echo "✅ $f already has the loader."
-                continue
+            echo "🧼 Purifying $f..."
+            local tmp_f
+            tmp_f="/tmp/purified_rc_$(basename "$f")"
+            
+            # 1. 「loader.sh」を含む既存の行をすべてコメントアウトする
+            # ただし、自分が今から足そうとしているマーカー付きの行は除外する
+            # これで Count 1 を強制しつつ、構文（if/fi）を絶対に壊さない
+            perl -pe "s|^(.*common/loader\.sh.*)|# \$1|g unless /$marker/" "$f" > "$tmp_f"
+            
+            # 2. マーカー付きの行がなければ、末尾に 1 行だけ足す
+            if ! grep -q "$marker" "$tmp_f"; then
+                echo -e "\n$loader_line" >> "$tmp_f"
             fi
             
-            # 2. テンプレート側の古い loader（コメントなし）がある可能性を考慮
-            # 何も消さない。そのまま末尾に足す。
-            # 重複読み込みの防止は loader.sh 側のガード変数に任せる。
-            echo -e "\n$loader_line" >> "$f"
+            mv "$tmp_f" "$f"
         fi
     done
 }

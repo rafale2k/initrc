@@ -7,7 +7,6 @@ setup_os_repos() {
     [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
     
     if [ "$PM" = "apt" ]; then
-        echo "⚙️  Configuring repositories for apt..."
         sudo apt-get update -qq --allow-releaseinfo-change || true
         sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
         local codename
@@ -42,7 +41,6 @@ setup_oh_my_zsh() {
     fi
 }
 
-# --- 🛠️ 復活！AIツール設定 ---
 setup_ai_tools() {
     export PATH="$HOME/.local/bin:$PATH"
     if ! command -v llm >/dev/null 2>&1; then
@@ -73,6 +71,7 @@ deploy_configs() {
         local src="$1"
         local dst="$2"
         if [ ! -f "$src" ]; then return 0; fi
+        # 置換するだけ。行を消したりしない＝構文は100%維持される。
         DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
     }
 
@@ -97,7 +96,6 @@ deploy_configs() {
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
     
-    # SC2015 対策: if 文で安全にループ
     for s in "$DOTPATH/bin"/*; do
         if [ -f "$s" ]; then
             ln -sf "$s" "$target_home/bin/$(basename "$s")"
@@ -110,27 +108,15 @@ deploy_configs() {
     deploy_local_configs "$target_home"
 }
 
+# --- 🔥 重複と構文エラーを物理的に封じ込める ---
 setup_root_loader() {
-    local t="${1:-$HOME}"
-    [ -z "$t" ] || [ "$t" = "/" ] && return 0
-    
-    local marker="# INITRC_LOADER_MARKER"
-    local loader_line
-    loader_line="source '$DOTPATH/common/loader.sh'  $marker"
-    
-    for f in "$t/.zshrc" "$t/.bashrc"; do
-        if [ -f "$f" ]; then
-            local tmp_f
-            tmp_f="/tmp/clean_rc_$(basename "$f")"
-            # 既存の loader 行を無害化しつつ、重複を削ぎ落とす
-            perl -pe "s/.*common\/loader\.sh.*/:/g" "$f" > "$tmp_f"
-            
-            if ! grep -q "$marker" "$tmp_f"; then
-                echo -e "\n$loader_line" >> "$tmp_f"
-            fi
-            mv "$tmp_f" "$f"
-        fi
-    done
+    # 何もしない。
+    # なぜなら：
+    # 1. deploy_configs がテンプレートを上書きする際、既に loader の記述が含まれている。
+    # 2. ここで追記すると Count 2 になって検証で落ちる。
+    # 3. テンプレートをいじると Count 3 になったり構文エラーになったりする。
+    # 結論：テンプレート側の記述（展開済み）を唯一の正解とする。
+    return 0
 }
 
 deploy_local_configs() {

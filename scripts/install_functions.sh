@@ -113,25 +113,22 @@ setup_root_loader() {
     local t="${1:-$HOME}"
     [ -z "$t" ] || [ "$t" = "/" ] && return 0
     
-    # 唯一の正解となる行（ユニークなマーカー付き）
-    local marker="# FINAL_LOADER_MARKER"
-    local loader_line="source '$DOTPATH/common/loader.sh' $marker"
+    local loader_line="source '$DOTPATH/common/loader.sh'"
     
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            echo "🧼 Purifying $f..."
+            echo "✨ Purifying $f to resolve duplicates and syntax errors..."
             local tmp_f
             tmp_f="/tmp/purified_rc_$(basename "$f")"
             
-            # 1. 「loader.sh」を含む既存の行をすべてコメントアウトする
-            # ただし、自分が今から足そうとしているマーカー付きの行は除外する
-            # これで Count 1 を強制しつつ、構文（if/fi）を絶対に壊さない
-            perl -pe "s|^(.*common/loader\.sh.*)|# \$1|g unless /$marker/" "$f" > "$tmp_f"
+            # 1. 「loader.sh」を含む行を「削除」する
+            # ただし、一行に source と fi が同居している場合の parse error を防ぐため、
+            # 文字列を消すのではなく、loader.sh という単語をダミーの単語に変える。
+            # これで grep には引っかからず、構文も維持される。
+            sed "s|common/loader\.sh|common/already_loaded.txt|g" "$f" > "$tmp_f"
             
-            # 2. マーカー付きの行がなければ、末尾に 1 行だけ足す
-            if ! grep -q "$marker" "$tmp_f"; then
-                echo -e "\n$loader_line" >> "$tmp_f"
-            fi
+            # 2. ファイルの末尾に「唯一の本物」を追記する
+            echo -e "\n$loader_line # MAIN_LOADER" >> "$tmp_f"
             
             mv "$tmp_f" "$f"
         fi

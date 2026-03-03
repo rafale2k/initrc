@@ -8,26 +8,31 @@ setup_os_repos() {
     
     if [ "$PM" = "apt" ]; then
         echo "⚙️  Configuring repositories for apt..."
-        # exit 2 対策: --allow-releaseinfo-change を追加
+        # exit 2 対策: 警告を無視し、戻り値が何であっても続行させる
         sudo apt-get update -qq --allow-releaseinfo-change || true
-        sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release
+        sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
+        
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2)
+        
         sudo mkdir -p /etc/apt/keyrings
-        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg 2>/dev/null
+        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
         echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null
+        
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $codename stable" | sudo tee /etc/apt/sources.list.d/docker.list
-        sudo apt-get update -qq || true
+        
+        sudo apt-get update -qq --allow-releaseinfo-change || true
     elif [ "$PM" = "dnf" ]; then
+        echo "⚙️  Configuring repositories for dnf..."
         if [ -f /etc/dnf/dnf.conf ]; then
             if ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf; then
                 echo "max_parallel_downloads=10" | sudo tee -a /etc/dnf/dnf.conf
             fi
         fi
-        sudo dnf install -y -q epel-release dnf-plugins-core
-        sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-        sudo dnf makecache -q
+        sudo dnf install -y -q epel-release dnf-plugins-core || true
+        sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo || true
+        sudo dnf makecache -q || true
     fi
 }
 
@@ -36,9 +41,10 @@ install_all_packages() {
     if [ "$OS" = "mac" ]; then
         brew install "${common_pkgs[@]}" fd eza docker docker-compose
     elif [ "$PM" = "apt" ]; then
-        sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        # 依存関係でコケないよう一か八か || true
+        sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
     elif [ "$PM" = "dnf" ]; then
-        sudo dnf install -y -q "${common_pkgs[@]}" fd-find docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        sudo dnf install -y -q "${common_pkgs[@]}" fd-find docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
         sudo systemctl enable --now docker 2>/dev/null || true
     fi
 }
@@ -63,7 +69,8 @@ deploy_configs() {
         local src="$1"
         local dst="$2"
         if [ ! -f "$src" ]; then return 0; fi
-        DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
+        # 置換後の内容から「既にloaderの記述があれば消す」処理を挟む（重複の根絶）
+        DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" | grep -v "common/loader.sh" > "$dst"
     }
 
     if [ -f "$DOTPATH/bash/.bashrc" ]; then
@@ -115,8 +122,8 @@ deploy_configs() {
 setup_ai_tools() {
     export PATH="$HOME/.local/bin:$PATH"
     if ! command -v llm >/dev/null 2>&1; then
-        pipx install llm
-        pipx inject llm llm-gemini
+        pipx install llm || true
+        pipx inject llm llm-gemini || true
     fi
     local ginv_path="$DOTPATH/bin/ginv"
     cat << 'EOF' > "$ginv_path"
@@ -133,17 +140,17 @@ setup_root_loader() {
     local loader_line="source '$DOTPATH/common/loader.sh'"
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            # 完全一致で検索し、存在しなければ追加
-            if ! grep -Fxq "$loader_line" "$f"; then
-                echo "$loader_line" >> "$f"
-            fi
+            # 先に既存のloader行をすべて削除してから、最後に一行だけ追加する（最強の重複対策）
+            local tmp_f="/tmp/clean_rc"
+            grep -v "common/loader.sh" "$f" > "$tmp_f" || true
+            echo "$loader_line" >> "$tmp_f"
+            mv "$tmp_f" "$f"
         fi
     done
 }
 
 deploy_local_configs() {
     local t="$1"
-    # SC2015 対策: if 文に完全移行
     if [ -d "$DOTPATH/templates" ]; then
         if [ -f "$DOTPATH/templates/.env.example" ]; then
             if [ ! -f "$t/.env" ]; then

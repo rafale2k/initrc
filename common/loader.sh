@@ -10,16 +10,16 @@ export INITRC_LOADER_LOADED=1
 # 1. パスの自動確定 (絶対パスを排除)
 # どのユーザーがどこにインストールしても、このファイルの位置からルートを割り出す
 if [ -n "${ZSH_VERSION:-}" ]; then
+    # shellcheck disable=SC2296
     _ld_current_script="${(%):-%x}"
 else
     _ld_current_script="${BASH_SOURCE[0]}"
 fi
 
 _ld_script_dir="$(cd "$(dirname "$_ld_current_script")" && pwd)"
-export DOTFILES_PATH="$(cd "$_ld_script_dir/.." && pwd)"
-
-# デバッグ用：問題なければ後にコメントアウトしてOK
-# echo "📂 DOTFILES_PATH is: $DOTFILES_PATH"
+# 分離して代入
+DOTFILES_PATH="$(cd "$_ld_script_dir/.." && pwd)"
+export DOTFILES_PATH
 
 # 2. PATH の設定
 case ":$PATH:" in

@@ -95,8 +95,10 @@ deploy_configs() {
         local target
         target=$(basename "$rc")
         
-        # 冪等性の強化：まず、テンプレートからパス置換した一時ファイルを作る
-        local tmp_rc="/tmp/initrc_$(basename "$rc")"
+        # SC2155対策：宣言と代入を分ける
+        local tmp_rc
+        tmp_rc="/tmp/initrc_$(basename "$rc")"
+        
         sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$tmp_rc"
 
         if [ ! -f "$TARGET_HOME/$target" ]; then

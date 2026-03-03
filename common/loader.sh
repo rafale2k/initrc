@@ -36,7 +36,7 @@ fi
 _ld_common_dir="$DOTFILES_PATH/common"
 if [ -d "$_ld_common_dir" ]; then
     for _ld_f in "$_ld_common_dir"/_*.sh; do
-        [ -r "$_ld_f" ] && source "$_ld_f" > /dev/null 2>&1
+        [ -r "$_ld_f" ] && source "$_ld_f"
     done
 fi
 

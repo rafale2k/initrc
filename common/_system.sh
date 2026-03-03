@@ -62,25 +62,30 @@ alias cp='cp -i'
 alias mv='mv -i'
 alias tokyo='printf "\e]4;0;#1a1b26\a"'
 
-# モダンコマンド置換 (eza)
-EZA_BIN=$(command -v eza || command -v /usr/local/bin/eza 2>/dev/null)
-if [ -x "$EZA_BIN" ]; then
-    # SC2139対策: ダブルクォートをやめ、シングルクォートで定義することで実行時に評価させる
-    alias ls='$EZA_BIN --icons --group-directories-first'
-    alias ll='$EZA_BIN -alF --icons --git'
-    alias lt='$EZA_BIN --tree -a --icons --git --ignore-glob=".git"'
-    alias lt2='$EZA_BIN --tree -a --icons --ignore-glob=".git" --level=2'
-    alias la='$EZA_BIN -a --icons --group-directories-first'
+# 1. 念のため unalias で OMZ の設定を消し飛ばす
+unalias ls ll la lt 2>/dev/null
+
+# 2. 変数を使わず、直接 eza のフルパスを指定する（/home/rafale/bin/eza）
+# もし eza があれば適用、なければ標準の ls を使う
+if [ -x "/home/rafale/bin/eza" ]; then
+    alias ls='/home/rafale/bin/eza --icons --group-directories-first'
+    alias ll='/home/rafale/bin/eza -alF --icons --git'
+    alias la='/home/rafale/bin/eza -a --icons --group-directories-first'
+    alias lt='/home/rafale/bin/eza --tree -a --icons --git --ignore-glob=".git"'
 else
-    alias ll='ls -alF --color=auto'
-    alias la='ls -la --color=auto'
+    alias ls='ls --color=auto'
 fi
 
-# モダンコマンド置換 (bat)
-if command -v batcat &> /dev/null; then
-    alias cat='batcat --paging=never --theme="Monokai Extended"'
-elif command -v bat &> /dev/null; then
-    alias cat='bat --paging=never --theme="Monokai Extended"'
+# bat (cat replacement)
+# もし /home/rafale/bin/bat が実在するなら、有無を言わさず alias を張る
+if [ -x "/home/rafale/bin/bat" ]; then
+    unalias cat 2>/dev/null
+    alias cat='/home/rafale/bin/bat --paging=never --theme="Monokai Extended"'
+    alias bat='/home/rafale/bin/bat'
+elif command -v batcat &> /dev/null; then
+    unalias cat 2>/dev/null
+    alias cat='batcat --paging=never'
+    alias bat='batcat'
 fi
 
 if command -v fdfind &> /dev/null; then

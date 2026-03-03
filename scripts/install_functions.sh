@@ -132,7 +132,7 @@ deploy_configs() {
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
           
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
-        [ -d "$plugin_path" ] && ln -sf "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
+        [ -d "$plugin_path" ] && ln -sfn "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sf "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
 

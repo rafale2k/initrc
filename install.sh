@@ -58,7 +58,7 @@ if [ -z "$(git config --global user.name)" ]; then
 fi
 
 # 5. Root対応
-setup_root_loader
+setup_root_loader "$HOME"
 
 # --- パスの強制確認と設定 ---
 echo "⚙️  Verifying PATH in .zshrc..."

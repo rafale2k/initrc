@@ -87,34 +87,37 @@ EOF
 
 deploy_configs() {
     local TARGET_HOME
-    TARGET_HOME="${1:-$HOME}"  # 引数がなければ $HOME を使う
-    [ -z "$TARGET_HOME" ] && TARGET_HOME="$HOME" # 念のための二重ガード
+    TARGET_HOME="${1:-$HOME}"
+    # 防衛策：TARGET_HOMEが空、または / だったら $HOME に強制リセット（MacのRead-only対策）
+    [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && TARGET_HOME="$HOME"
     
     echo "🖇️  Deploying configuration files to: $TARGET_HOME"
-    
-    # rootユーザーの場合は /root 、一般ユーザーなら /home/user になる
-    echo "Deploying configs to: $TARGET_HOME"
     echo "Using DOTPATH: $DOTPATH"
     
     # --- .bashrc / .zshrc に DOTPATH を注入してデプロイ ---
     for rc in "bash/.bashrc" "zsh/.zshrc"; do
-        # 実行ユーザーのホームディレクトリを確実に取得
         local target
         target=$(basename "$rc")
-        echo "🔧 Debug: Replacing __DOTPATH__ with $DOTPATH in $target" # これを足す
-    
-        # 絶対に失敗しないように、一時ファイルを使わずに標準出力で確認しながら回す
-        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$TARGET_HOME/$target"
-    
-        # 書き込み後のファイルに __DOTPATH__ が残ってないかチェック
+        
+        if [ ! -f "$TARGET_HOME/$target" ]; then
+            echo "🔧 Creating $target from template..."
+            sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$TARGET_HOME/$target"
+        else
+            echo "✨ $target already exists, updating path if necessary..."
+            # 既存のファイルを上書き（リダイレクト）せず、sed -i で中身だけ置換する
+            # ※MacとLinuxの両方で動くように一時ファイル方式を採用
+            sed "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/$target" > "$TARGET_HOME/${target}.tmp"
+            mv "$TARGET_HOME/${target}.tmp" "$TARGET_HOME/$target"
+        fi
+
+        # 書き込み後のチェック
         if grep -q "__DOTPATH__" "$TARGET_HOME/$target"; then
             echo "❌ Error: Replacement failed in $target"
         fi
     done
 
     # --- 1. 標準的なシンボリックリンクの作成 ---
-    ln -sf "$DOTPATH/bash/.bashrc" "$TARGET_HOME/.bashrc"
-    ln -sf "$DOTPATH/zsh/.zshrc" "$TARGET_HOME/.zshrc"
+    # ※ .bashrc / .zshrc は上で実体を作成済みなので、ここには含めない！
     ln -sf "$DOTPATH/configs/vimrc" "$TARGET_HOME/.vimrc"
     ln -sf "$DOTPATH/configs/gitconfig" "$TARGET_HOME/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$TARGET_HOME/.inputrc"
@@ -122,19 +125,25 @@ deploy_configs() {
     
     # --- 2. パス置換が必要な設定 (nanorc) のデプロイ ---
     if [ -f "$DOTPATH/configs/nanorc" ]; then
-        echo "🔧 Injecting path into nanorc..."
-        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
+        if [ ! -f "$TARGET_HOME/.nanorc" ]; then
+            echo "🔧 Injecting path into nanorc..."
+            sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
+        else
+            sed "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/.nanorc" > "$TARGET_HOME/.nanorc.tmp"
+            mv "$TARGET_HOME/.nanorc.tmp" "$TARGET_HOME/.nanorc"
+        fi
     fi
 
     # --- 3. Oh-My-Zsh カスタム設定のリンク ---
     echo "🔗 Linking zsh plugins/themes from submodules..."
     local zsh_custom="$TARGET_HOME/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
-          
+    
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
+        # -n を付けてディレクトリの二重リンクを防止（冪等性対策）
         [ -d "$plugin_path" ] && ln -sfn "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
     done
-    [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sf "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
+    [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
 
     # --- 4. 自作バイナリ (bin/) のデプロイ ---
     mkdir -p "$TARGET_HOME/bin"
@@ -142,9 +151,8 @@ deploy_configs() {
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
             ln -sf "$script" "$TARGET_HOME/bin/$(basename "$script")"
-            if [ ! -L "$script" ]; then
-                chmod +x "$script" 2>/dev/null || true
-            fi
+            # シンボリックリンク自体の権限ではなく、実体に権限を付与
+            [ ! -L "$script" ] && chmod +x "$script" 2>/dev/null || true
         fi
     done
 

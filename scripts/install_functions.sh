@@ -113,27 +113,20 @@ setup_root_loader() {
     local t="${1:-$HOME}"
     [ -z "$t" ] || [ "$t" = "/" ] && return 0
     
-    local loader_line="source '$DOTPATH/common/loader.sh'"
+    local loader_line="source '$DOTPATH/common/loader.sh' # INITRC_LOADER"
     
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            echo "🛡️  Safe-patching $f..."
-            local tmp_f
-            tmp_f="/tmp/clean_rc_$(basename "$f")"
+            # 1. 重複チェック（既に "# INITRC_LOADER" というコメントがあれば何もしない）
+            if grep -q "# INITRC_LOADER" "$f"; then
+                echo "✅ $f already has the loader."
+                continue
+            fi
             
-            # 1. 既存の loader 行を「削除」せず「: (何もしない)」に置換する
-            # これで if [ ... ]; then :; fi となり、構文エラーを物理的に回避する
-            perl -pe "s|.*common/loader\.sh.*|:|g" "$f" > "$tmp_f"
-            
-            # 2. ファイルの最後に「唯一の正解」を1行だけ追加
-            # 既に末尾に loader がある場合（Count 1）は、sedで一旦消してから足す
-            # ※末尾の行なら if ブロック外の可能性が高いので安全
-            echo "$loader_line" >> "$tmp_f"
-            
-            # 3. 最後に「:」が連続して Count が増えないよう、
-            # さっき足した「本物の loader」以外で loader を含む行がないか最終チェック
-            # (ここは perl 置換が済んでるので、実質末尾の1行だけになる)
-            mv "$tmp_f" "$f"
+            # 2. テンプレート側の古い loader（コメントなし）がある可能性を考慮
+            # 何も消さない。そのまま末尾に足す。
+            # 重複読み込みの防止は loader.sh 側のガード変数に任せる。
+            echo -e "\n$loader_line" >> "$f"
         fi
     done
 }

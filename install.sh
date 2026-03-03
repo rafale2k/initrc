@@ -41,6 +41,7 @@ setup_os_repos          # リポジトリ準備
 install_all_packages    # パッケージ一括インストール
 setup_oh_my_zsh          # Oh My Zsh 本体の作成
 echo "🔗 Syncing submodules..."
+git config --global --add safe.directory "$(pwd)"
 git submodule update --init --recursive
 
 # AI ツール (ginv) を物理的に作成

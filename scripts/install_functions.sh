@@ -7,7 +7,6 @@ setup_os_repos() {
     [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
     
     if [ "$PM" = "apt" ]; then
-        echo "⚙️  Configuring repositories for apt..."
         sudo apt-get update -qq --allow-releaseinfo-change || true
         sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
         local codename
@@ -62,17 +61,14 @@ deploy_configs() {
         local src="$1"
         local dst="$2"
         [ ! -f "$src" ] && return 0
-        # パス置換のみを行い、loaderの削除はここではやらない（構文破壊防止）
         DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
     }
 
     if [ -f "$DOTPATH/bash/.bashrc" ]; then
-        echo "🔧 Overwriting .bashrc..."
         rm -f "$target_home/.bashrc"
         safe_replace "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
     fi
     if [ -f "$DOTPATH/zsh/.zshrc" ]; then
-        echo "🔧 Overwriting .zshrc..."
         rm -f "$target_home/.zshrc"
         safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
     fi
@@ -130,14 +126,16 @@ setup_root_loader() {
     local loader_line="source '$DOTPATH/common/loader.sh'"
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            # 1. まず loader 行を一時ファイルで完全に消す
-            local tmp_f="/tmp/clean_rc_$(basename "$f")"
-            grep -v "common/loader.sh" "$f" > "$tmp_f" || true
-            # 2. 最後に一行だけ追加
+            # SC2155 対策: 宣言と代入を分ける
+            local tmp_f
+            tmp_f="/tmp/clean_rc_$(basename "$f")"
+            
+            # 【重要】loader を消す代わりに、空の if 対策で `:` に置き換える
+            # これで Count 1 を維持しつつ、構文エラーを回避する
+            sed "s|.*common/loader.sh.*|:|g" "$f" > "$tmp_f" || true
+            
+            # 最後に必ず一行だけ loader を追加（重複を許さない）
             echo "$loader_line" >> "$tmp_f"
-            # 3. ここで「空の if/else」を救済するために、sed で中身が空のブロックを補完するか、
-            # もしくは構文チェックに引っかかるような不正な行を消す。
-            # 今回は「loader を消した後の空行」が問題なので、一番安全な mv を実行。
             mv "$tmp_f" "$f"
         fi
     done

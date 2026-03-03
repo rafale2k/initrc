@@ -1,9 +1,10 @@
-# 🚀 v1.17.0 "The Idempotency Awakens" - Release Notes
+# 🚀 v1.18.0 "The Great Cleanup" - Release Notes
 
-![Version](https://img.shields.io/badge/version-1.17.0-red)
+![Version](https://img.shields.io/badge/version-1.18.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20AlmaLinux-orange)
 ![CI Status](https://github.com/rafale2k/initrc/actions/workflows/test.yml/badge.svg)
+![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
 ![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-vibrantblue?logo=google-gemini&logoColor=white)
 ![LLM](https://img.shields.io/badge/LLM-llm%20integrated-6f42c1?logo=python&logoColor=white)
@@ -12,8 +13,8 @@
 ![Installer](https://img.shields.io/badge/installer-idempotent-blueviolet)
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
-> **"Syntax preservation, duplicate eradication. Your environment, now unbreakable."**
-> `v1.17.0` は、マルチプラットフォーム（macOS / Ubuntu / AlmaLinux）におけるセットアップの安定性を極限まで高めた、真の「冪等性（Idempotency）」実装モデルです。
+> **"Freedom to install, power to revert. Your environment, now completely portable."**
+> `v1.18.0` は、待望のアンインストール機能を搭載し、特定のパスに縛られない究極の移植性を手に入れた「完成形」へのマイルストーンです。
 
 ---
 
@@ -23,67 +24,68 @@
 
 ---
 
-## 🏗️ v1.17.0 "The Idempotency Awakens" - 核心の修正
+## 🏗️ v1.18.0 "The Great Cleanup" - 主な変更点
 
-### 🛡️ String-Level Syntax Preservation (Anti-Parse Error)
-従来の `sed` による行削除・コメントアウトは、一行で記述された `if/fi` ブロックを破壊し、シェル起動不能に陥るリスクがありました。
-- **Non-Destructive Patching**: 既存の `loader.sh` 記述を物理的に削除せず、内部のパス文字列のみを無害化する手法を採用。
-- **Parse Safety**: インデントや `fi` の位置を 1 ミリも動かさないため、特に構文にシビアな Zsh 環境でも 100% 安全なデプロイを実現しました。
+### 🧹 1. Official Uninstaller Support (`uninstall.sh`)
+「入れるのは簡単だが、消すのが面倒」というdotfiles最大の課題を解決しました。
+- **Auto-Detect & Revert**: `.zshrc` や `.bashrc` に追記された設定を自動検知し、痕跡を残さず削除します。
+- **App/Bin Cleanup**: インストールされた `eza`, `bat`, `fzf` などのバイナリや、Oh My Zsh関連のディレクトリを安全に一括整理します。
 
-### 🔄 Multi-Layer Load Guard (Double Lock)
-重複カウント問題を根本から断つ、二重のガードレールを搭載。
-- **Idempotency Guard**: `common/loader.sh` 内部に `$INITRC_LOADER_LOADED` フラグを実装。万一設定ファイルが多重ロードされても、実処理は一度しか走りません。
-- **PATH Check**: `$HOME/bin` や `$HOME/.local/bin` の重複追加を防止。`$PATH` が無限に肥大化する問題を解消しました。
+### 🌍 2. True Path Portability (No More Hardcoded Paths)
+`/home/rafale` といった特定の絶対パスを排除し、環境変数を駆使したポータブルな構造に刷新しました。
+- **Dynamic Root Detection**: `common/loader.sh` が、自身が配置されたディレクトリから相対的に `DOTFILES_PATH` を自動割り出しします。
+- **Cross-User Ready**: どのユーザー名、どのホームディレクトリ下でも、クローンしてすぐに `install.sh` が動作します。
 
----
-
-### 🤖 1. Next-Gen AI Workflow (ginv / gcm / ask / wtf)
-**Gemini 2.5 Flash** をエンジンに採用。プロンプト応答、コミットメッセージ生成、エラー解析をターミナルから爆速で実行。`llm` エコシステムに完全統合されています。
-
-### 📁 2. Structured Configuration (v1.17.0 NEW)
-設定ファイルを `common/` ディレクトリに集約し、アルファベット順に自動ロードする **Dynamic Loader** を搭載。機能追加がファイルを置くだけで完結します。
-
-### 🔍 3. Interactive Operations (fzf + bat + eza)
-ファイル検索、Docker コンテナ管理。すべてがプレビュー付きのインタラクティブな体験に。Nano Wrapper (`n`) は編集時にパレットを自動変更する職人仕様です。
+### ⚡ 3. Optimized Loading Sequence
+読み込みログの視認性と処理効率を向上させました。
+- **Redundancy Elimination**: 重複していたロードループを一本化し、シェル起動時の無駄を排除。
+- **Visual Feedback**: 各モジュールの読み込み状況を `📖 Loading...` ログで明示し、トラブルシューティングを容易にしました。
 
 ---
 
-## 🏎️ Power Features
+## 🖼️ Features
 
 | Command | Feature | Description |
 | :--- | :--- | :--- |
-| `n` | **Nano Magic** | **[NEW]** `fzf` 検索 ＋ 編集時パレット自動変更機能。 |
-| `ginv` | **AI Oracle** | Gemini 2.5 による汎用 AI 問いかけツール。 |
-| `gcm` | **AI Commit** | 差分解析によるコミットメッセージ生成。 |
-| `wtf` | **AI Fixer** | 直前のエラーを解析し、修正案を提示。 |
-| `z` | **Fast Jump** | `zoxide` による学習型ディレクトリ高速移動。 |
+| `uninstall.sh` | **Clean Revert** | **[NEW]** 構築した環境をクリーンな状態に巻き戻します。 |
+| `loader.sh` | **Smart Load** | **[NEW]** パス自動計算機能を備えた次世代ローダー。 |
+| `ginv` | **AI Oracle** | Gemini 2.5 によるターミナル一体型 AI アシスタント。 |
+| `gs` / `ga` / `gc` | **Git Alias** | 爆速で Git 操作を行うための厳選エイリアス。 |
+| `reload` | **Instant Sync** | 設定変更を即座に反映（`exec zsh -l` のエイリアス）。 |
 
 ---
 
-## 🛠️ 修正された不具合
+## 🛠️ 修正された不具合・改善点
 
 | Target | Issue | Solution |
 | :--- | :--- | :--- |
-| **AlmaLinux / Ubuntu** | インストール後の `parse error near fi` | 文字列置換による構文保護の実装 |
-| **All OS** | `.zshrc` 内の loader 重複（Count: 3） | ユニークマーカー管理とフィルタリングの導入 |
-| **macOS** | `setup_ai_tools` 未定義エラー | 関数定義の完全復旧と ShellCheck 準拠 |
-| **ShellCheck** | SC2155, SC2168, SC2128 等の警告 | 変数スコープと配列参照の適正化 |
+| **common/loader.sh** | 設定ファイルが2回ずつ読み込まれる | ロードループを整理し、ガード変数を最適化 |
+| **configs/gitconfig** | `safe.directory` の絶対パス依存 | ワイルドカードまたは相対参照による汎用化 |
+| **bash/.bashrc** | マージ後のファイル消失（空ファイル化） | Git履歴からの復旧と、上書き防止処理の強化 |
+| **System** | インストール後のパス通し重複 | `.zshrc` への PATH 追記ロジックをより厳密に改善 |
 
 ---
 
-## 📂 内部構造の洗練 (v1.17.0)
+## 🏎️ アップデート・インストール手順
 
-- **`common/loader.sh`**: ロード済みガードと、環境に依存しないパス解決ロジック（`BASH_SOURCE` / `ZSH_NAME` ハイブリッド）を搭載。
-- **`scripts/install_functions.sh`**: `local` 変数の宣言分離や、`&& ||` 連結の解消など、現代的なシェルスクリプトのベストプラクティスを徹底。
+**新規インストール:**
+```bash
+git clone [https://github.com/rafale2k/initrc.git](https://github.com/rafale2k/initrc.git) ~/dotfiles
+cd ~/dotfiles
+./install.sh
+```
 
 ---
 
-## 🏎️ アップデート手順
-
+**既存環境の更新:**
 ```bash
 git pull origin main
-./install.sh
-exec zsh -l
+reload
+```
+
+**環境の削除 (Uninstaller):**
+```bash
+./uninstall.sh  
 ```
 
 ---

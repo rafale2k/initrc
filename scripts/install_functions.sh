@@ -47,7 +47,6 @@ setup_oh_my_zsh() {
     fi
 }
 
-# --- 🚀 修正の核心：deploy_configs ---
 deploy_configs() {
     local target_home="${1:-$HOME}"
     [ -z "$target_home" ] || [ "$target_home" = "/" ] && target_home="$HOME"
@@ -58,12 +57,12 @@ deploy_configs() {
 
     echo "🖇️  Deploying configuration files to: $target_home"
     
-    # 【最重要】置換に perl を使う。環境変数経由で渡すのでデリミタ問題が物理的に発生しない。
+    # Perl置換関数のエラーハンドリング強化
     safe_replace() {
         local src="$1"
         local dst="$2"
-        # 環境変数 DP に DOTPATH を入れて perl で置換。これが世界で一番安全。
-        DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
+        [ ! -f "$src" ] && { echo "❌ Error: Source $src not found"; return 0; }
+        DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst" || echo "⚠️ Warning: Failed to replace $src"
     }
 
     # .bashrc
@@ -80,11 +79,11 @@ deploy_configs() {
         safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
     fi
 
-    # リンク系は一気に
-    ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
-    ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
-    ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
-    ln -sf "$DOTPATH/configs/gitignore_global" "$target_home/.gitignore_global"
+    # リンク作成（失敗しても全体を止めない || true を徹底）
+    ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc" || true
+    ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig" || true
+    ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc" || true
+    ln -sf "$DOTPATH/configs/gitignore_global" "$target_home/.gitignore_global" || true
     
     if [ -f "$DOTPATH/configs/nanorc" ]; then
         rm -f "$target_home/.nanorc"
@@ -96,7 +95,7 @@ deploy_configs() {
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
     for d in "$DOTPATH/zsh/plugins"/*; do
         if [ -d "$d" ]; then
-            ln -sfn "$d" "$zsh_custom/plugins/$(basename "$d")"
+            ln -sfn "$d" "$zsh_custom/plugins/$(basename "$d")" || true
         fi
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
@@ -105,18 +104,14 @@ deploy_configs() {
     mkdir -p "$target_home/bin"
     for s in "$DOTPATH/bin"/*; do
         if [ -f "$s" ]; then
-            ln -sf "$s" "$target_home/bin/$(basename "$s")"
+            ln -sf "$s" "$target_home/bin/$(basename "$s")" || true
             if [ ! -L "$s" ]; then
                 chmod +x "$s" 2>/dev/null || true
             fi
         fi
     done
 
-    if [ "$PM" = "apt" ]; then
-        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$target_home/bin/bat"
-        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$target_home/bin/fd"
-    fi
-
+    # local_configs のデプロイを慎重に実行
     deploy_local_configs "$target_home"
 }
 
@@ -147,6 +142,11 @@ setup_root_loader() {
 
 deploy_local_configs() {
     local t="$1"
-    [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$t/.env" ] && cp "$DOTPATH/templates/.env.example" "$t/.env"
-    [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$t/.gitconfig.local" ] && cp "$DOTPATH/templates/.gitconfig.local.example" "$t/.gitconfig.local"
+    # templates/ ディレクトリが存在するか、ファイルがあるか、一つずつ || true で守る
+    if [ -d "$DOTPATH/templates" ]; then
+        [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$t/.env" ] && cp "$DOTPATH/templates/.env.example" "$t/.env" || true
+        [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$t/.gitconfig.local" ] && cp "$DOTPATH/templates/.gitconfig.local.example" "$t/.gitconfig.local" || true
+    fi
+    # 最後に必ず 0 を返して関数を正常終了させる
+    return 0
 }

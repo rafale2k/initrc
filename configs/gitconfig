@@ -45,6 +45,4 @@
 	email = rafale2k@example.com
 	name = rafale2k
 [safe]
-	directory = /home/rafale/dotfiles
-	directory = /home/rafale/dotfiles
-	directory = /home/rafale/dotfiles
+	directory = *

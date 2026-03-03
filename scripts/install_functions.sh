@@ -186,24 +186,20 @@ deploy_local_configs() {
 }
 
 setup_root_loader() {
-    if [ "$OS" != "mac" ]; then
-        echo "🎨 Configuring loader and PATH for root user..."
+for rc in "bash/.bashrc" "zsh/.zshrc"; do
+        local target
+        target=$(basename "$rc")
         
-        # 共通の読み込み行とPATH設定を定義
-        local LOADER_CMD="source '${DOTPATH}/common/loader.sh'"
-        local PATH_CMD="export PATH=\"\$HOME/bin:\$PATH\""
-
-        # .bashrc と .zshrc 両方に対して処理を行う
-        for rcfile in "/root/.bashrc" "/root/.zshrc"; do
-            ${SUDO_CMD} bash -c "
-                if [ -f $rcfile ]; then
-                    # loader.sh の読み込み設定
-                    grep -q 'loader.sh' $rcfile || echo '$LOADER_CMD' >> $rcfile
-                    # PATHの設定（~/bin を優先）
-                    grep -q 'export PATH=' $rcfile || echo '$PATH_CMD' >> $rcfile
-                    echo '✅ Updated $rcfile'
-                fi
-            "
-        done
-    fi
+        # 1回目：ファイルがない場合は、テンプレートから作成（置換込み）
+        if [ ! -f "$TARGET_HOME/$target" ]; then
+            echo "🔧 Creating $target from template..."
+            sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$TARGET_HOME/$target"
+        else
+            # 2回目以降：すでにある場合は、もし __DOTPATH__ が残ってれば置換する（基本は何もしない）
+            echo "✨ $target already exists, checking for path updates..."
+            # 一時ファイルを使って安全に置換
+            sed "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/$target" > "$TARGET_HOME/${target}.tmp"
+            mv "$TARGET_HOME/${target}.tmp" "$TARGET_HOME/$target"
+        fi
+    done
 }

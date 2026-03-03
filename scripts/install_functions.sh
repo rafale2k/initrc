@@ -88,84 +88,62 @@ EOF
 deploy_configs() {
     local TARGET_HOME
     TARGET_HOME="${1:-$HOME}"
-    # 防衛策：TARGET_HOMEが空、または / だったら $HOME に強制リセット（MacのRead-only対策）
     [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && TARGET_HOME="$HOME"
     
     echo "🖇️  Deploying configuration files to: $TARGET_HOME"
-    echo "Using DOTPATH: $DOTPATH"
     
-    # --- .bashrc / .zshrc に DOTPATH を注入してデプロイ ---
     for rc in "bash/.bashrc" "zsh/.zshrc"; do
         local target
         target=$(basename "$rc")
         
-        if [ ! -f "$TARGET_HOME/$target" ]; then
-            echo "🔧 Creating $target from template..."
+        # 冪等性と完全性の両立：
+        # ファイルがない、もしくはファイルはあるが俺らの loader.sh の記述がない場合は
+        # テンプレートから作り直す（これで Oh My Zsh のデフォルトファイルを上書きできる）
+        if [ ! -f "$TARGET_HOME/$target" ] || ! grep -q "common/loader.sh" "$TARGET_HOME/$target"; then
+            echo "🔧 Creating/Restoring $target from template..."
             sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$TARGET_HOME/$target"
         else
-            echo "✨ $target already exists, updating path if necessary..."
-            # 既存のファイルを上書き（リダイレクト）せず、sed -i で中身だけ置換する
-            # ※MacとLinuxの両方で動くように一時ファイル方式を採用
+            echo "✨ $target already exists and is healthy, updating path if necessary..."
             sed "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/$target" > "$TARGET_HOME/${target}.tmp"
             mv "$TARGET_HOME/${target}.tmp" "$TARGET_HOME/$target"
         fi
-
-        # 書き込み後のチェック
-        if grep -q "__DOTPATH__" "$TARGET_HOME/$target"; then
-            echo "❌ Error: Replacement failed in $target"
-        fi
     done
 
-    # --- 1. 標準的なシンボリックリンクの作成 ---
-    # ※ .bashrc / .zshrc は上で実体を作成済みなので、ここには含めない！
+    # --- シンボリックリンク ---
     ln -sf "$DOTPATH/configs/vimrc" "$TARGET_HOME/.vimrc"
     ln -sf "$DOTPATH/configs/gitconfig" "$TARGET_HOME/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$TARGET_HOME/.inputrc"
     ln -sf "$DOTPATH/configs/gitignore_global" "$TARGET_HOME/.gitignore_global"
     
-    # --- 2. パス置換が必要な設定 (nanorc) のデプロイ ---
     if [ -f "$DOTPATH/configs/nanorc" ]; then
-        if [ ! -f "$TARGET_HOME/.nanorc" ]; then
-            echo "🔧 Injecting path into nanorc..."
-            sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
-        else
-            sed "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/.nanorc" > "$TARGET_HOME/.nanorc.tmp"
-            mv "$TARGET_HOME/.nanorc.tmp" "$TARGET_HOME/.nanorc"
-        fi
+        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
     fi
 
-    # --- 3. Oh-My-Zsh カスタム設定のリンク ---
-    echo "🔗 Linking zsh plugins/themes from submodules..."
+    # --- Oh-My-Zsh カスタム ---
     local zsh_custom="$TARGET_HOME/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
-    
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
-        # -n を付けてディレクトリの二重リンクを防止（冪等性対策）
         [ -d "$plugin_path" ] && ln -sfn "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
 
-    # --- 4. 自作バイナリ (bin/) のデプロイ ---
+    # --- Bin リンク (ShellCheck SC2015 修正) ---
     mkdir -p "$TARGET_HOME/bin"
-    echo "🚀 Linking scripts to $TARGET_HOME/bin..."
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
             ln -sf "$script" "$TARGET_HOME/bin/$(basename "$script")"
-            # シンボリックリンク自体の権限ではなく、実体に権限を付与
-            [ ! -L "$script" ] && chmod +x "$script" 2>/dev/null || true
+            if [ ! -L "$script" ]; then
+                chmod +x "$script" 2>/dev/null || true
+            fi
         fi
     done
 
-    # --- 5. OS固有のエイリアス作成 (bat, fd) ---
     if [ "$PM" = "apt" ]; then
         [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$TARGET_HOME/bin/bat"
         [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$TARGET_HOME/bin/fd"
     fi
 
-    # v1.15.3: ローカル設定の初期化を実行
     deploy_local_configs "$TARGET_HOME"
-
-    echo "✅ Configuration deployment completed for $TARGET_HOME"
 }
 
 deploy_local_configs() {
@@ -194,6 +172,11 @@ deploy_local_configs() {
 }
 
 setup_root_loader() {
+    # Mac や CI で TARGET_HOME が変にならないようガード
+    local TARGET_HOME
+    TARGET_HOME="${1:-$HOME}"
+    [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && return 0
+
 for rc in "bash/.bashrc" "zsh/.zshrc"; do
         local target
         target=$(basename "$rc")

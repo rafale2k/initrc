@@ -60,10 +60,10 @@ alias mv='mv -i'
 # 1. eza (ls replacement)
 if [ -x "$HOME/bin/eza" ]; then
     unalias ls ll la lt 2>/dev/null
-    alias ls="$HOME/bin/eza --icons --group-directories-first"
-    alias ll="$HOME/bin/eza -alF --icons --git"
-    alias la="$HOME/bin/eza -a --icons --group-directories-first"
-    alias lt="$HOME/bin/eza --tree -a --icons --git --ignore-glob='.git'"
+    alias ls='$HOME/bin/eza --icons --group-directories-first'
+    alias ll='$HOME/bin/eza -alF --icons --git'
+    alias la='$HOME/bin/eza -a --icons --group-directories-first'
+    alias lt='$HOME/bin/eza --tree -a --icons --git --ignore-glob=".git"'
 else
     alias ls='ls --color=auto'
 fi
@@ -71,8 +71,8 @@ fi
 # 2. bat (cat replacement)
 if [ -x "$HOME/bin/bat" ]; then
     unalias cat 2>/dev/null
-    alias cat="$HOME/bin/bat --paging=never --theme='Monokai Extended'"
-    alias bat="$HOME/bin/bat"
+    alias cat='$HOME/bin/bat --paging=never --theme="Monokai Extended"'
+    alias bat='$HOME/bin/bat'
 elif command -v batcat &> /dev/null; then
     unalias cat 2>/dev/null
     alias cat='batcat --paging=never'

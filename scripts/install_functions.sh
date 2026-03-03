@@ -60,7 +60,8 @@ deploy_configs() {
     safe_replace() {
         local src="$1"
         local dst="$2"
-        [ ! -f "$src" ] && return 0
+        if [ ! -f "$src" ]; then return 0; fi
+        # 置換するだけ。行を消したりしない。
         DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
     }
 
@@ -73,6 +74,7 @@ deploy_configs() {
         safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
     fi
 
+    # リンク系
     ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
     ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
@@ -124,19 +126,16 @@ setup_root_loader() {
     local t="${1:-$HOME}"
     [ -z "$t" ] || [ "$t" = "/" ] && return 0
     local loader_line="source '$DOTPATH/common/loader.sh'"
+    
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            # SC2155 対策: 宣言と代入を分ける
-            local tmp_f
-            tmp_f="/tmp/clean_rc_$(basename "$f")"
-            
-            # 【重要】loader を消す代わりに、空の if 対策で `:` に置き換える
-            # これで Count 1 を維持しつつ、構文エラーを回避する
-            sed "s|.*common/loader.sh.*|:|g" "$f" > "$tmp_f" || true
-            
-            # 最後に必ず一行だけ loader を追加（重複を許さない）
-            echo "$loader_line" >> "$tmp_f"
-            mv "$tmp_f" "$f"
+            # 【究極の対策】
+            # 1. テンプレート由来の loader 記述はそのまま残す（構文を壊さないため）
+            # 2. ただし、ファイル内に $loader_line が存在するかチェックする
+            # 3. なければ末尾に追加する
+            if ! grep -Fxq "$loader_line" "$f"; then
+                echo "$loader_line" >> "$f"
+            fi
         fi
     done
 }

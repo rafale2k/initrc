@@ -45,18 +45,26 @@ jobs:
         run: |
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
             export DEBIAN_FRONTEND=noninteractive
-            apt-get install -y sudo curl locales
+            apt-get install -y sudo curl locales zsh
             locale-gen en_US.UTF-8
           else
-            dnf install -y --allowerasing sudo curl langpacks-en
+            dnf install -y --allowerasing sudo curl langpacks-en zsh
           fi
 
-      - name: 🛠️ Execute initrc Installer
+      - name: 🛠️ Execute initrc Installer (1st Run)
         env:
           CI: true
           DEBIAN_FRONTEND: noninteractive
         run: |
           chmod +x install.sh
+          ./install.sh
+
+      - name: 🛠️ Execute initrc Installer (2nd Run - Idempotency Check)
+        env:
+          CI: true
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          # 2回目を実行。既存設定があっても正常に上書き/スキップされるか検証
           ./install.sh
 
       - name: 🔍 Verify Global Command Links (~/bin)
@@ -68,21 +76,31 @@ jobs:
           (fd --version || fdfind --version)
           
           echo "--- Checking AI Wrappers ---"
-          if [ -x "$HOME/bin/ginv" ]; then
-              echo "✅ ginv created and executable"
-          else
-              echo "❌ ginv missing"
-              exit 1
-          fi
+          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv created and executable" || exit 1
+          command -v llm >/dev/null 2>&1 && echo "✅ llm is in PATH" || exit 1
 
-          if command -v llm >/dev/null 2>&1; then
-              echo "✅ llm is in PATH"
-          else
-              echo "❌ llm not found"
-              exit 1
-          fi
-
-      - name: 🛡️ Verify Shell Configs & Syntax
+      - name: 🧪 Idempotency & Integrity Verification
         run: |
-          [ -f "$HOME/.zshrc" ] && echo "✅ .zshrc exists"
-          zsh -n "$HOME/.zshrc" && echo "✅ .zshrc syntax is okay"
+          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          
+          echo "--- Verifying .zshrc Integrity ---"
+          # loader.sh の読み込みが二重になっていないか確認
+          LOADER_COUNT=$(grep -c "common/loader.sh" "$HOME/.zshrc")
+          if [ "$LOADER_COUNT" -gt 1 ]; then
+            echo "❌ Duplicate loader detected in .zshrc (Count: $LOADER_COUNT)"
+            exit 1
+          fi
+          [ "$LOADER_COUNT" -eq 1 ] && echo "✅ Loader unique"
+          
+          echo "--- Checking Template String Replacement ---"
+          # __DOTPATH__ が残っていないか全主要ファイルを確認
+          # grep が見つけてしまうと exit 1 になるので、反転させるかifで制御
+          if grep -r "__DOTPATH__" "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.nanorc" 2>/dev/null; then
+            echo "❌ Template string __DOTPATH__ still exists!"
+            exit 1
+          fi
+          echo "✅ No template strings found"
+
+          echo "--- Verifying Shell Syntax ---"
+          zsh -n "$HOME/.zshrc" && echo "✅ .zshrc syntax okay"
+          bash -n "$HOME/.bashrc" && echo "✅ .bashrc syntax okay"

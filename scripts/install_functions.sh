@@ -86,40 +86,32 @@ EOF
 }
 
 deploy_configs() {
-    local TARGET_HOME
-    TARGET_HOME="${1:-$HOME}"
+    local TARGET_HOME="${1:-$HOME}"
     [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && TARGET_HOME="$HOME"
     
     echo "🖇️  Deploying configuration files to: $TARGET_HOME"
     
     for rc in "bash/.bashrc" "zsh/.zshrc"; do
-        local target
-        target=$(basename "$rc")
+        local target=$(basename "$rc")
         
-        # 冪等性と完全性の両立：
-        # ファイルがない、もしくはファイルはあるが俺らの loader.sh の記述がない場合は
-        # テンプレートから作り直す（これで Oh My Zsh のデフォルトファイルを上書きできる）
+        # テンプレートをコピー（loader.shの追記はこの後の関数に任せるため、ここでは純粋にパス置換のみ）
         if [ ! -f "$TARGET_HOME/$target" ] || ! grep -q "common/loader.sh" "$TARGET_HOME/$target"; then
-            echo "🔧 Creating/Restoring $target from template..."
             sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$TARGET_HOME/$target"
         else
-            echo "✨ $target already exists and is healthy, updating path if necessary..."
             sed "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/$target" > "$TARGET_HOME/${target}.tmp"
             mv "$TARGET_HOME/${target}.tmp" "$TARGET_HOME/$target"
         fi
     done
 
-    # --- シンボリックリンク ---
+    # --- シンボリックリンク群 ---
     ln -sf "$DOTPATH/configs/vimrc" "$TARGET_HOME/.vimrc"
     ln -sf "$DOTPATH/configs/gitconfig" "$TARGET_HOME/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$TARGET_HOME/.inputrc"
     ln -sf "$DOTPATH/configs/gitignore_global" "$TARGET_HOME/.gitignore_global"
     
-    if [ -f "$DOTPATH/configs/nanorc" ]; then
-        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
-    fi
+    [ -f "$DOTPATH/configs/nanorc" ] && sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
 
-    # --- Oh-My-Zsh カスタム ---
+    # --- Oh-My-Zsh カスタム (冪等性重視) ---
     local zsh_custom="$TARGET_HOME/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
@@ -127,21 +119,17 @@ deploy_configs() {
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
 
-    # --- Bin リンク (ShellCheck SC2015 修正) ---
+    # --- Bin リンク ---
     mkdir -p "$TARGET_HOME/bin"
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
             ln -sf "$script" "$TARGET_HOME/bin/$(basename "$script")"
-            if [ ! -L "$script" ]; then
-                chmod +x "$script" 2>/dev/null || true
-            fi
+            [ ! -L "$script" ] && chmod +x "$script" 2>/dev/null || true
         fi
     done
 
-    if [ "$PM" = "apt" ]; then
-        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$TARGET_HOME/bin/bat"
-        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$TARGET_HOME/bin/fd"
-    fi
+    [ "$PM" = "apt" ] && [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$TARGET_HOME/bin/bat"
+    [ "$PM" = "apt" ] && [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$TARGET_HOME/bin/fd"
 
     deploy_local_configs "$TARGET_HOME"
 }
@@ -172,25 +160,15 @@ deploy_local_configs() {
 }
 
 setup_root_loader() {
-    # Mac や CI で TARGET_HOME が変にならないようガード
     local TARGET_HOME
     TARGET_HOME="${1:-$HOME}"
-    [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && return 0
-
-for rc in "bash/.bashrc" "zsh/.zshrc"; do
-        local target
-        target=$(basename "$rc")
-        
-        # 1回目：ファイルがない場合は、テンプレートから作成（置換込み）
-        if [ ! -f "$TARGET_HOME/$target" ]; then
-            echo "🔧 Creating $target from template..."
-            sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$TARGET_HOME/$target"
-        else
-            # 2回目以降：すでにある場合は、もし __DOTPATH__ が残ってれば置換する（基本は何もしない）
-            echo "✨ $target already exists, checking for path updates..."
-            # 一時ファイルを使って安全に置換
-            sed "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/$target" > "$TARGET_HOME/${target}.tmp"
-            mv "$TARGET_HOME/${target}.tmp" "$TARGET_HOME/$target"
+    # root以外でも呼び出されるため、対象ファイルの有無をまず確認
+    for rcfile in "$TARGET_HOME/.zshrc" "$TARGET_HOME/.bashrc"; do
+        if [ -f "$rcfile" ]; then
+            # ここが肝：すでに loader.sh があれば絶対に追記しない
+            if ! grep -q "common/loader.sh" "$rcfile"; then
+                echo "source '$DOTPATH/common/loader.sh'" >> "$rcfile"
+            fi
         fi
     done
 }

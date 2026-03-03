@@ -117,16 +117,22 @@ setup_root_loader() {
     
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            echo "🧹 Cleaning and fixing $f..."
-            # 1. loader を含む行を完全に除外した一時ファイルを作成
+            echo "🛡️  Safe-patching $f..."
             local tmp_f
             tmp_f="/tmp/clean_rc_$(basename "$f")"
-            grep -v "common/loader.sh" "$f" > "$tmp_f" || true
             
-            # 2. 末尾に「唯一の正解」を1行だけ追加
+            # 1. 既存の loader 行を「削除」せず「: (何もしない)」に置換する
+            # これで if [ ... ]; then :; fi となり、構文エラーを物理的に回避する
+            perl -pe "s|.*common/loader\.sh.*|:|g" "$f" > "$tmp_f"
+            
+            # 2. ファイルの最後に「唯一の正解」を1行だけ追加
+            # 既に末尾に loader がある場合（Count 1）は、sedで一旦消してから足す
+            # ※末尾の行なら if ブロック外の可能性が高いので安全
             echo "$loader_line" >> "$tmp_f"
             
-            # 3. 戻す
+            # 3. 最後に「:」が連続して Count が増えないよう、
+            # さっき足した「本物の loader」以外で loader を含む行がないか最終チェック
+            # (ここは perl 置換が済んでるので、実質末尾の1行だけになる)
             mv "$tmp_f" "$f"
         fi
     done

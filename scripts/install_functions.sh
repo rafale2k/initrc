@@ -7,27 +7,30 @@ setup_os_repos() {
     if [ "$PM" = "apt" ]; then
         echo "⚙️  Configuring repositories for apt..."
         sudo apt-get update -qq
-        sudo apt-get install -y -qq wget gnupg curl ca-certificates
+        # lsb-release を先に入れるか、/etc/os-release から直接取得する
+        sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release
         
-        # eza (modern ls) repository
+        local codename
+        codename=$(lsb_release -cs)
+        
+        # eza repository
         sudo mkdir -p /etc/apt/keyrings
-        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg
+        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg 2>/dev/null
         echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
         
-        # Docker repository
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list
+        # Docker repository (codenameを確実に使う)
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $codename stable" | sudo tee /etc/apt/sources.list.d/docker.list
         
         sudo apt-get update -qq
         
     elif [ "$PM" = "dnf" ]; then
         echo "⚙️  Configuring repositories for dnf..."
-        # ⚡️ 爆速化のキモ: 並列ダウンロードを有効化
         if ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf; then
             echo "max_parallel_downloads=10" | sudo tee -a /etc/dnf/dnf.conf
         fi
         
-        sudo dnf install -y -q epel-release
+        sudo dnf install -y -q epel-release dnf-plugins-core
         sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
         sudo dnf makecache -q
     fi
@@ -37,23 +40,19 @@ setup_os_repos() {
 install_all_packages() {
     echo "🛠️  Installing all tools and packages in bulk..."
     
-    # OS間で共通のパッケージリスト
-    local pkgs=(
-        tree git curl vim nano fzf zsh zoxide jq wget 
-        pipx git-extras bat glow fd-find
-    )
+    # 共通パッケージ
+    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras bat)
 
     if [ "$OS" = "mac" ]; then
-        # Mac (Homebrew)
-        brew install "${pkgs[@]}" eza docker docker-compose
+        # Mac用：fd-findではなくfd
+        brew install "${common_pkgs[@]}" fd eza docker docker-compose
     elif [ "$PM" = "apt" ]; then
-        # Ubuntu/Debian
-        # eza は別途追加
-        sudo apt-get install -y -qq "${pkgs[@]}" eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        # Ubuntu用：fd-find, eza, docker
+        sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
     elif [ "$PM" = "dnf" ]; then
-        # AlmaLinux / RHEL
-        # Docker関連も含めて一括投入
-        sudo dnf install -y -q "${pkgs[@]}" docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        # Alma用：glowを一旦除外、fd-findはOK
+        # Almaでは bat や fd-find が EPEL にあることを前提とする
+        sudo dnf install -y -q "${common_pkgs[@]}" fd-find docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
         sudo systemctl enable --now docker 2>/dev/null || true
     fi
 }

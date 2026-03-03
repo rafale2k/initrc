@@ -2,9 +2,9 @@
 
 # --- OS・パッケージマネージャーの判定 ---
 setup_os_repos() {
-    local DOTPATH_TMP
-    DOTPATH_TMP=$(cd "$(dirname "$0")/.." && pwd)
-    [ -z "$DOTPATH" ] && DOTPATH="$DOTPATH_TMP"
+    local dotpath_tmp
+    dotpath_tmp=$(cd "$(dirname "$0")/.." && pwd)
+    [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
     
     echo "🌍 Detected OS: $OS (using $PM)"
     
@@ -27,8 +27,10 @@ setup_os_repos() {
         
     elif [ "$PM" = "dnf" ]; then
         echo "⚙️  Configuring repositories for dnf..."
-        if [ -f /etc/dnf/dnf.conf ] && ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf; then
-            echo "max_parallel_downloads=10" | sudo tee -a /etc/dnf/dnf.conf
+        if [ -f /etc/dnf/dnf.conf ]; then
+            if ! grep -q "max_parallel_downloads" /etc/dnf/dnf.conf; then
+                echo "max_parallel_downloads=10" | sudo tee -a /etc/dnf/dnf.conf
+            fi
         fi
         
         sudo dnf install -y -q epel-release dnf-plugins-core
@@ -63,14 +65,14 @@ setup_oh_my_zsh() {
 
 # --- 設定ファイルのデプロイ ---
 deploy_configs() {
-    local TARGET_HOME="${1:-$HOME}"
-    [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && TARGET_HOME="$HOME"
+    local target_home="${1:-$HOME}"
+    [ -z "$target_home" ] || [ "$target_home" = "/" ] && target_home="$HOME"
     
-    local DOTPATH_TMP
-    DOTPATH_TMP=$(cd "$(dirname "$0")/.." && pwd)
-    [ -z "$DOTPATH" ] && DOTPATH="$DOTPATH_TMP"
+    local dotpath_tmp
+    dotpath_tmp=$(cd "$(dirname "$0")/.." && pwd)
+    [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
 
-    echo "🖇️  Deploying configuration files to: $TARGET_HOME"
+    echo "🖇️  Deploying configuration files to: $target_home"
     echo "Using DOTPATH: $DOTPATH"
     
     local rc
@@ -78,37 +80,42 @@ deploy_configs() {
         local target
         target=$(basename "$rc")
         
-        # ファイルの存在を厳密にチェック
         if [ ! -f "$DOTPATH/$rc" ]; then
             echo "⚠️  Skip: $DOTPATH/$rc not found."
             continue
         fi
 
         local tmp_rc="/tmp/initrc_$target"
+        # sed -i は使わず、常にリダイレクトで一時ファイルを作る（OS互換性100%）
         sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$tmp_rc"
 
-        if [ ! -f "$TARGET_HOME/$target" ] || ! grep -q "common/loader.sh" "$TARGET_HOME/$target"; then
+        if [ ! -f "$target_home/$target" ] || ! grep -q "common/loader.sh" "$target_home/$target"; then
             echo "🔧 Creating/Restoring $target from template..."
-            cp "$tmp_rc" "$TARGET_HOME/$target"
+            cp "$tmp_rc" "$target_home/$target"
         else
             echo "✨ $target already exists, updating path..."
-            sed -i.bak "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/$target" && rm -f "$TARGET_HOME/$target.bak"
+            # 既存ファイルのパス更新も一時ファイル経由で行う
+            local update_tmp="/tmp/update_$target"
+            sed "s|__DOTPATH__|$DOTPATH|g" "$target_home/$target" > "$update_tmp"
+            mv "$update_tmp" "$target_home/$target"
         fi
         rm -f "$tmp_rc"
     done
 
-    # シンボリックリンク (SC2015 対策)
-    ln -sf "$DOTPATH/configs/vimrc" "$TARGET_HOME/.vimrc"
-    ln -sf "$DOTPATH/configs/gitconfig" "$TARGET_HOME/.gitconfig"
-    ln -sf "$DOTPATH/configs/inputrc" "$TARGET_HOME/.inputrc"
-    ln -sf "$DOTPATH/configs/gitignore_global" "$TARGET_HOME/.gitignore_global"
+    # シンボリックリンク (SC2015 対策で if 文に統一)
+    ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
+    ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
+    ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
+    ln -sf "$DOTPATH/configs/gitignore_global" "$target_home/.gitignore_global"
     
     if [ -f "$DOTPATH/configs/nanorc" ]; then
-        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
+        local nano_tmp="/tmp/nanorc_tmp"
+        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$nano_tmp"
+        mv "$nano_tmp" "$target_home/.nanorc"
     fi
 
-    # Zsh Custom リンク
-    local zsh_custom="$TARGET_HOME/.oh-my-zsh/custom"
+    # Zsh Custom
+    local zsh_custom="$target_home/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
     local plugin_path
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
@@ -118,12 +125,12 @@ deploy_configs() {
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
 
-    # Bin リンク
-    mkdir -p "$TARGET_HOME/bin"
+    # Bin
+    mkdir -p "$target_home/bin"
     local script
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
-            ln -sf "$script" "$TARGET_HOME/bin/$(basename "$script")"
+            ln -sf "$script" "$target_home/bin/$(basename "$script")"
             if [ ! -L "$script" ]; then
                 chmod +x "$script" 2>/dev/null || true
             fi
@@ -131,14 +138,14 @@ deploy_configs() {
     done
 
     if [ "$PM" = "apt" ]; then
-        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$TARGET_HOME/bin/bat"
-        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$TARGET_HOME/bin/fd"
+        [ -f "/usr/bin/batcat" ] && ln -sf /usr/bin/batcat "$target_home/bin/bat"
+        [ -f "/usr/bin/fdfind" ] && ln -sf /usr/bin/fdfind "$target_home/bin/fd"
     fi
 
-    deploy_local_configs "$TARGET_HOME"
+    deploy_local_configs "$target_home"
 }
 
-# --- AIツールセットアップ ---
+# (AIツールセットアップ、Loader注入などは変更なしだが、SC2155対策で local を分離)
 setup_ai_tools() {
     echo "🤖 Setting up AI tools (llm & ginv)..."
     export PATH="$HOME/.local/bin:$PATH"
@@ -148,7 +155,8 @@ setup_ai_tools() {
         pipx inject llm llm-gemini
     fi
     
-    local ginv_path="$DOTPATH/bin/ginv"
+    local ginv_path
+    ginv_path="$DOTPATH/bin/ginv"
     cat << 'EOF' > "$ginv_path"
 #!/bin/bash
 if [ -z "$1" ]; then
@@ -160,13 +168,12 @@ EOF
     chmod +x "$ginv_path"
 }
 
-# --- Loaderの注入 ---
 setup_root_loader() {
-    local TARGET_HOME="${1:-$HOME}"
-    [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && return 0
+    local target_home="${1:-$HOME}"
+    [ -z "$target_home" ] || [ "$target_home" = "/" ] && return 0
 
     local rcfile
-    for rcfile in "$TARGET_HOME/.zshrc" "$TARGET_HOME/.bashrc"; do
+    for rcfile in "$target_home/.zshrc" "$target_home/.bashrc"; do
         if [ -f "$rcfile" ]; then
             if ! grep -Fq "common/loader.sh" "$rcfile"; then
                 echo "source '$DOTPATH/common/loader.sh'" >> "$rcfile"
@@ -176,7 +183,7 @@ setup_root_loader() {
 }
 
 deploy_local_configs() {
-    local TARGET_HOME="$1"
-    [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$TARGET_HOME/.env" ] && cp "$DOTPATH/templates/.env.example" "$TARGET_HOME/.env"
-    [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$TARGET_HOME/.gitconfig.local" ] && cp "$DOTPATH/templates/.gitconfig.local.example" "$TARGET_HOME/.gitconfig.local"
+    local target_home="$1"
+    [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$target_home/.env" ] && cp "$DOTPATH/templates/.env.example" "$target_home/.env"
+    [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$target_home/.gitconfig.local" ] && cp "$DOTPATH/templates/.gitconfig.local.example" "$target_home/.gitconfig.local"
 }

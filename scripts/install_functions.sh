@@ -7,6 +7,7 @@ setup_os_repos() {
     [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
     
     if [ "$PM" = "apt" ]; then
+        echo "⚙️  Configuring repositories for apt..."
         sudo apt-get update -qq --allow-releaseinfo-change || true
         sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
         local codename
@@ -41,6 +42,23 @@ setup_oh_my_zsh() {
     fi
 }
 
+# --- 🛠️ 復活！AIツール設定 ---
+setup_ai_tools() {
+    export PATH="$HOME/.local/bin:$PATH"
+    if ! command -v llm >/dev/null 2>&1; then
+        pipx install llm || true
+        pipx inject llm llm-gemini || true
+    fi
+    local ginv_path
+    ginv_path="$DOTPATH/bin/ginv"
+    cat << 'EOF' > "$ginv_path"
+#!/bin/bash
+if [ -z "$1" ]; then exit 1; fi
+llm -m gemini-2.0-flash "$1"
+EOF
+    chmod +x "$ginv_path"
+}
+
 deploy_configs() {
     local target_home="${1:-$HOME}"
     [ -z "$target_home" ] || [ "$target_home" = "/" ] && target_home="$HOME"
@@ -54,15 +72,13 @@ deploy_configs() {
     safe_replace() {
         local src="$1"
         local dst="$2"
-        [ ! -f "$src" ] && return 0
+        if [ ! -f "$src" ]; then return 0; fi
         DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
     }
 
-    # 1. まず設定ファイルをデプロイ（上書き）
     [ -f "$DOTPATH/bash/.bashrc" ] && safe_replace "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
     [ -f "$DOTPATH/zsh/.zshrc" ] && safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
 
-    # 2. シンボリックリンク
     ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
     ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
@@ -72,15 +88,23 @@ deploy_configs() {
         safe_replace "$DOTPATH/configs/nanorc" "$target_home/.nanorc"
     fi
 
-    # Zsh Custom & Bin
-    local zsh_custom="$target_home/.oh-my-zsh/custom"
+    local zsh_custom
+    zsh_custom="$target_home/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes" "$target_home/bin"
+    
     for d in "$DOTPATH/zsh/plugins"/*; do
         [ -d "$d" ] && ln -sfn "$d" "$zsh_custom/plugins/$(basename "$d")"
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
+    
+    # SC2015 対策: if 文で安全にループ
     for s in "$DOTPATH/bin"/*; do
-        [ -f "$s" ] && ln -sf "$s" "$target_home/bin/$(basename "$s")" && chmod +x "$s" 2>/dev/null || true
+        if [ -f "$s" ]; then
+            ln -sf "$s" "$target_home/bin/$(basename "$s")"
+            if [ ! -L "$s" ]; then
+                chmod +x "$s" 2>/dev/null || true
+            fi
+        fi
     done
 
     deploy_local_configs "$target_home"
@@ -90,18 +114,17 @@ setup_root_loader() {
     local t="${1:-$HOME}"
     [ -z "$t" ] || [ "$t" = "/" ] && return 0
     
-    # 絶対に他と被らないユニークなマーカー
     local marker="# INITRC_LOADER_MARKER"
-    local loader_line="source '$DOTPATH/common/loader.sh'  $marker"
+    local loader_line
+    loader_line="source '$DOTPATH/common/loader.sh'  $marker"
     
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            # 一旦、古い loader や重複行を Perl で根こそぎ消す（構文を壊さないよう空行にする）
             local tmp_f
             tmp_f="/tmp/clean_rc_$(basename "$f")"
+            # 既存の loader 行を無害化しつつ、重複を削ぎ落とす
             perl -pe "s/.*common\/loader\.sh.*/:/g" "$f" > "$tmp_f"
             
-            # マーカーチェックをして、なければ末尾に足す
             if ! grep -q "$marker" "$tmp_f"; then
                 echo -e "\n$loader_line" >> "$tmp_f"
             fi
@@ -113,8 +136,12 @@ setup_root_loader() {
 deploy_local_configs() {
     local t="$1"
     if [ -d "$DOTPATH/templates" ]; then
-        [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$t/.env" ] && cp "$DOTPATH/templates/.env.example" "$t/.env"
-        [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$t/.gitconfig.local" ] && cp "$DOTPATH/templates/.gitconfig.local.example" "$t/.gitconfig.local"
+        if [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$t/.env" ]; then
+            cp "$DOTPATH/templates/.env.example" "$t/.env"
+        fi
+        if [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$t/.gitconfig.local" ]; then
+            cp "$DOTPATH/templates/.gitconfig.local.example" "$t/.gitconfig.local"
+        fi
     fi
     return 0
 }

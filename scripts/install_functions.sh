@@ -47,7 +47,7 @@ setup_oh_my_zsh() {
     fi
 }
 
-# --- 🔥 最強のデプロイ関数 ---
+# --- 🚀 修正の核心：deploy_configs ---
 deploy_configs() {
     local target_home="${1:-$HOME}"
     [ -z "$target_home" ] || [ "$target_home" = "/" ] && target_home="$HOME"
@@ -58,31 +58,29 @@ deploy_configs() {
 
     echo "🖇️  Deploying configuration files to: $target_home"
     
-    # 置換処理の共通関数 (sedを安全に使う)
-    replace_dotpath() {
+    # 【最重要】置換に perl を使う。環境変数経由で渡すのでデリミタ問題が物理的に発生しない。
+    safe_replace() {
         local src="$1"
         local dst="$2"
-        # デリミタを絶対に使われない制御文字 (\001) に変えて、一度変数に入れてから出力
-        local content
-        content=$(sed "s#\__DOTPATH__#$DOTPATH#g" "$src")
-        printf "%s\n" "$content" > "$dst"
+        # 環境変数 DP に DOTPATH を入れて perl で置換。これが世界で一番安全。
+        DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
     }
 
-    # .bashrc 処理
+    # .bashrc
     if [ -f "$DOTPATH/bash/.bashrc" ]; then
         echo "🔧 Overwriting .bashrc..."
         rm -f "$target_home/.bashrc"
-        replace_dotpath "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
+        safe_replace "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
     fi
 
-    # .zshrc 処理
+    # .zshrc
     if [ -f "$DOTPATH/zsh/.zshrc" ]; then
         echo "🔧 Overwriting .zshrc..."
         rm -f "$target_home/.zshrc"
-        replace_dotpath "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
+        safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
     fi
 
-    # シンボリックリンク (if文で安全に)
+    # リンク系は一気に
     ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
     ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
@@ -90,7 +88,7 @@ deploy_configs() {
     
     if [ -f "$DOTPATH/configs/nanorc" ]; then
         rm -f "$target_home/.nanorc"
-        replace_dotpath "$DOTPATH/configs/nanorc" "$target_home/.nanorc"
+        safe_replace "$DOTPATH/configs/nanorc" "$target_home/.nanorc"
     fi
 
     # Zsh Custom
@@ -129,7 +127,6 @@ setup_ai_tools() {
         pipx inject llm llm-gemini
     fi
     local ginv_path="$DOTPATH/bin/ginv"
-    # ここも__DOTPATH__を使わずに、実行時に決定する
     cat << 'EOF' > "$ginv_path"
 #!/bin/bash
 if [ -z "$1" ]; then exit 1; fi

@@ -92,14 +92,23 @@ deploy_configs() {
     echo "🖇️  Deploying configuration files to: $TARGET_HOME"
     
     for rc in "bash/.bashrc" "zsh/.zshrc"; do
-        local target=$(basename "$rc")
+        local target
+        target=$(basename "$rc")
         
-        # テンプレートをコピー（loader.shの追記はこの後の関数に任せるため、ここでは純粋にパス置換のみ）
-        if [ ! -f "$TARGET_HOME/$target" ] || ! grep -q "common/loader.sh" "$TARGET_HOME/$target"; then
-            sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$TARGET_HOME/$target"
+        # 冪等性の強化：まず、テンプレートからパス置換した一時ファイルを作る
+        local tmp_rc="/tmp/initrc_$(basename "$rc")"
+        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$tmp_rc"
+
+        if [ ! -f "$TARGET_HOME/$target" ]; then
+            echo "🔧 Creating $target from template..."
+            mv "$tmp_rc" "$TARGET_HOME/$target"
         else
-            sed "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/$target" > "$TARGET_HOME/${target}.tmp"
-            mv "$TARGET_HOME/${target}.tmp" "$TARGET_HOME/$target"
+            echo "✨ $target already exists, updating path while preserving custom settings..."
+            # ここが重要：既存ファイルの __DOTPATH__ 関連の行だけ更新し、他は維持
+            # 既存ファイルに loader.sh があれば、テンプレート側の loader 記述と重複しないよう配慮が必要
+            # 今回はシンプルに、既存ファイルがあるなら __DOTPATH__ の置換のみ行う
+            sed -i.bak "s|__DOTPATH__|$DOTPATH|g" "$TARGET_HOME/$target" && rm -f "$TARGET_HOME/$target.bak"
+            rm -f "$tmp_rc"
         fi
     done
 
@@ -111,20 +120,24 @@ deploy_configs() {
     
     [ -f "$DOTPATH/configs/nanorc" ] && sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$TARGET_HOME/.nanorc"
 
-    # --- Oh-My-Zsh カスタム (冪等性重視) ---
+    # --- Oh-My-Zsh カスタム ---
     local zsh_custom="$TARGET_HOME/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
     for plugin_path in "$DOTPATH/zsh/plugins"/*; do
-        [ -d "$plugin_path" ] && ln -sfn "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
+        if [ -d "$plugin_path" ]; then
+            ln -sfn "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
+        fi
     done
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
 
-    # --- Bin リンク ---
+    # --- Bin リンク (SC2015 対策で if 文に) ---
     mkdir -p "$TARGET_HOME/bin"
     for script in "$DOTPATH/bin"/*; do
         if [ -f "$script" ]; then
             ln -sf "$script" "$TARGET_HOME/bin/$(basename "$script")"
-            [ ! -L "$script" ] && chmod +x "$script" 2>/dev/null || true
+            if [ ! -L "$script" ]; then
+                chmod +x "$script" 2>/dev/null || true
+            fi
         fi
     done
 
@@ -160,14 +173,18 @@ deploy_local_configs() {
 }
 
 setup_root_loader() {
-    local TARGET_HOME
-    TARGET_HOME="${1:-$HOME}"
-    # root以外でも呼び出されるため、対象ファイルの有無をまず確認
+    local TARGET_HOME="${1:-$HOME}"
+    [ -z "$TARGET_HOME" ] || [ "$TARGET_HOME" = "/" ] && return 0
+
+    local rcfile
     for rcfile in "$TARGET_HOME/.zshrc" "$TARGET_HOME/.bashrc"; do
         if [ -f "$rcfile" ]; then
-            # ここが肝：すでに loader.sh があれば絶対に追記しない
-            if ! grep -q "common/loader.sh" "$rcfile"; then
+            # 強力な二重ガード：grep で確認してから追記
+            if ! grep -Fq "common/loader.sh" "$rcfile"; then
                 echo "source '$DOTPATH/common/loader.sh'" >> "$rcfile"
+                echo "✅ Added loader to $rcfile"
+            else
+                echo "⏭️  Loader already exists in $rcfile, skipping."
             fi
         fi
     done

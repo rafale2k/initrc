@@ -65,7 +65,8 @@ setup_oh_my_zsh() {
 
 # --- 設定ファイルのデプロイ ---
 deploy_configs() {
-    local target_home="${1:-$HOME}"
+    local target_home
+    target_home="${1:-$HOME}"
     [ -z "$target_home" ] || [ "$target_home" = "/" ] && target_home="$HOME"
     
     local dotpath_tmp
@@ -73,66 +74,54 @@ deploy_configs() {
     [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
 
     echo "🖇️  Deploying configuration files to: $target_home"
-    echo "Using DOTPATH: $DOTPATH"
     
-    local rc
-    for rc in "bash/.bashrc" "zsh/.zshrc"; do
-        local target
-        target=$(basename "$rc")
-        
-        if [ ! -f "$DOTPATH/$rc" ]; then
-            echo "⚠️  Skip: $DOTPATH/$rc not found."
-            continue
-        fi
+    # .bashrc の処理
+    if [ -f "$DOTPATH/bash/.bashrc" ]; then
+        echo "🔧 Processing .bashrc..."
+        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/bash/.bashrc" > "/tmp/initrc_bashrc"
+        cp "/tmp/initrc_bashrc" "$target_home/.bashrc"
+    fi
 
-        local tmp_rc="/tmp/initrc_$target"
-        # sed -i は使わず、常にリダイレクトで一時ファイルを作る（OS互換性100%）
-        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/$rc" > "$tmp_rc"
+    # .zshrc の処理
+    if [ -f "$DOTPATH/zsh/.zshrc" ]; then
+        echo "🔧 Processing .zshrc..."
+        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/zsh/.zshrc" > "/tmp/initrc_zshrc"
+        cp "/tmp/initrc_zshrc" "$target_home/.zshrc"
+    fi
 
-        if [ ! -f "$target_home/$target" ] || ! grep -q "common/loader.sh" "$target_home/$target"; then
-            echo "🔧 Creating/Restoring $target from template..."
-            cp "$tmp_rc" "$target_home/$target"
-        else
-            echo "✨ $target already exists, updating path..."
-            # 既存ファイルのパス更新も一時ファイル経由で行う
-            local update_tmp="/tmp/update_$target"
-            sed "s|__DOTPATH__|$DOTPATH|g" "$target_home/$target" > "$update_tmp"
-            mv "$update_tmp" "$target_home/$target"
-        fi
-        rm -f "$tmp_rc"
-    done
-
-    # シンボリックリンク (SC2015 対策で if 文に統一)
+    # シンボリックリンク
     ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
     ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
     ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
     ln -sf "$DOTPATH/configs/gitignore_global" "$target_home/.gitignore_global"
     
     if [ -f "$DOTPATH/configs/nanorc" ]; then
-        local nano_tmp="/tmp/nanorc_tmp"
-        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "$nano_tmp"
-        mv "$nano_tmp" "$target_home/.nanorc"
+        sed "s|__DOTPATH__|$DOTPATH|g" "$DOTPATH/configs/nanorc" > "/tmp/nanorc_tmp"
+        mv "/tmp/nanorc_tmp" "$target_home/.nanorc"
     fi
 
     # Zsh Custom
     local zsh_custom="$target_home/.oh-my-zsh/custom"
     mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes"
-    local plugin_path
-    for plugin_path in "$DOTPATH/zsh/plugins"/*; do
-        if [ -d "$plugin_path" ]; then
-            ln -sfn "$plugin_path" "$zsh_custom/plugins/$(basename "$plugin_path")"
+    
+    # プラグインループを安全に
+    for d in "$DOTPATH/zsh/plugins"/*; do
+        if [ -d "$d" ]; then
+            ln -sfn "$d" "$zsh_custom/plugins/$(basename "$d")"
         fi
     done
-    [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
+    
+    if [ -d "$DOTPATH/zsh/themes/powerlevel10k" ]; then
+        ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
+    fi
 
     # Bin
     mkdir -p "$target_home/bin"
-    local script
-    for script in "$DOTPATH/bin"/*; do
-        if [ -f "$script" ]; then
-            ln -sf "$script" "$target_home/bin/$(basename "$script")"
-            if [ ! -L "$script" ]; then
-                chmod +x "$script" 2>/dev/null || true
+    for s in "$DOTPATH/bin"/*; do
+        if [ -f "$s" ]; then
+            ln -sf "$s" "$target_home/bin/$(basename "$s")"
+            if [ ! -L "$s" ]; then
+                chmod +x "$s" 2>/dev/null || true
             fi
         fi
     done
@@ -145,45 +134,35 @@ deploy_configs() {
     deploy_local_configs "$target_home"
 }
 
-# (AIツールセットアップ、Loader注入などは変更なしだが、SC2155対策で local を分離)
+# (setup_ai_tools, setup_root_loader, deploy_local_configs はシンプルに維持)
 setup_ai_tools() {
     echo "🤖 Setting up AI tools (llm & ginv)..."
     export PATH="$HOME/.local/bin:$PATH"
-    
     if ! command -v llm >/dev/null 2>&1; then
         pipx install llm
         pipx inject llm llm-gemini
     fi
-    
-    local ginv_path
-    ginv_path="$DOTPATH/bin/ginv"
+    local ginv_path="$DOTPATH/bin/ginv"
     cat << 'EOF' > "$ginv_path"
 #!/bin/bash
-if [ -z "$1" ]; then
-  echo "Usage: ginv 'your prompt'"
-  exit 1
-fi
+if [ -z "$1" ]; then exit 1; fi
 llm -m gemini-2.5-flash "$1"
 EOF
     chmod +x "$ginv_path"
 }
 
 setup_root_loader() {
-    local target_home="${1:-$HOME}"
-    [ -z "$target_home" ] || [ "$target_home" = "/" ] && return 0
-
-    local rcfile
-    for rcfile in "$target_home/.zshrc" "$target_home/.bashrc"; do
-        if [ -f "$rcfile" ]; then
-            if ! grep -Fq "common/loader.sh" "$rcfile"; then
-                echo "source '$DOTPATH/common/loader.sh'" >> "$rcfile"
-            fi
+    local t="${1:-$HOME}"
+    [ -z "$t" ] || [ "$t" = "/" ] && return 0
+    for f in "$t/.zshrc" "$t/.bashrc"; do
+        if [ -f "$f" ] && ! grep -Fq "common/loader.sh" "$f"; then
+            echo "source '$DOTPATH/common/loader.sh'" >> "$f"
         fi
     done
 }
 
 deploy_local_configs() {
-    local target_home="$1"
-    [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$target_home/.env" ] && cp "$DOTPATH/templates/.env.example" "$target_home/.env"
-    [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$target_home/.gitconfig.local" ] && cp "$DOTPATH/templates/.gitconfig.local.example" "$target_home/.gitconfig.local"
+    local t="$1"
+    [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$t/.env" ] && cp "$DOTPATH/templates/.env.example" "$t/.env"
+    [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$t/.gitconfig.local" ] && cp "$DOTPATH/templates/.gitconfig.local.example" "$t/.gitconfig.local"
 }

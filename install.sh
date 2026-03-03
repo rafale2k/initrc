@@ -1,10 +1,18 @@
 #!/bin/bash
-set -e
+set -u
 
-# カレントディレクトリ取得
+# --- 🏷️ Version Definition ---
+readonly VERSION="1.17.0"
+
+# パス確定
 DOTPATH=$(cd "$(dirname "$0")" && pwd)
+export DOTPATH
 
-# 共通関数の読み込み (v1.16.0: common から scripts へ移動)
+# --- 🚀 Start Message ---
+# ここが "v1.17.0" になっていたはずや
+echo "🎯 Starting installation v${VERSION} from ${DOTPATH}..."
+
+# 共通関数の読み込み (v1.17.0: common から scripts へ移動)
 if [ -f "$DOTPATH/scripts/install_functions.sh" ]; then
     # shellcheck source=scripts/install_functions.sh
     source "$DOTPATH/scripts/install_functions.sh"
@@ -12,8 +20,6 @@ else
     echo "❌ Error: scripts/install_functions.sh not found."
     exit 1
 fi
-
-echo "🎯 Starting installation v1.16.0 from $DOTPATH..."
 
 # 1. SSH鍵の生成
 echo "🔐 Checking SSH keys..."
@@ -47,10 +53,10 @@ git submodule update --init --recursive
 # AI ツール (ginv) を物理的に作成
 setup_ai_tools          
 
-# 各種設定ファイルのデプロイ (v1.16.0: 内部で deploy_local_configs も呼ぶように統合済み)
+# 各種設定ファイルのデプロイ (v1.17.0: 内部で deploy_local_configs も呼ぶように統合済み)
 deploy_configs "$HOME"         
 
-# 4. Git Identity 設定 (v1.16.0: 既に .gitconfig.local があればそれを優先)
+# 4. Git Identity 設定 (v1.17.0: 既に .gitconfig.local があればそれを優先)
 if [ -z "$(git config --global user.name)" ]; then
     echo "👤 Setting up Git identity..."
     git config --global user.name "rafale2k"
@@ -68,5 +74,5 @@ fi
 
 export PATH="$HOME/bin:$PATH"
 
-echo "✨ All processes completed successfully! (v1.16.0)"
+echo "✨ All processes completed successfully! (v${VERSION})"
 echo "🚀 Run 'exec zsh -l' to start your new environment."

@@ -1,23 +1,46 @@
 #!/bin/bash
 
-# --- OS・パッケージマネージャーの判定 ---
+# --- OS・パッケージマネージャーの判定とリポジトリ設定 ---
 setup_os_repos() {
     local dotpath_tmp
     dotpath_tmp=$(cd "$(dirname "$0")/.." && pwd)
-    [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
+    [ -z "${DOTPATH:-}" ] && DOTPATH="$dotpath_tmp"
     
     if [ "$PM" = "apt" ]; then
+        echo "⚙️  Configuring repositories for apt..."
+        # 1. 最小限のツールをインストール
         sudo apt-get update -qq --allow-releaseinfo-change || true
         sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
+        
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2)
+        
+        # 2. キーリングディレクトリの作成
         sudo mkdir -p /etc/apt/keyrings
-        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | sudo gpg --dearmor -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
-        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | sudo tee /etc/apt/sources.list.d/gierens.list
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $codename stable" | sudo tee /etc/apt/sources.list.d/docker.list
+        
+        # 3. Eza (Exaの後継) のリポジトリ設定
+        # --yes を追加して既存の鍵の上書き確認をスキップ
+        echo "  🔑 Adding eza key..."
+        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | \
+            sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
+        
+        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | \
+            sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
+        
+        # 4. Docker のリポジトリ設定
+        # --yes を追加して既存の鍵の上書き確認をスキップ
+        echo "  🐳 Adding docker key..."
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+            sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
+            
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $codename stable" | \
+            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        
+        # 5. インデックスの最終更新
         sudo apt-get update -qq --allow-releaseinfo-change || true
+        
     elif [ "$PM" = "dnf" ]; then
+        echo "⚙️  Configuring repositories for dnf..."
         sudo dnf install -y -q epel-release dnf-plugins-core || true
         sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo || true
         sudo dnf makecache -q || true
@@ -52,7 +75,7 @@ setup_ai_tools() {
     cat << 'EOF' > "$ginv_path"
 #!/bin/bash
 if [ -z "$1" ]; then exit 1; fi
-llm -m gemini-2.0-flash "$1"
+llm -m gemini-2.5-flash "$1"
 EOF
     chmod +x "$ginv_path"
 }

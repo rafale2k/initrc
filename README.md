@@ -40,7 +40,7 @@
 ### 🤖 1. Next-Gen AI Workflow (ginv / gcm / ask / wtf)
 **Gemini 2.5 Flash** をエンジンに採用。プロンプト応答、コミットメッセージ生成、エラー解析をターミナルから爆速で実行。`llm` エコシステムに完全統合されています。
 
-### 📁 2. Structured Configuration (v1.16.0 NEW)
+### 📁 2. Structured Configuration (v1.17.0 NEW)
 設定ファイルを `common/` ディレクトリに集約し、アルファベット順に自動ロードする **Dynamic Loader** を搭載。機能追加がファイルを置くだけで完結します。
 
 ### 🔍 3. Interactive Operations (fzf + bat + eza)

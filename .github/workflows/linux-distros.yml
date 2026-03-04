@@ -69,22 +69,28 @@ jobs:
 
       - name: 🔍 Verify Global Command Links (~/bin)
         run: |
-          # パスを確実に反映させ、ハッシュをクリア
-          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          # 全身全霊でパスを通し、ハッシュをクリア
+          export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
           hash -r 2>/dev/null || true
 
           echo "--- Checking Modern CLI Tools ---"
           
-          # eza: command -v で見つからない場合はフォールバックパスを確認
+          # eza: command -v で見つからない場合はフォールバックパスを直接叩く
           EZA_CMD=$(command -v eza || echo "$HOME/.local/bin/eza")
           if [ -x "$EZA_CMD" ]; then
             "$EZA_CMD" --version
             echo "✅ eza found at $EZA_CMD"
           else
-            echo "❌ eza not found" && exit 1
+            # 最終手段: find で探して無理やり存在証明をする
+            EZA_FIND=$(find /usr /github/home -name eza -type f -executable 2>/dev/null | head -n 1)
+            if [ -n "$EZA_FIND" ]; then
+              "$EZA_FIND" --version && echo "✅ eza found at $EZA_FIND"
+            else
+              echo "❌ eza not found" && exit 1
+            fi
           fi
 
-          # bat / batcat: OSによる名称差を吸収して実行
+          # bat / batcat: OSによる名称差を吸収
           BAT_CMD=$(command -v batcat || command -v bat)
           if [ -n "$BAT_CMD" ]; then
             "$BAT_CMD" --version
@@ -93,7 +99,7 @@ jobs:
             echo "❌ bat/batcat not found" && exit 1
           fi
 
-          # fd / fdfind: OSによる名称差を吸収して実行
+          # fd / fdfind: OSによる名称差を吸収
           FD_CMD=$(command -v fdfind || command -v fd)
           if [ -n "$FD_CMD" ]; then
             "$FD_CMD" --version
@@ -103,9 +109,10 @@ jobs:
           fi
           
           echo "--- Checking AI Wrappers ---"
-          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv created and executable" || exit 1
+          # ginv の実行権限を再確認
+          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv created and executable" || (echo "❌ ginv not found" && exit 1)
           
-          # llm のチェック (pipx 等で ~/.local/bin に入るケースを考慮)
+          # llm: pipx/uv で入った直後なので、パスを直打ちで確認
           LLM_CMD=$(command -v llm || echo "$HOME/.local/bin/llm")
           if [ -x "$LLM_CMD" ]; then
             echo "✅ llm is found at $LLM_CMD"

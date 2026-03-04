@@ -1,6 +1,6 @@
-# 🚀 v1.18.0 "The Great Cleanup" - Release Notes
+# 🚀 v1.18.0 "Robust Backup" - Release Notes
 
-![Version](https://img.shields.io/badge/version-1.18.0-blue)
+![Version](https://img.shields.io/badge/version-1.19.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20AlmaLinux-orange)
 ![CI Status](https://github.com/rafale2k/initrc/actions/workflows/test.yml/badge.svg)
@@ -14,7 +14,7 @@
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
 > **"Freedom to install, power to revert. Your environment, now completely portable."**
-> `v1.18.0` は、待望のアンインストール機能を搭載し、特定のパスに縛られない究極の移植性を手に入れた「完成形」へのマイルストーンです。
+> `v1.19.0` は、インストール時の設定のバックアップを搭載し、特定のパスに縛られない究極の移植性を手に入れた「完成形」へのマイルストーンです。
 
 ---
 

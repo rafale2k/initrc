@@ -69,15 +69,49 @@ jobs:
 
       - name: 🔍 Verify Global Command Links (~/bin)
         run: |
+          # パスを確実に反映させ、ハッシュをクリア
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          hash -r 2>/dev/null || true
+
           echo "--- Checking Modern CLI Tools ---"
-          eza --version
-          (bat --version || batcat --version)
-          (fd --version || fdfind --version)
+          
+          # eza: command -v で見つからない場合はフォールバックパスを確認
+          EZA_CMD=$(command -v eza || echo "$HOME/.local/bin/eza")
+          if [ -x "$EZA_CMD" ]; then
+            "$EZA_CMD" --version
+            echo "✅ eza found at $EZA_CMD"
+          else
+            echo "❌ eza not found" && exit 1
+          fi
+
+          # bat / batcat: OSによる名称差を吸収して実行
+          BAT_CMD=$(command -v batcat || command -v bat)
+          if [ -n "$BAT_CMD" ]; then
+            "$BAT_CMD" --version
+            echo "✅ bat found as $BAT_CMD"
+          else
+            echo "❌ bat/batcat not found" && exit 1
+          fi
+
+          # fd / fdfind: OSによる名称差を吸収して実行
+          FD_CMD=$(command -v fdfind || command -v fd)
+          if [ -n "$FD_CMD" ]; then
+            "$FD_CMD" --version
+            echo "✅ fd found as $FD_CMD"
+          else
+            echo "❌ fd/fdfind not found" && exit 1
+          fi
           
           echo "--- Checking AI Wrappers ---"
           [ -x "$HOME/bin/ginv" ] && echo "✅ ginv created and executable" || exit 1
-          command -v llm >/dev/null 2>&1 && echo "✅ llm is in PATH" || exit 1
+          
+          # llm のチェック (pipx 等で ~/.local/bin に入るケースを考慮)
+          LLM_CMD=$(command -v llm || echo "$HOME/.local/bin/llm")
+          if [ -x "$LLM_CMD" ]; then
+            echo "✅ llm is found at $LLM_CMD"
+          else
+            echo "❌ llm not found" && exit 1
+          fi
 
       - name: 🧪 Idempotency & Integrity Verification
         run: |
@@ -94,7 +128,6 @@ jobs:
           
           echo "--- Checking Template String Replacement ---"
           # __DOTPATH__ が残っていないか全主要ファイルを確認
-          # grep が見つけてしまうと exit 1 になるので、反転させるかifで制御
           if grep -r "__DOTPATH__" "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.nanorc" 2>/dev/null; then
             echo "❌ Template string __DOTPATH__ still exists!"
             exit 1

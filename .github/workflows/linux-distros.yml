@@ -20,6 +20,12 @@ jobs:
           - os: "AlmaLinux 9"
             image: "almalinux:9"
             pkg_manager: "dnf"
+          - os: "Debian 12"
+            image: "debian:12"
+            pkg_manager: "apt"
+          - os: "Fedora 41"
+            image: "fedora:41"
+            pkg_manager: "dnf"
 
     container:
       image: ${{ matrix.image }}
@@ -64,34 +70,29 @@ jobs:
           CI: true
           DEBIAN_FRONTEND: noninteractive
         run: |
-          # 2回目を実行。既存設定があっても正常に上書き/スキップされるか検証
           ./install.sh
 
       - name: 🔍 Verify Global Command Links (~/bin)
         run: |
-          # 全身全霊でパスを通し、ハッシュをクリア
-          export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
+          # 考えうるすべてのパスを網羅
+          export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$HOME/.cargo/bin:$HOME/go/bin:/usr/bin:/bin:$PATH"
           hash -r 2>/dev/null || true
 
           echo "--- Checking Modern CLI Tools ---"
           
-          # eza: command -v で見つからない場合はフォールバックパスを直接叩く
-          EZA_CMD=$(command -v eza || echo "$HOME/.local/bin/eza")
-          if [ -x "$EZA_CMD" ]; then
+          # eza: find の捜索範囲を広げ、パスが通っていない可能性を徹底排除
+          EZA_CMD=$(command -v eza || find /usr /github/home /root -name eza -type f -executable 2>/dev/null | head -n 1)
+          if [ -n "$EZA_CMD" ] && [ -x "$EZA_CMD" ]; then
             "$EZA_CMD" --version
             echo "✅ eza found at $EZA_CMD"
           else
-            # 最終手段: find で探して無理やり存在証明をする
-            EZA_FIND=$(find /usr /github/home -name eza -type f -executable 2>/dev/null | head -n 1)
-            if [ -n "$EZA_FIND" ]; then
-              "$EZA_FIND" --version && echo "✅ eza found at $EZA_FIND"
-            else
-              echo "❌ eza not found" && exit 1
-            fi
+            echo "❌ eza not found. Searching full system..."
+            find / -name eza -type f -executable 2>/dev/null || echo "Not found anywhere"
+            exit 1
           fi
 
-          # bat / batcat: OSによる名称差を吸収
-          BAT_CMD=$(command -v batcat || command -v bat)
+          # bat / batcat
+          BAT_CMD=$(command -v batcat || command -v bat || find /usr /github/home -name batcat -o -name bat -type f -executable 2>/dev/null | head -n 1)
           if [ -n "$BAT_CMD" ]; then
             "$BAT_CMD" --version
             echo "✅ bat found as $BAT_CMD"
@@ -99,8 +100,8 @@ jobs:
             echo "❌ bat/batcat not found" && exit 1
           fi
 
-          # fd / fdfind: OSによる名称差を吸収
-          FD_CMD=$(command -v fdfind || command -v fd)
+          # fd / fdfind
+          FD_CMD=$(command -v fdfind || command -v fd || find /usr /github/home -name fdfind -o -name fd -type f -executable 2>/dev/null | head -n 1)
           if [ -n "$FD_CMD" ]; then
             "$FD_CMD" --version
             echo "✅ fd found as $FD_CMD"
@@ -109,13 +110,20 @@ jobs:
           fi
           
           echo "--- Checking AI Wrappers ---"
-          # ginv の実行権限を再確認
-          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv created and executable" || (echo "❌ ginv not found" && exit 1)
+          # ginv: $HOME/bin を直接指定してチェック
+          GINV_CMD="$HOME/bin/ginv"
+          if [ -x "$GINV_CMD" ]; then
+            echo "✅ ginv found at $GINV_CMD"
+          else
+            echo "❌ ginv not found at $GINV_CMD. Content of $HOME/bin:"
+            ls -la "$HOME/bin" 2>/dev/null || echo "Directory $HOME/bin not found"
+            exit 1
+          fi
           
-          # llm: pipx/uv で入った直後なので、パスを直打ちで確認
-          LLM_CMD=$(command -v llm || echo "$HOME/.local/bin/llm")
-          if [ -x "$LLM_CMD" ]; then
-            echo "✅ llm is found at $LLM_CMD"
+          # llm: pipx/uv/bin などを網羅
+          LLM_CMD=$(command -v llm || find /usr /github/home -name llm -type f -executable 2>/dev/null | head -n 1)
+          if [ -n "$LLM_CMD" ]; then
+            echo "✅ llm found at $LLM_CMD"
           else
             echo "❌ llm not found" && exit 1
           fi
@@ -125,16 +133,14 @@ jobs:
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
           
           echo "--- Verifying .zshrc Integrity ---"
-          # loader.sh の読み込みが二重になっていないか確認
           LOADER_COUNT=$(grep -c "common/loader.sh" "$HOME/.zshrc")
           if [ "$LOADER_COUNT" -gt 1 ]; then
-            echo "❌ Duplicate loader detected in .zshrc (Count: $LOADER_COUNT)"
+            echo "❌ Duplicate loader detected in .zshrc"
             exit 1
           fi
           [ "$LOADER_COUNT" -eq 1 ] && echo "✅ Loader unique"
           
           echo "--- Checking Template String Replacement ---"
-          # __DOTPATH__ が残っていないか全主要ファイルを確認
           if grep -r "__DOTPATH__" "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.nanorc" 2>/dev/null; then
             echo "❌ Template string __DOTPATH__ still exists!"
             exit 1

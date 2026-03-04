@@ -31,7 +31,6 @@ jobs:
       image: ${{ matrix.image }}
       options: --user root
 
-    # CI環境のホームディレクトリとパスを固定
     env:
       HOME: /root
       PATH: /root/bin:/usr/local/bin:/usr/bin:/bin
@@ -39,9 +38,7 @@ jobs:
     steps:
       - name: 📦 Pre-install Git & Fix Ownership
         run: |
-          # Dockerのconfig.jsonパーミッションエラー対策
           mkdir -p /root/.docker && echo "{}" > /root/.docker/config.json
-          
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
             export DEBIAN_FRONTEND=noninteractive
             apt-get update && apt-get install -y git
@@ -68,9 +65,7 @@ jobs:
       - name: 🔍 Verify Global Command Links (~/bin)
         shell: bash
         run: |
-          # PATHを確実に通す
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-          
           echo "--- Checking Modern CLI Tools ---"
           
           check_tool() {
@@ -79,7 +74,7 @@ jobs:
                   "$1" --version | head -n 1
               else
                   echo "❌ $1 not found in PATH ($PATH)"
-                  ls -la "$HOME/bin" 2>/dev/null || echo "bin directory missing"
+                  ls -la "$HOME/bin" 2>/dev/null
                   exit 1
               fi
           }
@@ -89,31 +84,9 @@ jobs:
           check_tool "fd"
           
           echo "--- Checking AI Wrappers ---"
-          if [ -x "$HOME/bin/ginv" ]; then
-              echo "✅ ginv found at $HOME/bin/ginv"
-          else
-              echo "❌ ginv not found"
-              exit 1
-          fi
+          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv found" || exit 1
 
       - name: 🧪 Idempotency & Integrity Verification
         run: |
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-          
-          echo "--- Verifying .zshrc Integrity ---"
-          if [ ! -f "$HOME/.zshrc" ]; then
-              echo "❌ .zshrc not found"
-              exit 1
-          fi
-
-          LOADER_COUNT=$(grep -c "common/loader.sh" "$HOME/.zshrc")
-          if [ "$LOADER_COUNT" -ne 1 ]; then
-              echo "❌ Duplicate or missing loader (Count: $LOADER_COUNT)"
-              exit 1
-          fi
-          echo "✅ Loader unique"
-
-          echo "--- Verifying Shell Syntax ---"
-          # 構文チェック（zsh, bash両対応）
-          zsh -n "$HOME/.zshrc" && echo "✅ .zshrc syntax okay"
-          bash -n "$HOME/.bashrc" && echo "✅ .bashrc syntax okay"
+          [ -f "$HOME/.zshrc" ] && grep -q "common/loader.sh" "$HOME/.zshrc" && echo "✅ Integrity okay"

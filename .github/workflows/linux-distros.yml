@@ -31,6 +31,11 @@ jobs:
       image: ${{ matrix.image }}
       options: --user root
 
+    # 全ステップで共通の環境変数をセット
+    env:
+      HOME: /root
+      PATH: /root/bin:/usr/local/bin:/usr/bin:/bin
+
     steps:
       - name: 📦 Pre-install Git & Fix Ownership
         run: |
@@ -47,52 +52,78 @@ jobs:
         with:
           submodules: recursive
 
-      - name: ⚙️ Setup Environment and Run Installer
+      - name: 🛠️ Execute initrc Installer
         env:
           CI: true
           DEBIAN_FRONTEND: noninteractive
-          # install.shに渡すための変数をセット
+          # install_functions.sh が期待する環境変数を注入
           OS: linux
           PM: ${{ matrix.pkg_manager }}
         run: |
           chmod +x install.sh
+          # install.sh 内で setup_os_repos や install_all_packages が呼ばれる想定
           ./install.sh
 
       - name: 🔍 Verify Global Command Links (~/bin)
         shell: bash
         run: |
-          # 実行パスを強制的に追加
-          export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
+          # ステップ実行時にも確実に PATH を通す
+          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
           
           echo "--- Checking Modern CLI Tools ---"
           
-          # リンクが正しく貼られているか確認
-          check_cmd() {
-              if command -v "$1" >/dev/null 2>&1; then
-                  echo "✅ $1 found at $(command -v "$1")"
-                  "$1" --version | head -n 1
-              else
-                  echo "❌ $1 not found"
-                  return 1
-              fi
-          }
-
-          check_cmd "eza"
-          check_cmd "bat"
-          check_cmd "fd"
-          
-          echo "--- Checking AI Wrappers ---"
-          if [ -x "$HOME/bin/ginv" ]; then
-              echo "✅ ginv found at $HOME/bin/ginv"
+          # eza のチェック
+          if command -v eza >/dev/null 2>&1; then
+            echo "✅ eza found at $(command -v eza)"
+            eza --version | head -n 1
           else
-              echo "❌ ginv not found"
-              ls -la "$HOME/bin" 2>/dev/null || echo "bin dir missing"
-              exit 1
+            echo "❌ eza not found in PATH ($PATH)"
+            ls -la "$HOME/bin" || echo "bin directory missing"
+            exit 1
           fi
 
-      - name: 🧪 Integrity Verification
+          # bat のチェック
+          if command -v bat >/dev/null 2>&1; then
+            echo "✅ bat found at $(command -v bat)"
+            bat --version | head -n 1
+          else
+            echo "❌ bat not found" && exit 1
+          fi
+
+          # fd のチェック
+          if command -v fd >/dev/null 2>&1; then
+            echo "✅ fd found at $(command -v fd)"
+            fd --version | head -n 1
+          else
+            echo "❌ fd not found" && exit 1
+          fi
+
+          echo "--- Checking AI Wrappers ---"
+          if [ -x "$HOME/bin/ginv" ]; then
+            echo "✅ ginv found at $HOME/bin/ginv"
+          else
+            echo "❌ ginv not found at $HOME/bin/ginv"
+            ls -la "$HOME/bin" 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: 🧪 Idempotency & Integrity Verification
         run: |
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          
           echo "--- Verifying .zshrc Integrity ---"
-          [ -f "$HOME/.zshrc" ] && echo "✅ .zshrc exists"
-          grep -q "common/loader.sh" "$HOME/.zshrc" && echo "✅ Loader found"
+          if [ ! -f "$HOME/.zshrc" ]; then
+            echo "❌ .zshrc not found"
+            exit 1
+          fi
+
+          LOADER_COUNT=$(grep -c "common/loader.sh" "$HOME/.zshrc")
+          if [ "$LOADER_COUNT" -ne 1 ]; then
+            echo "❌ Loader count is $LOADER_COUNT (expected 1)"
+            exit 1
+          fi
+          echo "✅ .zshrc integrity okay"
+
+          echo "--- Verifying Shell Syntax ---"
+          # zsh がインストールされていることを前提に構文チェック
+          zsh -n "$HOME/.zshrc" && echo "✅ .zshrc syntax okay"

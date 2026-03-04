@@ -3,7 +3,7 @@
 
 # [本番級設定] 使用するモデルを一括管理
 # 現時点で最も高性能な preview モデルを指定。安定版が良ければ gemini-2.5-flash に変更してください
-export AI_ASSIST_MODEL="gemini/gemini-3-flash-preview"
+export AI_ASSIST_MODEL="gemini/gemini-2.5-flash-preview"
 
 # [内部用] 実行中のコンテナを fzf で選んで名前を返す関数
 _select_container() {

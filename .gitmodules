@@ -13,3 +13,6 @@
 [submodule "zsh/themes/powerlevel10k"]
 	path = zsh/themes/powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
+[submodule "zsh/plugins/history-search-multi-word"]
+	path = zsh/plugins/history-search-multi-word
+	url = https://github.com/zdharma-continuum/history-search-multi-word

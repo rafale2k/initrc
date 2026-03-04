@@ -21,8 +21,9 @@ ask() {
     local query="$*"
     [[ -z "$query" ]] && { echo "🤔 Usage: ask 'Your question'"; return 1; }
 
-    # プロンプトを具体化：現在のOSや状況を伝え、余計な肉付けを徹底的に禁止する
-    local system_prompt="You are a pragmatic Shell Expert.
+    # SC2155: Declare and assign separately to avoid masking return values.
+    local system_prompt
+    system_prompt="You are a pragmatic Shell Expert.
 Output ONLY the executable shell command for $(uname) system.
 - NO explanation.
 - NO conversational text.
@@ -32,27 +33,32 @@ Output ONLY the executable shell command for $(uname) system.
 
     echo "🤖 Thinking..."
     
-    local raw_cmd
-    # AI_ASSIST_MODEL が未定義の場合のフォールバック
-    local model="${AI_ASSIST_MODEL:-gemini-2.5-flash}"
-    raw_cmd=$(llm -m "$model" -s "$system_prompt" "$query")
+    local model
+    model="${AI_ASSIST_MODEL:-gemini-2.5-flash}"
 
-    # 不要な装飾（バックボーンやマークダウン）を削ぎ落とす
+    local raw_cmd
+    # llmコマンドの失敗を検知できるように代入を分離
+    raw_cmd=$(llm -m "$model" -s "$system_prompt" "$query") || { echo "❌ LLM execution failed."; return 1; }
+
     local cmd
+    # SC2016: 以下の `sed` 内の `\` はリテラルとして扱うため、警告を無効化するか
+    # または正規表現として正しく解釈されるよう記述を維持。
+    # ここではShellcheckに意図的であることを伝える注釈を入れるか、クォートを微調整。
+    # shellcheck disable=SC2016
     cmd=$(echo "$raw_cmd" | sed -E 's/^`{1,3}([a-z]*)?//g; s/`{1,3}$//g' | xargs)
 
     [[ -z "$cmd" ]] && { echo "❌ Failed to generate command."; return 1; }
 
     echo -e "\n👉 AI suggests:\n\033[1;32m$cmd\033[0m\n"
     
-    # ユーザー確認
     echo -n "Run this command? [y/N]: "
     local answer
+    # read の際、標準入力がパイプ等の場合を考慮して /dev/tty から直接読み込む
     read -r answer < /dev/tty
 
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         echo "🚀 Executing..."
-        # ヒストリに残るように eval を実行（サブシェルではなく現行プロセスで評価）
+        # eval で実行。historyに載せたい場合は別の工夫が必要だが、基本はこれで動作する。
         eval "$cmd"
     else
         echo "Aborted."

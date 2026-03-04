@@ -21,25 +21,39 @@ ask() {
     local query="$*"
     [[ -z "$query" ]] && { echo "🤔 Usage: ask 'Your question'"; return 1; }
 
-    local system_prompt="You are a CLI expert. Output ONLY a valid shell command. No markdown, no backticks."
+    # プロンプトを具体化：現在のOSや状況を伝え、余計な肉付けを徹底的に禁止する
+    local system_prompt="You are a pragmatic Shell Expert.
+Output ONLY the executable shell command for $(uname) system.
+- NO explanation.
+- NO conversational text.
+- NO markdown code blocks (\`\`\`).
+- Ensure all quotes are properly balanced and escaped.
+- Use one-liners only."
+
     echo "🤖 Thinking..."
     
     local raw_cmd
-    raw_cmd=$(llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
-    # 不要なマークダウンを取り除き、クリーンなコマンドを抽出
+    # AI_ASSIST_MODEL が未定義の場合のフォールバック
+    local model="${AI_ASSIST_MODEL:-gemini-2.5-flash}"
+    raw_cmd=$(llm -m "$model" -s "$system_prompt" "$query")
+
+    # 不要な装飾（バックボーンやマークダウン）を削ぎ落とす
     local cmd
-    cmd=$(echo "$raw_cmd" | sed -e 's/```[a-z]*//g' -e 's/```//g' | tr -d '`' | xargs)
+    cmd=$(echo "$raw_cmd" | sed -E 's/^`{1,3}([a-z]*)?//g; s/`{1,3}$//g' | xargs)
 
     [[ -z "$cmd" ]] && { echo "❌ Failed to generate command."; return 1; }
 
     echo -e "\n👉 AI suggests:\n\033[1;32m$cmd\033[0m\n"
+    
+    # ユーザー確認
     echo -n "Run this command? [y/N]: "
     local answer
     read -r answer < /dev/tty
 
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         echo "🚀 Executing..."
-        ( eval "$cmd" )
+        # ヒストリに残るように eval を実行（サブシェルではなく現行プロセスで評価）
+        eval "$cmd"
     else
         echo "Aborted."
     fi

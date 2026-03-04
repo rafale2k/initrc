@@ -1,16 +1,26 @@
-# 🚀 v1.18.0 "Robust Backup" - Release Notes
+# 🚀 v1.19.0 "Universal Kernel" - Release Notes
 
 ![Version](https://img.shields.io/badge/version-1.19.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
-![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20AlmaLinux-orange)
-![CI Status](https://github.com/rafale2k/initrc/actions/workflows/test.yml/badge.svg)
-![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
+![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
+![macOS CI](https://github.com/rafale2k/initrc/actions/workflows/test.yml/badge.svg)
+
+### 🌍 Supported Distributions
+![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=for-the-badge&logo=ubuntu&logoColor=white)
+![Debian](https://img.shields.io/badge/Debian-D70A53?style=for-the-badge&logo=debian&logoColor=white)
+![Fedora](https://img.shields.io/badge/Fedora-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
+![AlmaLinux](https://img.shields.io/badge/AlmaLinux-D4243D?style=for-the-badge&logo=almalinux&logoColor=white)
+![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white)
+
+---
+
 ![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-vibrantblue?logo=google-gemini&logoColor=white)
 ![LLM](https://img.shields.io/badge/LLM-llm%20integrated-6f42c1?logo=python&logoColor=white)
 ![Linting](https://img.shields.io/badge/shellcheck-100%25%20passing-brightgreen)
 ![IaC](https://img.shields.io/badge/concept-IaC%20Ready-lightgrey?logo=terraform&logoColor=623CE4)
 ![Installer](https://img.shields.io/badge/installer-idempotent-blueviolet)
+![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
 > **"Freedom to install, power to revert. Your environment, now completely portable."**

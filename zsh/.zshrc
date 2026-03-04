@@ -41,11 +41,12 @@ source $ZSH/oh-my-zsh.sh
 # ---------------------------------------------------------
 # install.sh で置換されるプレースホルダー
 DOTFILES_ROOT="__DOTPATH__"
+[ "$DOTFILES_ROOT" = "__DOTPATH__" ] && DOTFILES_ROOT="$DOTPATH"
 
 # 1. 司令塔 loader.sh を呼び出す
 # これだけで _navigation.sh (_*.sh) も configs/.env も全部読み込まれる
-if [ -f "$DOTFILES_ROOT/common/loader.sh" ]; then
-    source "$DOTFILES_ROOT/common/loader.sh"
+if [ -f "$DOTPATH/common/loader.sh" ]; then
+    source "$DOTPATH/common/loader.sh"
 fi
 
 eval "$(zoxide init zsh)"

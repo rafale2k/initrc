@@ -96,7 +96,13 @@ alias gl='git pull'
 # ---------------------------------------------------------
 n() {
     local file bat_cmd
-    bat_cmd=$(command -v bat || command -v batcat || echo "cat")
+    if command -v batcat &> /dev/null; then
+        bat_cmd="batcat"
+    elif command -v bat &> /dev/null; then
+        bat_cmd="bat"
+    else
+        bat_cmd="cat"
+    fi
 
     if [ $# -gt 0 ]; then
         [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"

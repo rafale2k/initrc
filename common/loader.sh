@@ -1,25 +1,20 @@
 #!/bin/bash
 # shellcheck disable=SC1090,SC1091,SC2034
 
-# --- 🚀 INITRC_LOADER_GUARD ---
-if [ -n "${INITRC_LOADER_LOADED:-}" ]; then
-    return 0 2>/dev/null
-fi
-export INITRC_LOADER_LOADED=1
-
-# 1. パスの自動確定 (絶対パスを排除)
-# どのユーザーがどこにインストールしても、このファイルの位置からルートを割り出す
+# 1. パスの自動確定 & 統一 (DOTPATH に一本化)
 if [ -n "${ZSH_VERSION:-}" ]; then
-    # shellcheck disable=SC2296
     _ld_current_script="${(%):-%x}"
 else
     _ld_current_script="${BASH_SOURCE[0]}"
 fi
 
+# このファイル (loader.sh) の親の親が dotfiles ルート
 _ld_script_dir="$(cd "$(dirname "$_ld_current_script")" && pwd)"
-# 分離して代入
-DOTFILES_PATH="$(cd "$_ld_script_dir/.." && pwd)"
-export DOTFILES_PATH
+export DOTPATH="$(cd "$_ld_script_dir/.." && pwd)"
+
+# 互換性のために他の名前もセットしておくが、基本は DOTPATH を使う
+export DOTFILES_PATH="$DOTPATH"
+export DOTFILES_ROOT="$DOTPATH"
 
 # 2. PATH の設定
 case ":$PATH:" in
@@ -28,28 +23,25 @@ case ":$PATH:" in
 esac
 
 # 3. .env の読み込み
-if [ -f "$DOTFILES_PATH/configs/.env" ]; then
-    source "$DOTFILES_PATH/configs/.env" > /dev/null 2>&1
+if [ -f "$DOTPATH/configs/.env" ]; then
+    source "$DOTPATH/configs/.env" > /dev/null 2>&1
 fi
 
 # 4. 共通設定 (_*.sh) の一括読み込み
-_ld_common_dir="$DOTFILES_PATH/common"
+_ld_common_dir="$DOTPATH/common"
 if [ -d "$_ld_common_dir" ]; then
     for _ld_f in "$_ld_common_dir"/_*.sh; do
-        # 自分自身 (loader.sh) は読み込まない
-        [[ "$_ld_f" == *"loader.sh" ]] && continue
-        
+        # 読み込み中の多重読み込み防止ガードは各ファイル側に任せるか、
+        # 必要ならここでファイル名をチェック
         if [ -r "$_ld_f" ]; then
-            # 👇 ここ！この一行が消えてたから出なくなったんや
-            echo "📖 Loading: $_ld_f" 
             source "$_ld_f"
         fi
     done
 fi
 
-# 5. Zsh 特有の設定読み込み
+# 5. シェル別の設定
 if [ -n "${ZSH_VERSION:-}" ]; then
-    _ld_zsh_dir="$DOTFILES_PATH/zsh"
+    _ld_zsh_dir="$DOTPATH/zsh"
     [ -r "$_ld_zsh_dir/hooks.zsh" ]   && source "$_ld_zsh_dir/hooks.zsh"
     [ -r "$_ld_zsh_dir/options.zsh" ] && source "$_ld_zsh_dir/options.zsh"
     [ -r "$_ld_zsh_dir/aliases.zsh" ] && source "$_ld_zsh_dir/aliases.zsh"
@@ -61,5 +53,4 @@ elif [ -n "${BASH_VERSION:-}" ]; then
     alias reload='source ~/.bashrc'
 fi
 
-# 後片付け
 unset _ld_f _ld_common_dir _ld_zsh_dir _ld_current_script _ld_script_dir

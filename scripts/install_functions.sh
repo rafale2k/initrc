@@ -106,6 +106,29 @@ setup_oh_my_zsh() {
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
         CHSH=no RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
+
+    local custom_plugin_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
+    mkdir -p "$custom_plugin_dir"
+
+    # サブモジュールの実体があるパス
+    local sub_src="$DOTPATH/zsh/plugins"
+
+    # 指定したプラグインをリンクする関数
+    link_plugin() {
+        local name=$1
+        if [ -d "$sub_src/$name" ]; then
+            echo "🔗 Linking $name..."
+            ln -sfn "$sub_src/$name" "$custom_plugin_dir/$name"
+        else
+            # 実体がないのに読み込もうとするとエラーが出るので警告
+            echo "⚠️  Warning: Submodule $name not found in $sub_src"
+        fi
+    }
+
+    # 必要なプラグインを全部リンク
+    link_plugin "zsh-autosuggestions"
+    link_plugin "zsh-syntax-highlighting"
+    link_plugin "history-search-multi-word"
 }
 
 setup_ai_tools() {

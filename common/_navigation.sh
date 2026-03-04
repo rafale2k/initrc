@@ -8,6 +8,7 @@ alias ..='cd ..'
 alias ...='cd ../..'
 alias ....='cd ../../..'
 alias b='cd -'
+alias mkdir='mkdir -p'
 mkcd() { 
     mkdir -p "$1" && cd "$1" || return 1
 }

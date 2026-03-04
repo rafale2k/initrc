@@ -4,6 +4,16 @@
 # 共通設定: システム基本 (System)
 # ==========================================
 
+# 1. fd / fdfind の吸収
+if ! command -v fd &> /dev/null && command -v fdfind &> /dev/null; then
+    alias fd='fdfind'
+fi
+
+# 2. bat / batcat の吸収
+if ! command -v bat &> /dev/null && command -v batcat &> /dev/null; then
+    alias bat='batcat'
+fi
+
 # ターミナル配色制御 (Tokyo Night)
 set_tokyo_night_colors() {
     [[ $- != *i* ]] && return 0
@@ -96,29 +106,16 @@ alias gl='git pull'
 # ---------------------------------------------------------
 n() {
     local file bat_cmd
-    if command -v batcat &> /dev/null; then
-        bat_cmd="batcat"
-    elif command -v bat &> /dev/null; then
-        bat_cmd="bat"
-    else
-        bat_cmd="cat"
-    fi
+    # エイリアスではなく実体を探す
+    bat_cmd=$(command -v batcat || command -v bat || echo "cat")
+    fd_cmd=$(command -v fdfind || command -v fd || echo "find")
 
     if [ $# -gt 0 ]; then
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
         command nano "$@"
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
     else
-        if command -v fzf &> /dev/null; then
-            file=$(fdfind --type f --hidden --exclude .git 2>/dev/null | fzf --prompt="Nano File > " --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}")
-            if [ -n "$file" ]; then
-                [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
-                command nano "$file"
-                [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
-            fi
-        else
-            command nano
-        fi
+        # 変数化したコマンド名を使用
+        file=$($fd_cmd --type f --hidden --exclude .git 2>/dev/null | fzf --prompt="Nano File > " --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}")
+        [ -n "$file" ] && command nano "$file"
     fi
 }
 

@@ -46,3 +46,8 @@
 	name = rafale2k
 [safe]
 	directory = *
+	directory = /home/rafale/dotfiles
+	directory = /home/rafale/dotfiles
+	directory = /home/rafale/dotfiles
+	directory = /home/rafale/dotfiles
+	directory = /home/rafale/dotfiles

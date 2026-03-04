@@ -82,53 +82,68 @@ EOF
 
 deploy_configs() {
     local target_home="${1:-$HOME}"
-    [ -z "$target_home" ] || [ "$target_home" = "/" ] && target_home="$HOME"
-    
     local dotpath_tmp
     dotpath_tmp=$(cd "$(dirname "$0")/.." && pwd)
     [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
 
-    echo "🖇️  Deploying configuration files to: $target_home"
+    # --- 1. バックアップディレクトリを確実に作成 ---
+    local backup_timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_dir="$target_home/.dotfiles_backup/$backup_timestamp"
     
-    safe_replace() {
-        local src="$1"
-        local dst="$2"
-        if [ ! -f "$src" ]; then return 0; fi
-        # 置換するだけ。行を消したりしない＝構文は100%維持される。
-        DP="$DOTPATH" perl -pe 's/__DOTPATH__/$ENV{DP}/g' "$src" > "$dst"
-    }
+    echo "🛡️  Preparing backup: $backup_dir"
+    mkdir -p "$backup_dir"
 
-    [ -f "$DOTPATH/bash/.bashrc" ] && safe_replace "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
-    [ -f "$DOTPATH/zsh/.zshrc" ] && safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
-
-    ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
-    ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
-    ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
-    ln -sf "$DOTPATH/configs/gitignore_global" "$target_home/.gitignore_global"
-    
-    if [ -f "$DOTPATH/configs/nanorc" ]; then
-        safe_replace "$DOTPATH/configs/nanorc" "$target_home/.nanorc"
-    fi
-
-    local zsh_custom
-    zsh_custom="$target_home/.oh-my-zsh/custom"
-    mkdir -p "$zsh_custom/plugins" "$zsh_custom/themes" "$target_home/bin"
-    
-    for d in "$DOTPATH/zsh/plugins"/*; do
-        [ -d "$d" ] && ln -sfn "$d" "$zsh_custom/plugins/$(basename "$d")"
-    done
-    [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$zsh_custom/themes/powerlevel10k"
-    
-    for s in "$DOTPATH/bin"/*; do
-        if [ -f "$s" ]; then
-            ln -sf "$s" "$target_home/bin/$(basename "$s")"
-            if [ ! -L "$s" ]; then
-                chmod +x "$s" 2>/dev/null || true
-            fi
+    # --- 2. デプロイ前に既存の実体ファイルをバックアップ ---
+    # シンボリックリンクは除外して、実体ファイルだけを安全に退避させる
+    local targets=(".zshrc" ".bashrc" ".gitconfig" ".vimrc" ".nanorc" ".inputrc" ".gitignore_global")
+    for f_name in "${targets[@]}"; do
+        local f_path="$target_home/$f_name"
+        if [ -f "$f_path" ] && [ ! -L "$f_path" ]; then
+            cp -a "$f_path" "$backup_dir/"
+            echo "   📦 Saved original: $f_name"
         fi
     done
 
-    deploy_local_configs "$target_home"
+    # --- 3. 置換・デプロイ関数 ---
+    safe_replace() {
+        local src="$1"
+        local dst="$2"
+        [ ! -f "$src" ] && return 0
+        
+        # 既存がリンクなら削除（実体ならバックアップ済みなので上書きでOK）
+        [ -L "$dst" ] && rm "$dst"
+        
+        # __DOTPATH__ を現在のパスに置換して配置
+        DP="$DOTPATH" perl -pe "s|__DOTPATH__|$DOTPATH|g" "$src" > "$dst"
+        echo "   ✅ Deployed: $(basename "$dst")"
+    }
+
+    echo "🖇️  Deploying configuration files..."
+    
+    # テンプレート（.zshrc, .bashrc）のデプロイ
+    safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
+    safe_replace "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
+    
+    # その他の設定ファイルはシンボリックリンクを貼る
+    ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
+    ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
+    ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
+    ln -sf "$DOTPATH/configs/gitignore_global" "$target_home/.gitignore_global"
+
+    # --- 4. 環境のリロード ---
+    export DOTPATH="$DOTPATH"
+    echo "🚀 Environment reloaded."
+
+    # 最後に現在の環境を更新 (変数が未定義でもエラーにならない書き方に変更)
+    export DOTPATH="$DOTPATH"
+    echo "🚀 Environment reloaded."
+
+    # ${ZSH_VERSION:-} と書くことで、未定義なら空文字として扱いエラーを防ぐ
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        [ -f "$target_home/.zshrc" ] && source "$target_home/.zshrc"
+    elif [ -n "${BASH_VERSION:-}" ]; then
+        [ -f "$target_home/.bashrc" ] && source "$target_home/.bashrc"
+    fi
 }
 
 # --- 🔥 重複と構文エラーを物理的に封じ込める ---

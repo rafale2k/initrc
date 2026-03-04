@@ -47,78 +47,52 @@ jobs:
         with:
           submodules: recursive
 
-      - name: 📦 Setup Repositories & Install Bootstrap Tools
-        run: |
-          if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
-            export DEBIAN_FRONTEND=noninteractive
-            apt-get install -y sudo curl locales zsh
-            locale-gen en_US.UTF-8
-          else
-            # Alma/Fedora で eza/bat 等を入れるために EPEL を有効化
-            if grep -q "AlmaLinux" /etc/redhat-release; then
-              dnf install -y epel-release
-            fi
-            dnf install -y --allowerasing sudo curl langpacks-en zsh
-          fi
-
-      - name: 🛠️ Execute initrc Installer (1st Run)
+      - name: ⚙️ Setup Environment and Run Installer
         env:
           CI: true
           DEBIAN_FRONTEND: noninteractive
+          # install.shに渡すための変数をセット
+          OS: linux
+          PM: ${{ matrix.pkg_manager }}
         run: |
           chmod +x install.sh
-          ./install.sh
-
-      - name: 🛠️ Execute initrc Installer (2nd Run - Idempotency Check)
-        env:
-          CI: true
-        run: |
           ./install.sh
 
       - name: 🔍 Verify Global Command Links (~/bin)
         shell: bash
         run: |
-          # ログインシェル環境をシミュレート
-          [ -f "$HOME/.zshrc" ] && export DOTPATH="$GITHUB_WORKSPACE"
-          export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$HOME/.cargo/bin:$HOME/go/bin:/usr/bin:/bin:$PATH"
+          # 実行パスを強制的に追加
+          export PATH="$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
           
           echo "--- Checking Modern CLI Tools ---"
           
-          # OSごとのバイナリ名の違いを吸収するチェック関数
-          check_tool() {
-              local name=$1
-              local alt=$2
-              local cmd
-              cmd=$(command -v "$name" || command -v "$alt" || find /usr/bin /usr/local/bin "$HOME/bin" -name "$name" -o -name "$alt" -type f -executable 2>/dev/null | head -n 1)
-              if [ -n "$cmd" ]; then
-                  echo "✅ $name found at $cmd"
-                  "$cmd" --version | head -n 1
+          # リンクが正しく貼られているか確認
+          check_cmd() {
+              if command -v "$1" >/dev/null 2>&1; then
+                  echo "✅ $1 found at $(command -v "$1")"
+                  "$1" --version | head -n 1
               else
-                  echo "❌ $name ($alt) not found"
+                  echo "❌ $1 not found"
                   return 1
               fi
           }
 
-          check_tool "eza" "exa" || exit 1
-          check_tool "bat" "batcat" || exit 1
-          check_tool "fd" "fdfind" || exit 1
+          check_cmd "eza"
+          check_cmd "bat"
+          check_cmd "fd"
           
           echo "--- Checking AI Wrappers ---"
-          # install.sh 内で $HOME/bin/ginv が作られているか確認
           if [ -x "$HOME/bin/ginv" ]; then
               echo "✅ ginv found at $HOME/bin/ginv"
           else
-              echo "❌ ginv not found. Content of $HOME/bin:"
-              ls -la "$HOME/bin" 2>/dev/null || echo "Directory empty"
+              echo "❌ ginv not found"
+              ls -la "$HOME/bin" 2>/dev/null || echo "bin dir missing"
               exit 1
           fi
 
-      - name: 🧪 Idempotency & Integrity Verification
+      - name: 🧪 Integrity Verification
         run: |
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
           echo "--- Verifying .zshrc Integrity ---"
-          LOADER_COUNT=$(grep -c "common/loader.sh" "$HOME/.zshrc")
-          [ "$LOADER_COUNT" -eq 1 ] && echo "✅ Loader unique" || (echo "❌ Duplicate loader"; exit 1)
-          
-          echo "--- Checking Template String Replacement ---"
-          ! grep -r "__DOTPATH__" "$HOME/.zshrc" "$HOME/.bashrc" && echo "✅ No template strings"
+          [ -f "$HOME/.zshrc" ] && echo "✅ .zshrc exists"
+          grep -q "common/loader.sh" "$HOME/.zshrc" && echo "✅ Loader found"

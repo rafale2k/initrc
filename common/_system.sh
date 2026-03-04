@@ -132,7 +132,7 @@ if [ -x "$HOME/bin/eza" ]; then
         fi
         
         # eza 実行 (残りの引数 "$@" も渡すことでディレクトリ指定にも対応)
-        "$HOME/bin/eza" --tree -a --icons --git --ignore-glob=".git" $depth "$@"
+        "$HOME/bin/eza" --tree -a --icons --git --ignore-glob=".git" ${depth:+"$depth"} "$@"
     }
 else
     alias ls='ls --color=auto'

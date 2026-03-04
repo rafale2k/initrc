@@ -44,6 +44,16 @@ set_tokyo_night_colors() {
 }
 set_tokyo_night_colors
 
+# Monokai Dark inspired eza colors
+# ur=ユーザー権限(緑), gr=グループ(黄), tr=ツリーの枝(グレー), sn=サイズ(ピンク) etc.
+export EZA_COLORS="\
+ur=32:gu=32:gr=33:gw=33:tr=38;5;244:sn=35:nb=35:nm=35:da=38;5;248:\
+di=36:fi=0:ln=35:pi=33:so=35:bd=33;46:cd=33;43:or=31;40:mi=31;40:\
+ex=32:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44"
+
+# LS_COLORS も合わせておくと他のツールも幸せになれる
+export LS_COLORS=$EZA_COLORS
+
 # ==========================================
 # エイリアス & 関数定義
 # ==========================================
@@ -73,9 +83,23 @@ if [ -x "$HOME/bin/eza" ]; then
     alias ls='$HOME/bin/eza --icons --group-directories-first'
     alias ll='$HOME/bin/eza -alF --icons --git'
     alias la='$HOME/bin/eza -a --icons --group-directories-first'
-    alias lt='$HOME/bin/eza --tree -a --icons --git --ignore-glob=".git"'
+
+    # 関数版 lt: 引数があればその階層まで、なければ全階層を表示
+    lt() {
+        local depth=""
+        # 第1引数が数字なら --level を指定
+        if [[ "$1" =~ ^[0-9]+$ ]]; then
+            depth="--level=$1"
+            shift # 数字を消費して、残りの引数（パス等）を次に回す
+        fi
+        
+        # eza 実行 (残りの引数 "$@" も渡すことでディレクトリ指定にも対応)
+        "$HOME/bin/eza" --tree -a --icons --git --ignore-glob=".git" $depth "$@"
+    }
 else
     alias ls='ls --color=auto'
+    alias ll='ls -alF'
+    alias la='ls -a'
 fi
 
 # 2. bat (cat replacement)

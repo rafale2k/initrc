@@ -1,18 +1,18 @@
 #!/bin/bash
 # shellcheck disable=SC1090,SC1091,SC2034
 
-# 1. パスの自動確定 & 統一 (DOTPATH に一本化)
+# 1. パスの自動確定
 if [ -n "${ZSH_VERSION:-}" ]; then
+    # shellcheck disable=SC2296
     _ld_current_script="${(%):-%x}"
 else
     _ld_current_script="${BASH_SOURCE[0]}"
 fi
 
-# このファイル (loader.sh) の親の親が dotfiles ルート
 _ld_script_dir="$(cd "$(dirname "$_ld_current_script")" && pwd)"
-export DOTPATH="$(cd "$_ld_script_dir/.." && pwd)"
-
-# 互換性のために他の名前もセットしておくが、基本は DOTPATH を使う
+# SC2155 対策: 宣言と代入を分離
+DOTPATH="$(cd "$_ld_script_dir/.." && pwd)"
+export DOTPATH
 export DOTFILES_PATH="$DOTPATH"
 export DOTFILES_ROOT="$DOTPATH"
 
@@ -31,8 +31,8 @@ fi
 _ld_common_dir="$DOTPATH/common"
 if [ -d "$_ld_common_dir" ]; then
     for _ld_f in "$_ld_common_dir"/_*.sh; do
-        # 読み込み中の多重読み込み防止ガードは各ファイル側に任せるか、
-        # 必要ならここでファイル名をチェック
+        # loader.sh 自体は source しない
+        [[ "$_ld_f" == *"loader.sh" ]] && continue
         if [ -r "$_ld_f" ]; then
             source "$_ld_f"
         fi
@@ -46,7 +46,6 @@ if [ -n "${ZSH_VERSION:-}" ]; then
     [ -r "$_ld_zsh_dir/options.zsh" ] && source "$_ld_zsh_dir/options.zsh"
     [ -r "$_ld_zsh_dir/aliases.zsh" ] && source "$_ld_zsh_dir/aliases.zsh"
     [ -r "$_ld_zsh_dir/_p10k.zsh" ]   && source "$_ld_zsh_dir/_p10k.zsh"
-    
     alias reload='exec zsh -l'
 elif [ -n "${BASH_VERSION:-}" ]; then
     [ "${EUID:-}" -eq 0 ] && export PS1='\[\e[1;37;41m\] ROOT \[\e[0m\] \[\e[01;31m\]\u@\h\[\e[0m\]:\[\033[01;34m\]\w\[\033[00m\]# '

@@ -87,7 +87,8 @@ deploy_configs() {
     [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
 
     # --- 1. バックアップディレクトリを確実に作成 ---
-    local backup_timestamp=$(date +%Y%m%d_%H%M%S)
+    local backup_timestamp
+    backup_timestamp=$(date +%Y%m%d_%H%M%S)
     local backup_dir="$target_home/.dotfiles_backup/$backup_timestamp"
     
     echo "🛡️  Preparing backup: $backup_dir"
@@ -140,8 +141,10 @@ deploy_configs() {
 
     # ${ZSH_VERSION:-} と書くことで、未定義なら空文字として扱いエラーを防ぐ
     if [ -n "${ZSH_VERSION:-}" ]; then
+        # shellcheck disable=SC1091
         [ -f "$target_home/.zshrc" ] && source "$target_home/.zshrc"
     elif [ -n "${BASH_VERSION:-}" ]; then
+        # shellcheck disable=SC1091
         [ -f "$target_home/.bashrc" ] && source "$target_home/.bashrc"
     fi
 }

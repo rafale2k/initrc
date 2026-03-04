@@ -39,7 +39,7 @@ set_tokyo_night_colors
 # ==========================================
 
 # シェル再起動
-if [ -n "$ZSH_VERSION" ]; then
+if [ -n "${ZSH_VERSION:-}" ]; then
     alias reload='exec zsh -l'
 elif [ -n "$BASH_VERSION" ]; then
     alias reload='source ~/.bashrc'

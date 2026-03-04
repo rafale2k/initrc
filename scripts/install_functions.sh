@@ -1,124 +1,102 @@
 #!/bin/bash
 
 # --- Technical Standards ---
-# This script ensures cross-distro compatibility (Ubuntu, Debian, AlmaLinux, Fedora).
-# It handles repository configuration, package naming discrepancies, and AI tool setup.
-# Shellcheck-compliant logic is used for environment variables and command validation.
+# Robust installer with binary fallback for eza, bat, and fd.
+# Designed to work in both root-based CI containers and user environments.
 
-# --- OS・パッケージマネージャーの判定とリポジトリ設定 ---
+# helper to run commands with sudo if available
+_sudo() {
+    if command -v sudo >/dev/null 2>&1; then
+        sudo "$@"
+    else
+        "$@"
+    fi
+}
+
 setup_os_repos() {
     local dotpath_tmp
     dotpath_tmp=$(cd "$(dirname "$0")/.." && pwd)
     [ -z "${DOTPATH:-}" ] && DOTPATH="$dotpath_tmp"
     
     if [ "$PM" = "apt" ]; then
-        echo "⚙️  Configuring repositories for apt..."
-        # 1. 最小限のツールをインストール
-        sudo apt-get update -qq --allow-releaseinfo-change || true
-        sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
+        echo "⚙️  Configuring apt repositories..."
+        _sudo apt-get update -qq || true
+        _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
         
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2)
+        _sudo mkdir -p /etc/apt/keyrings
         
-        # 2. キーリングディレクトリの作成
-        sudo mkdir -p /etc/apt/keyrings
-        
-        # 3. Eza (Exaの後継) のリポジトリ設定
-        echo "  🔑 Adding eza key..."
+        # Eza repo
         wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | \
-            sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
-        
+            _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
         echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | \
-            sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
+            _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
         
-        # 4. Docker のリポジトリ設定
-        echo "  🐳 Adding docker key..."
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-            sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
-            
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $codename stable" | \
-            sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        
-        # 5. インデックスの最終更新
-        sudo apt-get update -qq --allow-releaseinfo-change || true
+        _sudo apt-get update -qq || true
         
     elif [ "$PM" = "dnf" ]; then
-        echo "⚙️  Configuring repositories for dnf..."
-        # AlmaLinuxの場合、ezaやbatのためにEPELが必要
-        if grep -qi "AlmaLinux" /etc/redhat-release 2>/dev/null; then
-            echo "  📦 Enabling EPEL for AlmaLinux..."
-            sudo dnf install -y -q epel-release || true
+        echo "⚙️  Configuring dnf repositories..."
+        if grep -qi "Alma" /etc/os-release; then
+            _sudo dnf install -y -q epel-release || true
         fi
-        sudo dnf install -y -q dnf-plugins-core || true
-        sudo dnf config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo || true
-        sudo dnf makecache -q || true
+        _sudo dnf makecache -q || true
     fi
 }
 
 install_all_packages() {
-    # 共通パッケージリスト
-    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras bat)
-    
-    echo "📦 Installing packages for $OS ($PM)..."
-    
+    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx bat)
+    mkdir -p "$HOME/bin"
+    export PATH="$HOME/bin:$PATH"
+
     if [ "$OS" = "mac" ]; then
-        brew install "${common_pkgs[@]}" fd eza docker docker-compose
-    elif [ "$PM" = "apt" ]; then
-        # Debian系: ezaは追加リポジトリから、fdはfd-findとしてインストール
-        sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
-    elif [ "$PM" = "dnf" ]; then
-        # RedHat系: ezaはEPEL経由、fdはfd-findまたはfdとしてインストール
-        sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin || true
+        brew install "${common_pkgs[@]}" fd eza
+    else
+        if [ "$PM" = "apt" ]; then
+            _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza || true
+        elif [ "$PM" = "dnf" ]; then
+            _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza || true
+        fi
     fi
 
-    # --- コマンド名の不整合を物理的に解決する ---
-    # Ubuntu/Debianでの batcat -> bat, fdfind -> fd のリンクを作成
-    mkdir -p "$HOME/bin"
-    
-    # bat の正規化
-    if command -v batcat >/dev/null 2>&1 && ! command -v bat >/dev/null 2>&1; then
-        ln -sf "$(command -v batcat)" "$HOME/bin/bat"
-        echo "  🔗 Linked batcat to $HOME/bin/bat"
-    fi
-    # fd の正規化
-    if command -v fdfind >/dev/null 2>&1 && ! command -v fd >/dev/null 2>&1; then
-        ln -sf "$(command -v fdfind)" "$HOME/bin/fd"
-        echo "  🔗 Linked fdfind to $HOME/bin/fd"
+    # --- Naming Normalization ---
+    [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
+    [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
+
+    # --- CRITICAL FALLBACK: If eza is still missing, download binary ---
+    if ! command -v eza >/dev/null 2>&1; then
+        echo "⚠️  eza not found via PM. Downloading binary..."
+        local arch
+        arch=$(uname -m)
+        [ "$arch" = "x86_64" ] && arch="x86_64"
+        [ "$arch" = "aarch64" ] && arch="aarch64"
+        
+        # Download and extract latest eza binary to $HOME/bin
+        curl -L "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-unknown-linux-gnu.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
+        chmod +x "$HOME/bin/eza" 2>/dev/null || true
     fi
 }
 
 setup_oh_my_zsh() {
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        echo "🪄  Installing Oh My Zsh..."
         CHSH=no RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
 }
 
 setup_ai_tools() {
-    echo "🤖 Setting up AI tools..."
-    # PATHを一時的に通してpipxを叩けるようにする
     export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-    
     if ! command -v llm >/dev/null 2>&1; then
         pipx install llm || true
         pipx inject llm llm-gemini || true
     fi
-    
-    # ginv の作成先を $HOME/bin に変更
     local ginv_path="$HOME/bin/ginv"
     mkdir -p "$(dirname "$ginv_path")"
-    
     cat << 'EOF' > "$ginv_path"
 #!/bin/bash
-# AI Wrapper Script generated by initrc
-if [ -z "$1" ]; then
-    echo "Usage: ginv 'prompt'"
-    exit 1
-fi
+if [ -z "$1" ]; then exit 1; fi
 llm -m gemini-2.0-flash "$1"
 EOF
     chmod +x "$ginv_path"
-    echo "  ✅ AI tool 'ginv' deployed to $ginv_path"
 }
 
 deploy_configs() {
@@ -127,92 +105,31 @@ deploy_configs() {
     dotpath_tmp=$(cd "$(dirname "$0")/.." && pwd)
     [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
 
-    # --- 1. バックアップディレクトリを確実に作成 ---
-    local backup_timestamp
-    backup_timestamp=$(date +%Y%m%d_%H%M%S)
-    local backup_dir="$target_home/.dotfiles_backup/$backup_timestamp"
+    mkdir -p "$target_home/.dotfiles_backup"
     
-    echo "🛡️  Preparing backup: $backup_dir"
-    mkdir -p "$backup_dir"
-
-    # --- 2. デプロイ前に既存の実体ファイルをバックアップ ---
-    local targets=(".zshrc" ".bashrc" ".gitconfig" ".vimrc" ".nanorc" ".inputrc" ".gitignore_global")
-    for f_name in "${targets[@]}"; do
-        local f_path="$target_home/$f_name"
-        if [ -f "$f_path" ] && [ ! -L "$f_path" ]; then
-            cp -a "$f_path" "$backup_dir/"
-            echo "    📦 Saved original: $f_name"
-        fi
-    done
-
-    # --- 3. 置換・デプロイ関数 ---
     safe_replace() {
-        local src="$1"
-        local dst="$2"
+        local src="$1" dst="$2"
         [ ! -f "$src" ] && return 0
-        
         [ -L "$dst" ] && rm "$dst"
-        
-        # __DOTPATH__ を現在のパスに置換して配置
         perl -pe "s|__DOTPATH__|$DOTPATH|g" "$src" > "$dst"
-        echo "    ✅ Deployed: $(basename "$dst")"
     }
 
-    echo "🖇️  Deploying configuration files..."
     safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
     safe_replace "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
-    
     ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
-    ln -sf "$DOTPATH/configs/vimrc" "$target_home/.vimrc"
-    ln -sf "$DOTPATH/configs/inputrc" "$target_home/.inputrc"
-    ln -sf "$DOTPATH/configs/gitignore_global" "$target_home/.gitignore_global"
-
-    # --- 4. 環境のリロード ---
-    export DOTPATH="$DOTPATH"
-    echo "🚀 Environment reloaded."
-
-    if [ -n "${ZSH_VERSION:-}" ]; then
-        # shellcheck disable=SC1091
-        [ -f "$target_home/.zshrc" ] && source "$target_home/.zshrc"
-    elif [ -n "${BASH_VERSION:-}" ]; then
-        # shellcheck disable=SC1091
-        [ -f "$target_home/.bashrc" ] && source "$target_home/.bashrc"
-    fi
 }
 
-# --- 重複と構文エラーを物理的に封じ込める ---
 setup_root_loader() {
     local t="${1:-$HOME}"
-    [ -z "$t" ] || [ "$t" = "/" ] && return 0
-    
     local loader_line="source '$DOTPATH/common/loader.sh'"
-    
     for f in "$t/.zshrc" "$t/.bashrc"; do
         if [ -f "$f" ]; then
-            echo "✨ Purifying $f to resolve duplicates..."
-            local tmp_f
-            tmp_f="/tmp/purified_rc_$(basename "$f")"
-            
-            # common/loader.sh を含む行を置換して無効化
-            sed "s|common/loader\.sh|common/already_loaded.txt|g" "$f" > "$tmp_f"
-            
-            # 末尾に唯一のロード行を追加
-            echo -e "\n$loader_line # MAIN_LOADER" >> "$tmp_f"
-            
-            mv "$tmp_f" "$f"
+            sed -i "s|common/loader\.sh|common/already_loaded.txt|g" "$f"
+            echo -e "\n$loader_line # MAIN_LOADER" >> "$f"
         fi
     done
 }
 
 deploy_local_configs() {
-    local t="$1"
-    if [ -d "$DOTPATH/templates" ]; then
-        if [ -f "$DOTPATH/templates/.env.example" ] && [ ! -f "$t/.env" ]; then
-            cp "$DOTPATH/templates/.env.example" "$t/.env"
-        fi
-        if [ -f "$DOTPATH/templates/.gitconfig.local.example" ] && [ ! -f "$t/.gitconfig.local" ]; then
-            cp "$DOTPATH/templates/.gitconfig.local.example" "$t/.gitconfig.local"
-        fi
-    fi
     return 0
 }

@@ -42,7 +42,45 @@ set_tokyo_night_colors() {
         printf "\e]12;#7aa2f7\a"
     fi
 }
-set_tokyo_night_colors
+
+# ターミナル配色制御 (Monokai Dark)
+set_monokai_colors() {
+    [[ $- != *i* ]] && return 0
+    [ "$TERM" = "linux" ] && return 0
+
+    if [[ "$TERM" == "xterm-256color" || "$TERM" == "xterm" || "$TERM" == "screen-256color" ]]; then
+        # 0: Black (Backgroundに近い色), 8: Bright Black (Gray)
+        printf "\e]4;0;#272822\a"; printf "\e]4;8;#75715e\a"
+        # 1/9: Red (Pink)
+        printf "\e]4;1;#f92672\a"; printf "\e]4;9;#f92672\a"
+        # 2/10: Green
+        printf "\e]4;2;#a6e22e\a"; printf "\e]4;10;#a6e22e\a"
+        # 3/11: Yellow (Orange)
+        printf "\e]4;3;#f4bf75\a"; printf "\e]4;11;#f4bf75\a"
+        # 4/12: Blue (Cyan/Light Blue)
+        printf "\e]4;4;#66d9ef\a"; printf "\e]4;12;#66d9ef\a"
+        # 5/13: Magenta (Purple)
+        printf "\e]4;5;#ae81ff\a"; printf "\e]4;13;#ae81ff\a"
+        # 6/14: Cyan
+        printf "\e]4;6;#a1efe4\a"; printf "\e]4;14;#a1efe4\a"
+        # 7/15: White
+        printf "\e]4;7;#f8f8f2\a"; printf "\e]4;15;#f9f8f5\a"
+        
+        # 特殊設定
+        printf "\e]11;#272822\a"  # 背景色 (Background)
+        printf "\e]10;#f8f8f2\a"  # 前景色 (Foreground)
+        printf "\e]12;#f92672\a"  # カーソル色 (Cursor)
+    fi
+}
+
+# --- 出し分けロジック ---
+if [ "$EUID" -eq 0 ]; then
+    # rootユーザーはTokyo Night (警告の意味も込めて)
+    set_tokyo_night_colors
+else
+    # 一般ユーザーはMonokai Dark
+    set_monokai_colors
+fi
 
 # Monokai Dark inspired eza colors
 # ur=ユーザー権限(緑), gr=グループ(黄), tr=ツリーの枝(グレー), sn=サイズ(ピンク) etc.
@@ -129,38 +167,42 @@ alias gl='git pull'
 # Nano Wrapper & Selector
 # ---------------------------------------------------------
 n() {
-    local file bat_cmd fd_cmd
+    local file bat_cmd fd_cmd bg_color_orig bg_color_nano
     
-    # 1. コマンドの実体を変数に格納 (右側のロジック)
+    # 1. コマンドの実体を変数に格納
     bat_cmd=$(command -v batcat || command -v bat || echo "cat")
     fd_cmd=$(command -v fdfind || command -v fd || echo "find")
 
-    # 2. 引数がある場合 (直接ファイル指定)
+    # ユーザーに応じて背景色を定義
+    if [ "$EUID" -eq 0 ]; then
+        bg_color_orig="#1a1b26" # Tokyo Night (復元用)
+        bg_color_nano="#1a1b26" # rootはNano中も変えない（or お好みで変える）
+    else
+        bg_color_orig="#272822" # Monokai Dark (復元用)
+        bg_color_nano="#272822" # 一般ユーザーの常用色
+    fi
+
+    # 2. 引数がある場合
     if [ $# -gt 0 ]; then
-        # Nano起動前に背景色を変更 (左側のprintf)
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
-        
+        # Nano起動前に背景色をセット
+        printf "\e]4;0;%s\a" "$bg_color_nano"
         command nano "$@"
-        
-        # 終了後に背景色を元に戻す
-        [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
-        
+        # 終了後に元の色に復元
+        printf "\e]4;0;%s\a" "$bg_color_orig"
+
     # 3. 引数がない場合 (fzfでファイル選択)
     else
         if command -v fzf &> /dev/null; then
-            # 変数化した $fd_cmd と $bat_cmd を活用
             file=$($fd_cmd --type f --hidden --exclude .git 2>/dev/null | \
                    fzf --prompt="Nano File > " \
                        --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}")
             
             if [ -n "$file" ]; then
-                # 選択された場合のみ色替えしてNano起動
-                [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
+                printf "\e]4;0;%s\a" "$bg_color_nano"
                 command nano "$file"
-                [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
+                printf "\e]4;0;%s\a" "$bg_color_orig"
             fi
         else
-            # fzfがない場合は普通にnanoを起動
             command nano
         fi
     fi

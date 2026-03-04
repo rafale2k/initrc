@@ -105,17 +105,40 @@ alias gl='git pull'
 # Nano Wrapper & Selector
 # ---------------------------------------------------------
 n() {
-    local file bat_cmd
-    # エイリアスではなく実体を探す
+    local file bat_cmd fd_cmd
+    
+    # 1. コマンドの実体を変数に格納 (右側のロジック)
     bat_cmd=$(command -v batcat || command -v bat || echo "cat")
     fd_cmd=$(command -v fdfind || command -v fd || echo "find")
 
+    # 2. 引数がある場合 (直接ファイル指定)
     if [ $# -gt 0 ]; then
+        # Nano起動前に背景色を変更 (左側のprintf)
+        [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
+        
         command nano "$@"
+        
+        # 終了後に背景色を元に戻す
+        [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
+        
+    # 3. 引数がない場合 (fzfでファイル選択)
     else
-        # 変数化したコマンド名を使用
-        file=$($fd_cmd --type f --hidden --exclude .git 2>/dev/null | fzf --prompt="Nano File > " --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}")
-        [ -n "$file" ] && command nano "$file"
+        if command -v fzf &> /dev/null; then
+            # 変数化した $fd_cmd と $bat_cmd を活用
+            file=$($fd_cmd --type f --hidden --exclude .git 2>/dev/null | \
+                   fzf --prompt="Nano File > " \
+                       --preview "$bat_cmd --color=always --style=numbers --line-range=:500 {}")
+            
+            if [ -n "$file" ]; then
+                # 選択された場合のみ色替えしてNano起動
+                [ "$EUID" -ne 0 ] && printf "\e]4;0;#272822\a"
+                command nano "$file"
+                [ "$EUID" -ne 0 ] && printf "\e]4;0;#1a1b26\a"
+            fi
+        else
+            # fzfがない場合は普通にnanoを起動
+            command nano
+        fi
     fi
 }
 

@@ -82,7 +82,7 @@ g() {
 
     # 1. ブランチ情報と同期状態 (Monokai Green/Pink)
     echo -e "\033[32m-- Branch Status --\033[0m"
-    git branch -vv | grep "*" | sed "s/* /  /"
+    command git branch -vv | grep "^\*" | sed "s/^\* //"
     
     # 2. 短縮版ステータス (Monokai Blue)
     echo -e "\n\033[36m-- Changes --\033[0m"

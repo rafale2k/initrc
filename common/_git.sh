@@ -71,3 +71,29 @@ gquick() {
 if [ -f "$DOTFILES_PATH/bin/aic" ]; then
     alias aic='$DOTFILES_PATH/bin/aic'
 fi
+
+unalias g 2>/dev/null
+g() {
+    # 引数があればそのまま git に渡す (g commit -m ... とか)
+    if [ $# -gt 0 ]; then
+        git "$@"
+        return
+    fi
+
+    # 1. ブランチ情報と同期状態 (Monokai Green/Pink)
+    echo -e "\033[32m-- Branch Status --\033[0m"
+    git branch -vv | grep "*" | sed "s/* /  /"
+    
+    # 2. 短縮版ステータス (Monokai Blue)
+    echo -e "\n\033[36m-- Changes --\033[0m"
+    if [ -z "$(git status --short)" ]; then
+        echo "  Clean (nothing to commit)"
+    else
+        git status --short
+    fi
+
+    # 3. 直近 3 つのコミット (Monokai Purple/Gray)
+    echo -e "\n\033[35m-- Recent Commits --\033[0m"
+    git log -3 --pretty=format:"%C(yellow)%h%Creset %C(magenta)%ad%Creset %s %C(cyan)(%an)%Creset" --date=short
+    echo ""
+}

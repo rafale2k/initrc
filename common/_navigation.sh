@@ -84,3 +84,41 @@ fcd() {
 
     [ -n "$dir" ] && cd "$dir" || return
 }
+
+# 既存のエイリアスがあれば解除 (cd .. 系のエイリアスと被らないように)
+unalias up 2>/dev/null
+
+up() {
+    local d=""
+    local limit=$1
+
+    # 1. 引数がない場合は 1階層上に上がるだけ
+    if [ -z "$limit" ]; then
+        cd ..
+        return
+    fi
+
+    # 2. 引数が数字の場合 (例: up 3)
+    if [[ "$limit" =~ ^[0-9]+$ ]]; then
+        for ((i=0; i < limit; i++)); do
+            d="../$d"
+        done
+        cd "$d" || return
+
+    # 3. 引数が文字列の場合 (例: up src)
+    # 現在のパスを遡って、指定した名前のディレクトリを探す
+    else
+        local curr=$PWD
+        while [[ "$curr" != "/" ]]; do
+            # 親ディレクトリを取得
+            curr=$(dirname "$curr")
+            # そのディレクトリ名が引数と一致するか確認
+            if [[ "$(basename "$curr")" == "$limit" ]]; then
+                cd "$curr" || return
+                return
+            fi
+        done
+        echo "Directory '$limit' not found in parent paths."
+        return 1
+    fi
+}

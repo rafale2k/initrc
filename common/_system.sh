@@ -253,3 +253,39 @@ clipcopy() {
             ;;
     esac
 }
+
+unalias l 2>/dev/null
+l() {
+    # 1. 引数がない場合 (Log selector / Process monitor)
+    if [ $# -eq 0 ]; then
+        local log_file
+        log_file=$(find . -maxdepth 2 -name "*.log" 2>/dev/null | fzf --prompt="Watch Log > " --height=40% --reverse)
+        
+        if [ -n "$log_file" ]; then
+            echo -e "\033[35m-- Monitoring: $log_file --\033[0m"
+            if command -v ccze &> /dev/null; then
+                tail -f "$log_file" | ccze -A
+            else
+                tail -f "$log_file"
+            fi
+        else
+            echo -e "\033[32m-- System Resource Monitor --\033[0m"
+            # htopがあれば優先、なければtop
+            command -v htop &> /dev/null && htop || top -u "$USER"
+        fi
+        return
+    fi
+
+    # 2. 引数が数字ならポート調査 (sudo を活用)
+    if [[ "$1" =~ ^[0-9]+$ ]]; then
+        echo -e "\033[36m-- Process using port $1 (Checking with sudo) --\033[0m"
+        # sudo で lsof を実行。パスワードを求められるけど、これで全部見える
+        sudo lsof -i ":$1" || echo "No process found on port $1"
+        return
+    fi
+
+    # 3. 引数が文字列ならプロセス検索
+    echo -e "\033[33m-- Searching process: $1 --\033[0m"
+    # 自分以外のプロセスも見たいやろうから、ps aux を sudo なしで (全ユーザー分出る)
+    ps aux | grep -v grep | grep --color=always -i "$1"
+}

@@ -84,18 +84,19 @@ fcd() {
     fi
 }
 
-# --- 4. 外部ツール連携 ---
+# --- 4. 外部ツール連携 (zoxide etc) ---
 if command -v zoxide > /dev/null; then
-    # if-else でシェルを判定して変数に入れる
-    local shell_type
+    # 関数の外なので local は使わず、一時的な変数として扱う
+    _shell_type="bash"
     if [ -n "${ZSH_VERSION:-}" ]; then
-        shell_type="zsh"
-    else
-        shell_type="bash"
+        _shell_type="zsh"
     fi
     
-    # eval に渡す
-    eval "$(zoxide init "$shell_type")"
+    # eval に渡す（クォートを忘れずに！）
+    eval "$(zoxide init "$_shell_type")"
     alias j='z'
     export _ZO_FZF_OPTS="--preview 'eza -T -L 2 --icons --color=always {2..}' --preview-window=right:50%"
+    
+    # 使い終わった一時変数は unset しておくと、環境を汚さず SRE っぽい
+    unset _shell_type
 fi

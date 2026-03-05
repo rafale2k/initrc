@@ -1,6 +1,6 @@
-# 🚀 v1.19.0 "Universal Kernel" - Release Notes
+# 🚀 v1.20.0 - The "All Green" Monokai Edition
 
-![Version](https://img.shields.io/badge/version-1.19.0-blue)
+![Version](https://img.shields.io/badge/version-1.20.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -23,8 +23,8 @@
 ![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
-> **"Freedom to install, power to revert. Your environment, now completely portable."**
-> `v1.19.0` は、インストール時の設定のバックアップを搭載し、特定のパスに縛られない究極の移植性を手に入れた「完成形」へのマイルストーンです。
+>SRE（Site Reliability Engineering）としての「堅牢性」と「美学」を追求したターミナル環境構築リポジトリです。
+>すべてのスクリプトは **Shellcheck** による静的解析をパスしており、エラーに強く、美しい Monokai Dark 環境を提供します。
 
 ---
 
@@ -34,45 +34,69 @@
 
 ---
 
-## 🏗️ v1.18.0 "The Great Cleanup" - 主な変更点
+## 🏗️ v1.20.0 - The "All Green" Monokai Edition - 主な変更点
+## 🚀 Concept
 
-### 🧹 1. Official Uninstaller Support (`uninstall.sh`)
-「入れるのは簡単だが、消すのが面倒」というdotfiles最大の課題を解決しました。
-- **Auto-Detect & Revert**: `.zshrc` や `.bashrc` に追記された設定を自動検知し、痕跡を残さず削除します。
-- **App/Bin Cleanup**: インストールされた `eza`, `bat`, `fzf` などのバイナリや、Oh My Zsh関連のディレクトリを安全に一括整理します。
-
-### 🌍 2. True Path Portability (No More Hardcoded Paths)
-`/home/rafale` といった特定の絶対パスを排除し、環境変数を駆使したポータブルな構造に刷新しました。
-- **Dynamic Root Detection**: `common/loader.sh` が、自身が配置されたディレクトリから相対的に `DOTFILES_PATH` を自動割り出しします。
-- **Cross-User Ready**: どのユーザー名、どのホームディレクトリ下でも、クローンしてすぐに `install.sh` が動作します。
-
-### ⚡ 3. Optimized Loading Sequence
-読み込みログの視認性と処理効率を向上させました。
-- **Redundancy Elimination**: 重複していたロードループを一本化し、シェル起動時の無駄を排除。
-- **Visual Feedback**: 各モジュールの読み込み状況を `📖 Loading...` ログで明示し、トラブルシューティングを容易にしました。
+- **Reliability First**: `&& ||` 構文の罠を排除し、安全な `if-else` とエラーハンドリングを徹底。
+- **Context Awareness**: 一般ユーザーは **Monokai Dark**、rootユーザーは **Tokyo Night**。視覚的に権限を識別。
+- **Zero Friction**: `fzf`, `eza`, `bat`, `zoxide` を駆使し、移動・検索・監視の手数を最小化。
 
 ---
 
-## 🖼️ Features
+## 🛠️ The SRE Toolkit (Custom Functions)
 
-| Command | Feature | Description |
-| :--- | :--- | :--- |
-| `uninstall.sh` | **Clean Revert** | **[NEW]** 構築した環境をクリーンな状態に巻き戻します。 |
-| `loader.sh` | **Smart Load** | **[NEW]** パス自動計算機能を備えた次世代ローダー。 |
-| `ginv` | **AI Oracle** | Gemini 2.5 によるターミナル一体型 AI アシスタント。 |
-| `gs` / `ga` / `gc` | **Git Alias** | 爆速で Git 操作を行うための厳選エイリアス。 |
-| `reload` | **Instant Sync** | 設定変更を即座に反映（`exec zsh -l` のエイリアス）。 |
+日々の運用業務を爆速にする専用関数群です。
+
+### 1. `h` (Smart History)
+過去のコマンド履歴を `fzf` で曖昧検索します。
+- **特徴**: Monokai カラーでハイライト。選択したコマンドを実行せず「プロンプトに復元」するため、微調整してからの実行が可能。
+
+### 2. `l` (Advanced Monitor)
+ログ・プロセス・ポートをこれ一本で監視します。
+- `l`: カレントディレクトリの `.log` ファイルを `fzf` で選んで `tail -f`（`ccze` 連携）。
+- `l [Port]`: 指定ポートを使用中のプロセスを `sudo lsof` で調査。
+- `l [Keyword]`: 実行中のプロセスをキーワード検索。
+
+### 3. `up` (Directory Jumper)
+ディレクトリ階層をスマートに遡ります。
+- `up 3`: 3階層上に移動。
+- `up src`: 親ディレクトリの中から `src` という名前のディレクトリを探してワープ。
+
+### 4. `lt` (Enhanced Tree)
+`eza` を使用した高機能ツリー表示です。
+- `lt 2`: 2階層までのディレクトリ構造をアイコン・Gitステータス付きで表示。
 
 ---
 
-## 🛠️ 修正された不具合・改善点
+## 🎨 Terminal Colors
 
-| Target | Issue | Solution |
-| :--- | :--- | :--- |
-| **common/loader.sh** | 設定ファイルが2回ずつ読み込まれる | ロードループを整理し、ガード変数を最適化 |
-| **configs/gitconfig** | `safe.directory` の絶対パス依存 | ワイルドカードまたは相対参照による汎用化 |
-| **bash/.bashrc** | マージ後のファイル消失（空ファイル化） | Git履歴からの復旧と、上書き防止処理の強化 |
-| **System** | インストール後のパス通し重複 | `.zshrc` への PATH 追記ロジックをより厳密に改善 |
+| User | Theme | Background | Highlights |
+| :--- | :--- | :--- | :--- |
+| **General** | Monokai Dark | `#272822` | Pink / Green / Cyan |
+| **Root** | Tokyo Night | `#1a1b26` | Blue / Red / Purple |
+
+※ `nano` や `nvim` を閉じた後、背景色が確実に元のテーマへ復元されるよう制御されています。
+
+---
+
+## 📦 Requirements
+
+以下のモダンツールがインストールされている環境で最高のパフォーマンスを発揮します。
+- `fzf` (Fuzzy Finder)
+- `eza` (Modern `ls`)
+- `bat` (Modern `bat`)
+- `zoxide` (Modern `cd`)
+- `ccze` (Log Colorizer)
+
+---
+
+## 🛡️ Shellcheck Compliance
+
+このリポジトリの全 `.sh` / `.zsh` ファイルは、CI環境にて **Shellcheck** による厳格なチェックをクリアしています。
+
+- **SC2015**: 論理演算子による誤動作を防止。
+- **SC2164**: `cd` 失敗時の予期せぬ挙動をハンドリング。
+- **SC2016/SC2046**: クォートと変数展開の適正化。
 
 ---
 
@@ -84,8 +108,6 @@ git clone [https://github.com/rafale2k/initrc.git](https://github.com/rafale2k/i
 cd ~/dotfiles
 ./install.sh
 ```
-
----
 
 **既存環境の更新:**
 ```bash
@@ -107,4 +129,5 @@ reload
 
 ---
 
+**"Automate like an SRE, look like a Pro."**
 © 2026 Rafale / initrc Project.

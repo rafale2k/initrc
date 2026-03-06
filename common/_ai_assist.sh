@@ -3,7 +3,7 @@
 # --- Gemini AI Assistant: ask, wtf, dask, kask & dinv (llm powered v3.1) ---
 
 # [本番級設定] 使用するモデルを一括管理
-export AI_ASSIST_MODEL="gemini/gemini-2.5-flash-preview"
+export AI_ASSIST_MODEL="gemini/gemini-2.5-flash"
 
 # --- 内部ユーティリティ ---
 
@@ -50,6 +50,15 @@ _execute_ai_cmd() {
     fi
 }
 
+# 出力をフォーマット表示する内部関数 (SC2015 対策)
+_display_output() {
+    if command -v glow >/dev/null 2>&1; then
+        glow
+    else
+        cat
+    fi
+}
+
 # --- メイン関数 ---
 
 # [汎用] 質問からコマンドを生成
@@ -57,7 +66,10 @@ ask() {
     local query="$*"
     [[ -z "$query" ]] && { echo "🤔 Usage: ask 'Your question'"; return 1; }
 
-    local system_prompt="You are a pragmatic Shell Expert. Output ONLY the executable shell command for $(uname). No markdown, no explanation, no code blocks."
+    # SC2155 対策: 宣言と代入を分ける
+    local system_prompt
+    system_prompt="You are a pragmatic Shell Expert. Output ONLY the executable shell command for $(uname). No markdown, no explanation, no code blocks."
+    
     echo "🤖 Thinking..."
     
     local raw_cmd
@@ -130,7 +142,8 @@ wtf() {
     echo "🔍 Analyzing error..."
     local system_prompt="You are a senior DevOps engineer. Analyze this error and provide a concise fix in markdown."
     echo -e "--- 🤖 Error Analysis ---\n"
-    echo "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" | (command -v glow >/dev/null && glow || cat)
+    # SC2015 対策: パイプ先を専用の関数へ
+    echo "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" | _display_output
     echo -e "\n--------------------------"
 }
 
@@ -155,5 +168,6 @@ dinv() {
 
     local system_prompt="You are a Senior SRE. Analyze the provided file content based on the query."
     echo -e "🤖 Analyzing with Gemini...\n"
-    echo -e "[File: $file_path]\n$content" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query" | (command -v glow >/dev/null && glow || cat)
+    # SC2015 対策
+    echo -e "[File: $file_path]\n$content" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query" | _display_output
 }

@@ -3,7 +3,8 @@
 
 # プロンプトが表示される直前に実行
 function _my_precmd_hook() {
-    # Zsh の特殊変数 $functions を使って存在確認 (Bashの type -t の代わり)
+    # SC2154対策: Zsh固有の特殊変数 $functions を Shellcheck に無視させる
+    # shellcheck disable=SC2154
     if (( $+functions[set_monokai_colors] )); then
         set_monokai_colors
     fi

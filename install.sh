@@ -42,25 +42,26 @@ echo "🌍 Detected OS: $OS (using $PM)"
 export PM OS SUDO_CMD DOTPATH
 
 # 3. 実行シークエンス
+# A. まずはリポジトリとパッケージ（zsh等）を入れる
 setup_os_repos           # リポジトリ準備
 install_all_packages     # パッケージ一括インストール
 
-# --- ここで変数を定義してチェックを実行 ---
-SCRIPTS_DIR="$DOTPATH/scripts"  # 変数をここで定義
+# B. 【重要】OMZをセットアップする前にサブモジュールを同期
+echo "🔗 Syncing submodules (Powerlevel10k, etc.)..."
+git config --global --add safe.directory "$(pwd)"
+git submodule update --init --recursive || { echo "❌ Git submodule sync failed"; exit 1; }
 
+# C. ポストチェック（パッケージがちゃんと入ったか）
+SCRIPTS_DIR="$DOTPATH/scripts"
 if [ -f "$SCRIPTS_DIR/check_tools.sh" ]; then
     echo "🔍 Verifying installed tools..."
-    # source して実行。check_tools.sh 内で直接処理が走るはずや。
     # shellcheck disable=SC1091
     source "$SCRIPTS_DIR/check_tools.sh"
-else
-    echo "⚠️  Warning: scripts/check_tools.sh not found. Skipping verification."
 fi
 
+# D. ツールが揃った状態で設定ファイルを展開
 setup_oh_my_zsh          # Oh My Zsh 本体の作成
 echo "🔗 Syncing submodules..."
-git config --global --add safe.directory "$(pwd)"
-git submodule update --init --recursive
 
 # AI ツール (ginv) を物理的に作成
 setup_ai_tools          

@@ -1,6 +1,6 @@
-# 🚀 v1.20.0 - The "All Green" Monokai Edition
+# 🚀 v1.21.0 - The AI-Enhanced SRE Framework
 
-![Version](https://img.shields.io/badge/version-1.20.0-blue)
+![Version](https://img.shields.io/badge/version-1.21.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -15,7 +15,7 @@
 
 ---
 
-![AI](https://img.shields.io/badge/AI-Gemini%202.5%20Flash-vibrantblue?logo=google-gemini&logoColor=white)
+![AI](https://img.shields.io/badge/AI-Gemini%203%20Flash-vibrantblue?logo=google-gemini&logoColor=white)
 ![LLM](https://img.shields.io/badge/LLM-llm%20integrated-6f42c1?logo=python&logoColor=white)
 ![Linting](https://img.shields.io/badge/shellcheck-100%25%20passing-brightgreen)
 ![IaC](https://img.shields.io/badge/concept-IaC%20Ready-lightgrey?logo=terraform&logoColor=623CE4)
@@ -23,8 +23,8 @@
 ![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
->SRE（Site Reliability Engineering）としての「堅牢性」と「美学」を追求したターミナル環境構築リポジトリです。
->すべてのスクリプトは **Shellcheck** による静的解析をパスしており、エラーに強く、美しい Monokai Dark 環境を提供します。
+> SRE（Site Reliability Engineering）としての「堅牢性」と「知能」を追求したターミナル環境。
+> すべてのスクリプトは **Shellcheck** をパス。AI 連携による次世代のオペレーション体験を提供します。
 
 ---
 
@@ -34,37 +34,52 @@
 
 ---
 
-## 🏗️ v1.20.0 - The "All Green" Monokai Edition - 主な変更点
-## 🚀 Concept
+## 🏗️ v1.21.0 - What's New
+- **AI-Native Workflow**: `llm` と `Gemini` を統合。シェルから直接インフラ診断が可能に。
+- **Modular Architecture**: `common/`, `zsh/`, `bash/` への責務分離により、保守性を極限まで向上。
+- **Custom Framework**: OMB カスタムテーマ `rafale-sre` による、堅牢な Root 権限識別。
 
-- **Reliability First**: `&& ||` 構文の罠を排除し、安全な `if-else` とエラーハンドリングを徹底。
-- **Context Awareness**: 一般ユーザーは **Monokai Dark**、rootユーザーは **Tokyo Night**。視覚的に権限を識別。
-- **Zero Friction**: `fzf`, `eza`, `bat`, `zoxide` を駆使し、移動・検索・監視の手数を最小化。
+## 🚀 Concept
+- **Reliability First**: `if-else` とエラーハンドリングを徹底し、破壊的コマンドの誤実行を AI が検知。
+- **Context Awareness**: 一般ユーザーは **Monokai Dark**、rootユーザーは **Tokyo Night**。視覚的安全装置を完備。
+- **Zero Friction**: ツール間の競合（Zoxide vs Frameworks）を完全に排除。
+
+---
+
+## 🤖 AI Assistant (SRE Copilot)
+自然言語でシェルを操作する、SRE 専用の AI 関数群です。
+
+### 1. `ask` (General Assistant)
+自然言語からシェルコマンドを生成し、実行の可否を問います。
+- `ask 'find large files and sort by size'`
+
+### 2. `dask` (Docker Assistant)
+Docker のコンテキスト（Status, Logs, Compose）を自動解析し、トラブルシューティングを提案。
+- `dask 'why is the web container restarting?'`
+
+### 3. `kask` (Kubernetes Assistant)
+K8s クラスターの状態、Namespace の異常、Events を解析。
+- `kask 'check failed pods in production'`
+
+### 4. `wtf` (Contextual Debugger)
+直前のエラーメッセージやクリップボードの内容を解析し、原因と対策を提示。
 
 ---
 
 ## 🛠️ The SRE Toolkit (Custom Functions)
 
-日々の運用業務を爆速にする専用関数群です。
 
 ### 1. `h` (Smart History)
-過去のコマンド履歴を `fzf` で曖昧検索します。
-- **特徴**: Monokai カラーでハイライト。選択したコマンドを実行せず「プロンプトに復元」するため、微調整してからの実行が可能。
+履歴を `fzf` で曖昧検索。Monokai カラーでハイライトし、プロンプトに復元。
 
 ### 2. `l` (Advanced Monitor)
-ログ・プロセス・ポートをこれ一本で監視します。
-- `l`: カレントディレクトリの `.log` ファイルを `fzf` で選んで `tail -f`（`ccze` 連携）。
-- `l [Port]`: 指定ポートを使用中のプロセスを `sudo lsof` で調査。
-- `l [Keyword]`: 実行中のプロセスをキーワード検索。
+`l` でログ監視、`l [Port]` でポート調査、`l [Keyword]` でプロセス検索。
 
 ### 3. `up` (Directory Jumper)
-ディレクトリ階層をスマートに遡ります。
-- `up 3`: 3階層上に移動。
-- `up src`: 親ディレクトリの中から `src` という名前のディレクトリを探してワープ。
+`up 3` で 3 階層上へ、`up src` で親ディレクトリの `src` へワープ。
 
 ### 4. `lt` (Enhanced Tree)
-`eza` を使用した高機能ツリー表示です。
-- `lt 2`: 2階層までのディレクトリ構造をアイコン・Gitステータス付きで表示。
+`eza` を使用。Git ステータスとアイコン付きのディレクトリ構造表示。
 
 ---
 
@@ -75,28 +90,11 @@
 | **General** | Monokai Dark | `#272822` | Pink / Green / Cyan |
 | **Root** | Tokyo Night | `#1a1b26` | Blue / Red / Purple |
 
-※ `nano` や `nvim` を閉じた後、背景色が確実に元のテーマへ復元されるよう制御されています。
-
 ---
 
 ## 📦 Requirements
-
-以下のモダンツールがインストールされている環境で最高のパフォーマンスを発揮します。
-- `fzf` (Fuzzy Finder)
-- `eza` (Modern `ls`)
-- `bat` (Modern `bat`)
-- `zoxide` (Modern `cd`)
-- `ccze` (Log Colorizer)
-
----
-
-## 🛡️ Shellcheck Compliance
-
-このリポジトリの全 `.sh` / `.zsh` ファイルは、CI環境にて **Shellcheck** による厳格なチェックをクリアしています。
-
-- **SC2015**: 論理演算子による誤動作を防止。
-- **SC2164**: `cd` 失敗時の予期せぬ挙動をハンドリング。
-- **SC2016/SC2046**: クォートと変数展開の適正化。
+- `fzf`, `eza`, `bat`, `zoxide`, `ccze`
+- `python3` & `llm` (AI 機能用)
 
 ---
 

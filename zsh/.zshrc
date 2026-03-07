@@ -41,7 +41,6 @@ plugins=(
 source $ZSH/oh-my-zsh.sh
 
 # 4. Powerlevel10k 設定読み込み
-# .zshrc の 46行目付近を修正
 if [[ -f "$DOTPATH/zsh/.p10k.zsh" ]]; then
   source "$DOTPATH/zsh/.p10k.zsh"
 elif [[ -f ~/.p10k.zsh ]]; then

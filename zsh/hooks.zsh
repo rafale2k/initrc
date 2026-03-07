@@ -1,15 +1,14 @@
 # shellcheck shell=bash
-# --- zsh/hooks.zsh: Event Hooks ---
+# --- zsh/hooks.zsh ---
 
+# プロンプトが表示される直前に実行
+function _my_precmd_hook() {
+    # Zsh の特殊変数 $functions を使って存在確認 (Bashの type -t の代わり)
+    if (( $+functions[set_monokai_colors] )); then
+        set_monokai_colors
+    fi
+}
+
+# 既存のフックに追加
 autoload -Uz add-zsh-hook
-
-# common/_system.sh で定義された関数をフックに登録
-if [ "$EUID" -eq 0 ]; then
-    # 起動時に即時適用
-    set_tokyo_night_colors
-    # プロンプト表示のたびに再適用 (色の剥がれ防止)
-    add-zsh-hook precmd set_tokyo_night_colors
-else
-    set_monokai_colors
-    add-zsh-hook precmd set_monokai_colors
-fi
+add-zsh-hook precmd _my_precmd_hook

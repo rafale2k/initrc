@@ -2,14 +2,13 @@
 set -u
 
 # --- 🏷️ Version Definition ---
-readonly VERSION="1.20.0"
+readonly VERSION="1.21.0"
 
 # パス確定
 DOTPATH=$(cd "$(dirname "$0")" && pwd)
 export DOTPATH
 
 # --- 🚀 Start Message ---
-# ここが "v1.17.0" になっていたはずや
 echo "🎯 Starting installation v${VERSION} from ${DOTPATH}..."
 
 # 共通関数の読み込み (v1.17.0: common から scripts へ移動)
@@ -43,8 +42,21 @@ echo "🌍 Detected OS: $OS (using $PM)"
 export PM OS SUDO_CMD DOTPATH
 
 # 3. 実行シークエンス
-setup_os_repos          # リポジトリ準備
-install_all_packages    # パッケージ一括インストール
+setup_os_repos           # リポジトリ準備
+install_all_packages     # パッケージ一括インストール
+
+# --- ここで変数を定義してチェックを実行 ---
+SCRIPTS_DIR="$DOTPATH/scripts"  # 変数をここで定義
+
+if [ -f "$SCRIPTS_DIR/check_tools.sh" ]; then
+    echo "🔍 Verifying installed tools..."
+    # source して実行。check_tools.sh 内で直接処理が走るはずや。
+    # shellcheck disable=SC1091
+    source "$SCRIPTS_DIR/check_tools.sh"
+else
+    echo "⚠️  Warning: scripts/check_tools.sh not found. Skipping verification."
+fi
+
 setup_oh_my_zsh          # Oh My Zsh 本体の作成
 echo "🔗 Syncing submodules..."
 git config --global --add safe.directory "$(pwd)"

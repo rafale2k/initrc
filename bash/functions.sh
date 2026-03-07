@@ -2,24 +2,32 @@
 # --- bash/functions.sh ---
 
 copyfile() {
-    if [ -z "$1" ] || [ ! -f "$1" ]; then
+    if [ -z "$1" ]; then
         echo "Usage: copyfile <file>"
         return 1
     fi
 
-    # SSH接続中、またはDISPLAY変数が空ならOSC 52を優先
+    if [ ! -f "$1" ]; then
+        echo "Error: $1 is not a file."
+        return 1
+    fi
+
+    # --- 判定ロジック：SSH接続中、またはDISPLAY変数が空ならOSC 52を優先 ---
     if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -z "$DISPLAY" ]; then
-        printf "\033]52;c;$(base64 < "$1" | tr -d '\n')\007"
+        # SC2059 対策: 変数を直接入れず %s を使う
+        printf "\033]52;c;%s\007" "$(base64 < "$1" | tr -d '\n')"
         echo "✅ Copied $1 to local clipboard (via OSC 52 over SSH)"
         return 0
     fi
 
-    # ローカルでのフォールバック
+    # --- ローカル（デスクトップ環境）でのフォールバック ---
     if command -v xclip >/dev/null 2>&1; then
-        cat "$1" | xclip -selection clipboard
+        # SC2002 対策: cat を使わずリダイレクトで渡す
+        xclip -selection clipboard < "$1"
         echo "✅ Copied $1 to clipboard (via xclip)"
     elif command -v xsel >/dev/null 2>&1; then
-        cat "$1" | xsel --clipboard --input
+        # SC2002 対策: cat を使わずリダイレクトで渡す
+        xsel --clipboard --input < "$1"
         echo "✅ Copied $1 to clipboard (via xsel)"
     else
         echo "Error: No clipboard tool found."

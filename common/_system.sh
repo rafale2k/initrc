@@ -42,8 +42,9 @@ else
 fi
 
 # --- 3. 環境変数 (eza / LS_COLORS) ---
-export EZA_COLORS="ur=32:gu=32:gr=33:gw=33:tr=38;5;244:sn=35:nb=35:nm=35:da=38;5;248:di=36:fi=0:ln=35:pi=33:so=35:bd=33;46:cd=33;43:or=31;40:mi=31;40:ex=32:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44"
-export LS_COLORS=$EZA_COLORS
+_MY_EZA_COLORS="ur=32:gu=32:gr=33:gw=33:tr=38;5;244:sn=35:nb=35:nm=35:da=38;5;248:di=36:fi=0:ln=35:pi=33:so=35:bd=33;46:cd=33;43:or=31;40:mi=31;40:ex=32:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44"
+#export EZA_COLORS="ur=32:gu=32:gr=33:gw=33:tr=38;5;244:sn=35:nb=35:nm=35:da=38;5;248:di=36:fi=0:ln=35:pi=33:so=35:bd=33;46:cd=33;43:or=31;40:mi=31;40:ex=32:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44"
+#export LS_COLORS=$EZA_COLORS
 
 # --- 4. 関数定義 (エイリアスより先に定義) ---
 
@@ -152,10 +153,12 @@ alias mem='ps auxf | sort -nr -k 4 | head -n 10'
 command -v fdfind &> /dev/null && alias fd='fdfind'
 
 if [ -x "$HOME/bin/eza" ]; then
+    export EZA_COLORS="$_MY_EZA_COLORS"
     alias ls='$HOME/bin/eza --icons --group-directories-first'
     alias ll='$HOME/bin/eza -alF --icons --git'
     alias la='$HOME/bin/eza -a --icons --group-directories-first'
 else
+    unset LS_COLORS
     alias ls='ls --color=auto'
     alias ll='ls -alF'
     alias la='ls -a'

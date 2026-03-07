@@ -103,8 +103,26 @@ install_all_packages() {
 }
 
 setup_oh_my_zsh() {
+    # 1. 本体がない場合は入れる (省略)
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
         CHSH=no RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    fi
+
+    # 2. Powerlevel10k のリンク作成を「鉄壁」にする
+    local p10k_src="$DOTPATH/zsh/themes/powerlevel10k"
+    local p10k_dest="$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
+
+    if [ -d "$p10k_src" ]; then
+        echo "🔗 Linking Powerlevel10k theme..."
+        mkdir -p "$HOME/.oh-my-zsh/custom/themes"
+        # 既存の壊れたリンクがあれば削除
+        rm -rf "$p10k_dest"
+        # 絶対パスで確実にリンク
+        ln -sf "$p10k_src" "$p10k_dest"
+    else
+        echo "❌ Error: Powerlevel10k source not found at $p10k_src"
+        echo "💡 Did you run 'git submodule update --init --recursive'?"
+        exit 1
     fi
 
     local custom_plugin_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
@@ -168,16 +186,23 @@ deploy_configs() {
 }
 
 setup_root_loader() {
-    local t="${1:-$HOME}"
-    local loader_line="source '$DOTPATH/common/loader.sh'"
-    for f in "$t/.zshrc" "$t/.bashrc"; do
-        if [ -f "$f" ]; then
-            perl -i -pe "s|common/loader\.sh|common/already_loaded.txt|g" "$f"
-            echo -e "\n$loader_line # MAIN_LOADER" >> "$f"
-        fi
-    done
-}
+    local target_home=$1
+    echo "🛡️ Configuring Root loader for $target_home..."
 
+    # Rootの.bashrcに、共通設定を読み込むフックを追記
+    # sudo 経由で Root の領域に書き込む
+    $SUDO_CMD bash -c "cat << 'EOF' >> /root/.bashrc
+
+# --- Rafale SRE Root Loader ---
+export DOTPATH='$DOTPATH'
+if [ -f \"\$DOTPATH/common/loader.sh\" ]; then
+    source \"\$DOTPATH/common/loader.sh\"
+fi
+if [ -f \"\$DOTPATH/bash/options.sh\" ]; then
+    source \"\$DOTPATH/bash/options.sh\"
+fi
+EOF"
+}
 deploy_local_configs() {
     return 0
 }

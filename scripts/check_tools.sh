@@ -1,63 +1,53 @@
 #!/bin/bash
+# shellcheck shell=bash
+# --- scripts/check_tools.sh: Pre-flight Verification ---
 
-# --- Technical Standards ---
-# This script validates the presence of modern CLI tools across different environments.
-# It handles OS-specific binary naming conventions (e.g., fdfind vs fd).
-
-set -euo pipefail
+# 呼び出し元 (install.sh) で EXIT_CODE を管理できるよう初期化
+EXIT_CODE=0
 
 echo "--- Checking Modern CLI Tools ---"
 
-# Function to check and link tools
 check_tool() {
     local cmd=$1
     local alt_name=${2:-""}
 
     if command -v "$cmd" >/dev/null 2>&1; then
         echo "✅ $cmd found at $(command -v "$cmd")"
-        "$cmd" --version | head -n 1
+        "$cmd" --version 2>/dev/null | head -n 1 || echo "Version: N/A"
     elif [[ -n "$alt_name" ]] && command -v "$alt_name" >/dev/null 2>&1; then
-        echo "✅ $alt_name found, using as $cmd"
-        # Optional: create a symbolic link if needed
-        # ln -s "$(command -v "$alt_name")" "/usr/local/bin/$cmd"
+        echo "✅ $alt_name found, using as $cmd (OS-specific name)"
+        # 必要ならここでエイリアスやシンボリックリンクの作成を検討
     else
-        echo "❌ $cmd (or $alt_name) not found. Searching system..."
-        find / -name "$cmd" -type f 2>/dev/null | grep bin || echo "Not found anywhere"
+        echo "❌ $cmd (or $alt_name) not found in PATH."
+        echo "💡 Hint: Ensure your PATH includes /usr/local/bin or ~/bin"
         return 1
     fi
 }
 
-# 1. eza check (Modern replacement for ls)
+# 1. ツールチェック
 check_tool "eza" "exa" || EXIT_CODE=1
-
-# 2. bat check (cat with wings)
-# On Debian/Ubuntu, it's often 'batcat'
 check_tool "bat" "batcat" || EXIT_CODE=1
-
-# 3. fd check (simple/fast alternative to find)
-# On Debian/Ubuntu, it's 'fdfind'
 check_tool "fd" "fdfind" || EXIT_CODE=1
 
 echo "--- Checking AI Wrappers ---"
 
-# Fix for the /github/home/bin issue
 TARGET_BIN_DIR="${HOME}/bin"
-if [[ ! -d "$TARGET_BIN_DIR" ]]; then
-    echo "Directory $TARGET_BIN_DIR not found. Creating it..."
-    mkdir -p "$TARGET_BIN_DIR"
-fi
+# ディレクトリがなければ作成（冪等性の確保）
+[ ! -d "$TARGET_BIN_DIR" ] && mkdir -p "$TARGET_BIN_DIR"
 
 if [[ -f "$TARGET_BIN_DIR/ginv" ]]; then
     echo "✅ ginv found at $TARGET_BIN_DIR/ginv"
 else
-    echo "❌ ginv not found at $TARGET_BIN_DIR/ginv."
-    echo "Content of $TARGET_BIN_DIR:"
-    ls -A "$TARGET_BIN_DIR" || echo "Directory is empty"
-    # Exit with error if this is a required tool
-    # exit 1 
+    echo "⚠️  ginv not found at $TARGET_BIN_DIR/ginv."
+    # ここは警告に留めるか、EXIT_CODE=1 にするか選べる
 fi
 
-if [[ ${EXIT_CODE:-0} -ne 0 ]]; then
-    echo "Error: One or more critical tools are missing."
-    exit 1
+# 最後にまとめて判定
+if [[ $EXIT_CODE -ne 0 ]]; then
+    echo "------------------------------------------------"
+    echo "🚨 Error: One or more critical tools are missing."
+    echo "Please install dependencies before proceeding."
+    echo "------------------------------------------------"
+    # source して使う場合は return、直接実行なら exit
+    (return 0 2>/dev/null) && return 1 || exit 1
 fi

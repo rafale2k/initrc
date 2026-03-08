@@ -1,34 +1,33 @@
 #!/bin/bash
-# bin/release: バージョンアップ、CHANGELOG更新、タグ打ち、Pushを全自動化
+# bin/release: v-prefix 矯正 & 自動化版
 
 set -e
 
 if [ -z "$1" ]; then
-    echo "❌ Usage: release v1.X.X"
+    echo "❌ Usage: release 1.X.X (or v1.X.X)"
     exit 1
 fi
 
-VERSION=$1
+# v を強制付与
+RAW_VER=$1
+[[ $RAW_VER != v* ]] && VERSION="v$RAW_VER" || VERSION="$RAW_VER"
 
-echo "🚀 Releasing $VERSION..."
+echo "🚀 Preparing Release $VERSION..."
 
-# 1. 念のための Lint チェック
+# 1. Lint Check
 echo "🔍 Running lint..."
-~/dotfiles/common/_git.sh # lint エイリアスが定義されているファイルをソース
-# (実際には alias なので直接コマンドを叩くのが確実)
 find . -type f \( -name "*.sh" -o -name "*.zsh" \) -not -path "*/oh-my-zsh/*" -not -path "*/themes/*" -not -path "*/plugins/*" -not -path "*/.git/*" | xargs shellcheck
 
-# 2. CHANGELOG 更新
-echo "📝 Updating CHANGELOG.md..."
+# 2. Generate CHANGELOG
 ~/dotfiles/bin/gen-changelog "$VERSION"
 
-# 3. コミット & タグ打ち
+# 3. Commit & Tag
 git add CHANGELOG.md
 git commit -m "chore: release $VERSION"
 git tag -a "$VERSION" -m "Release $VERSION"
 
-# 4. Push (歴史改変後なので --force をデフォルトに)
-echo "📤 Pushing to remote..."
+# 4. Force Push (Tags & Main)
+echo "📤 Pushing $VERSION to remote..."
 git push origin main --force --tags
 
-echo "✨ Release $VERSION successfully finished!"
+echo "✨ Successfully released $VERSION!"

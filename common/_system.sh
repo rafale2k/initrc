@@ -125,6 +125,7 @@ l() {
     pids=$(pgrep -d, -f -i "$1")
     if [ -n "$pids" ]; then
         # ヘッダーを維持しつつヒット箇所を色付け
+        # shellcheck disable=SC2009
         ps -up "$pids" | grep --color=always -i -E "$1|$"
     else
         echo "No process found matching: $1"

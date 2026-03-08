@@ -21,10 +21,10 @@ function _my_preexec_latency() {
 
 # コマンド終了時に差分を計算
 function _my_precmd_latency() {
-    if [ $timer ]; then
+    if [ "$timer" ]; then
         local now=$SECONDS
         local elapsed=$((now - timer))
-        if [ $elapsed -ge 10 ]; then
+        if (( elapsed >= 10 )); then
             export LATENCY_ALERT="🐢(${elapsed}s)"
         else
             export LATENCY_ALERT=""

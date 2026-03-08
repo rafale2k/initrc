@@ -1,3 +1,4 @@
+#!/bin/bash
 # 環境識別アイコンを返す関数
 get_env_icon() {
     if [ -f /.dockerenv ]; then
@@ -12,4 +13,5 @@ get_env_icon() {
         echo "🏠" # ローカル物理マシン
     fi
 }
-export ENV_ICON=$(get_env_icon)
+ENV_ICON=$(get_env_icon)
+export ENV_ICON

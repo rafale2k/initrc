@@ -28,6 +28,9 @@ alias gcount='git effort --above 5' # 修正回数ランキング
 alias gline='git line'       # 1行ログ (作者名/相対時間入り)
 alias ggraph='git graph'     # 綺麗なグラフ表示
 
+# [lint] 自分のコードだけを ShellCheck する
+alias lint='find . -type f \( -name "*.sh" -o -name "*.zsh" \) -not -path "*/oh-my-zsh/*" -not -path "*/themes/*" -not -path "*/plugins/*" -not -path "*/.git/*" | xargs shellcheck'
+
 # --- 4. Cleanup (Local & Remote) ---
 # ローカルのマージ済みブランチ削除
 alias gcl='git branch --merged | grep -vE "^\*|master|main|develop" | xargs -r git branch -d'
@@ -71,8 +74,10 @@ if [ -f "$DOTFILES_PATH/bin/aic" ]; then
 fi
 
 # ステージングされた差分を AI にレビューさせる
+# --- 修正後の greview 関数 ---
 greview() {
-    local diff=$(git diff --cached)
+    local diff
+    diff=$(git diff --cached) # SC2155: 分割して代入
     if [ -z "$diff" ]; then
         echo "❌ No staged changes to review."
         return 1
@@ -87,17 +92,21 @@ g() {
         git "$@"
         return
     fi
-
-    # 1. Branch & Remote Sync Status (Ahead/Behind 可視化)
-    echo -e "\033[32m-- Branch Status --\033[0m"
-    local branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    # 1. Branch & Remote Sync Status (Ahead/Behind 可視化)    echo -e "\033[32m-- Branch Status --\033[0m"
+    local branch
+    branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) # SC2155
     [ -z "$branch" ] && return
     
-    local upstream=$(git rev-parse --abbrev-ref @{u} 2>/dev/null)
+    local upstream
+    # SC1083: @{u} は引用符で囲んでリテラルとして扱う
+    upstream=$(git rev-parse --abbrev-ref "@{u}" 2>/dev/null) 
+    
     if [ -n "$upstream" ]; then
-        local counts=$(git rev-list --left-right --count $branch...$upstream)
-        local ahead=$(echo $counts | awk '{print $1}')
-        local behind=$(echo $counts | awk '{print $2}')
+        local counts ahead behind
+        # SC2086: 変数はダブルクォートで囲む
+        counts=$(git rev-list --left-right --count "$branch"..."$upstream") 
+        ahead=$(echo "$counts" | awk '{print $1}')
+        behind=$(echo "$counts" | awk '{print $2}')
         echo -ne "* \033[33m$branch\033[0m (Ahead: $ahead, Behind: $behind)\n"
     else
         echo -e "* \033[33m$branch\033[0m (No remote tracking)"

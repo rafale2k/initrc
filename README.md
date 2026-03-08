@@ -1,6 +1,6 @@
-# 🚀 v1.21.0 - The AI-Enhanced SRE Framework
+# 🚀 v1.25.0 - The AI-Enhanced SRE Framework
 
-![Version](https://img.shields.io/badge/version-1.21.0-blue)
+![Version](https://img.shields.io/badge/version-1.25.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -34,13 +34,16 @@
 
 ---
 
-## 🏗️ v1.21.0 - What's New
-- **AI-Native Workflow**: `llm` と `Gemini` を統合。シェルから直接インフラ診断が可能に。
+---
+
+## 🏗️ v1.25.0 - What's New
+- **Automated SRE Release**: `bin/release` による自動 Lint、CHANGELOG 生成、GitHub Release 連携を完全自動化。
+- **Tagging Standard**: バージョニングに `v` プレフィックスを導入。セマンティックバージョニングを厳守。
+- **AI-Native Workflow**: `llm` と `Gemini` を統合。シェルから直接インフラ診断が可能。
 - **Modular Architecture**: `common/`, `zsh/`, `bash/` への責務分離により、保守性を極限まで向上。
-- **Custom Framework**: OMB カスタムテーマ `rafale-sre` による、堅牢な Root 権限識別。
 
 ## 🚀 Concept
-- **Reliability First**: `if-else` とエラーハンドリングを徹底し、破壊的コマンドの誤実行を AI が検知。
+- **Reliability First**: `if-else` とエラーハンドリングを徹底。破壊的コマンドの誤実行を AI が検知。
 - **Context Awareness**: 一般ユーザーは **Monokai Dark**、rootユーザーは **Tokyo Night**。視覚的安全装置を完備。
 - **Zero Friction**: ツール間の競合（Zoxide vs Frameworks）を完全に排除。
 
@@ -68,7 +71,6 @@ K8s クラスターの状態、Namespace の異常、Events を解析。
 
 ## 🛠️ The SRE Toolkit (Custom Functions)
 
-
 ### 1. `h` (Smart History)
 履歴を `fzf` で曖昧検索。Monokai カラーでハイライトし、プロンプトに復元。
 
@@ -93,7 +95,7 @@ K8s クラスターの状態、Namespace の異常、Events を解析。
 ---
 
 ## 📦 Requirements
-- `fzf`, `eza`, `bat`, `zoxide`, `ccze`
+- `fzf`, `eza`, `bat`, `zoxide`, `ccze`, `shellcheck`
 - `python3` & `llm` (AI 機能用)
 
 ---
@@ -116,6 +118,11 @@ reload
 **環境の削除 (Uninstaller):**
 ```bash
 ./uninstall.sh  
+```
+
+ **開発者用リリース (SRE workflow):**
+```bash
+bin/release 1.25.0  # 自動的に v1.25.0 としてタグ打ち・リリース
 ```
 
 ---

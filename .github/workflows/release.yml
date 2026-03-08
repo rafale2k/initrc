@@ -19,14 +19,20 @@ jobs:
       - name: Extract Changelog for this version
         id: extract_changelog
         run: |
-          # 1. 最初の '## [v' で始まる行から、2つ目の '## [v' の直前までを抽出
-          # 2つ目の見出しが現れた瞬間に exit するので、過去ログは絶対に入らへん
-          awk '/^## \[v/{if (count++) exit} {print}' CHANGELOG.md > RELEASE_NOTE.md
-          
-          # デバッグ：抽出された中身をログに出す（Actionsの実行ログで見れるで）
-          echo "--- EXTRACTED NOTE ---"
+          # 1. 最初のセクションだけを抽出する awk 魔法
+          # - 最初に見出し（[v... または ## [v...）を見つけたらフラグを立てる
+          # - 次に見出しを見つけたら、そこで処理を中断して終了する
+          awk '
+            /^(## )?\[v/ {
+              if (block == 1) exit;
+              block = 1;
+            }
+            { if (block == 1) print }
+          ' CHANGELOG.md > RELEASE_NOTE.md
+
+          echo "--- DEBUG: EXTRACTED CONTENT ---"
           cat RELEASE_NOTE.md
-          echo "----------------------"
+          echo "--------------------------------
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

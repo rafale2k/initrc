@@ -1,0 +1,157 @@
+## [v1.22.0] - 2026-03-08
+### ✨ Features
+- feat(release): automate release process
+- feat(git): add lint alias for ShellCheck
+- feat(docker): Improve visibility and add new utility aliases
+- feat(git): add undo, amend, and cleanup aliases
+- feat: implement smart context icon, latency watcher, and AI oracle
+- feat: v1.21.0 - SRE Aesthetic & AI Integrated Edition
+- feat(fzf): enhance history search and directory navigation
+- feat(system): Add `l` function for system/process monitoring
+- feat(theme): Apply distinct terminal color themes per user
+- feat(install): Auto-link essential Oh My Zsh plugins
+- feat(cli): Make mkdir create parent directories by default
+- feat(zsh): add history-search-multi-word plugin
+- feat(ai-assist): refine system prompt for precise commands
+- feat(install): add eza binary fallback and _sudo helper
+- feat: Improve cross-distro setup and AI tool deployment
+- feat(ci): improve command verification robustness
+- feat(system): Add cross-distribution aliases for modern CLIs
+- feat: release v1.19.0 - unified path handling and robust backup
+- feat: add uninstall support and robust loader
+- feat: add uninstall support and harden alias loading
+- feat(ci): Add idempotency and integrity installer checks
+- feat: release v1.14.3 - add fcd with eza preview and cross-shell navigation
+- feat(aic): specify Gemini 2.5 Flash and extend diff context
+- feat: v1.15.0 - support Gemini 2.5 and automated path configuration
+- feat: Automate common loader sourcing via installer
+- feat: Add Monokai terminal palette installation
+- feat: Add ginv AI-powered Git inspector
+- feat: Integrate Zsh custom plugins and submodules
+- feat: Support non-interactive Git identity setup
+- feat: Add dask and dinv for Docker AI assistant
+- feat: integrate llm for AI tools and consolidate bin/ scripts
+- feat: v1.9.0 - Universal Zero-Enter Installer
+- feat: restructure submodules and move p10k to a flat layout
+- feat: add powerlevel10k as a submodule
+- feat(clipboard): Implement smart environment-aware clipboard integration
+- feat: Implement modern Docker and Git-extras workflows
+- feat(editor): Enhance nano UX with Monokai background on launch
+- feat: git: Isolate user configuration into local file
+- feat(nanorc, install): Implement dynamic nanorc generation with path substitution
+- feat(install): Automate symlinking of dotfiles from configs/
+- feat: Add zsh-autosuggestions and zsh-syntax-highlighting submodules
+- feat: nano-syntax-highlightingをサブモジュールとして正式に登録
+- feat: nano-syntax-highlightingをサブモジュールとして追加
+- feat(env): Implement .env.local generation and update install steps
+- feat: Enable local API key management via .env.local
+- feat: v1.7.0 - Support AI-optimized Bash/Zsh loader and RHEL/root environment stability
+- feat: AlmaLinux/RHEL support, fix root function load, and clean up repo
+- feat(install): Add GitHub SSH check and robust eza installation
+- feat(install): Add procps-ng and util-linux-user to required tools
+- feat: Add nano to required tools list
+- feat: Introduce standalone AI commit message generator (gcm)
+- feat: complete shell sync for bash/zsh and auto-install plugins
+- feat: implement modular install script and finalize directory structure
+- feat: update configuration
+- feat: update configuration
+- feat: update configuration
+- feat: v1.5.0 - Universal Deployer & Interactive Navigation
+- feat: split navigation to _navigation.sh and add interactive 'fe' with bat preview
+- feat: add dynamic fzf preview for zoxide (eza/ls support)
+- feat: integrate zoxide for faster directory navigation
+- feat: style(nano): move monokai theme to my-themes and update .nanorc
+- feat: Add some aliases
+- feat: add custom docker status segment to p10k
+- feat: unify shell experience (inputrc for bash, bindkey for zsh) and history search
+- feat: auto-switching background color (User: Navy, Root: Red) and prompt fix
+- feat: set deep dark red background for root user
+- feat: dynamic terminal background color based on user (root/user)
+- feat: enable aliases for root user automatically
+### 🐛 Fixes
+- fix(install): reorder submodule sync before omz setup for clean install
+- fix(zsh): suppress SC2154 for zsh-specific functions hash
+- fix(zsh): fix command check syntax and suppress p10k warning
+- fix(ask): resolve ShellCheck SC2155 warning
+- fix(git): improve current branch detection in g()
+- fix(installer): Update ginv model; resolve bat SC2086
+- fix(ci): enhance tool verification and shell integrity
+- fix: restore accidentally emptied .bashrc
+- fix: remove hardcoded safe directory path
+- fix(pkg): Streamline repository setup and AI tool config
+- fix(install): guard root loader and correct bin permissions
+- fix(install): prevent Git dubious ownership warning
+- fix: resolve path injection and loader issues in v1.16.0
+- fix: correct syntax error in nano installer and achieve 100% shellcheck compliance
+- fix: resolve SC2168 (local outside function) and finalize ShellCheck compliance
+- fix: final cleanup of ShellCheck warnings and fix typo in _system.sh
+- fix: finalize shellcheck compliance for system configurations
+- fix: resolve ShellCheck syntax errors and warnings in system config
+- fix: Use BASH_SOURCE for robust script path
+- fix(ci): Prevent shell transition in CI environment
+- fix(ai): resolve JSON parse error by isolating API logic in Python (v1.8.1)
+- fix: minor bug fixes
+- fix: robust path resolution in loader.sh for bash and update .bashrc
+- fix: minor bug fixes
+- fix: comment out Monokai because all files are loaded
+- fix: resurrect sudo aliases
+- fix: gitconfig loop
+- fix: gitconfig install loop
+- fix: gitconfig loop
+- fix: defunctionize some aliases
+- fix: defunctionize some aliases
+- fix: updated install.sh with .inputrc support and permission fixes
+### 🔧 Maintenance
+- chore: release v1.22.0 - ShellCheck fixes, Jane Doe removal, and Docker enhancements
+- refactor(bash): Improve copyfile robustness and shellcheck compliance
+- refactor(ai-assist): centralize AI command execution logic
+- chore(version): Update project version to v1.20.0
+- chore(script): clarify zoxide setup and variable scope
+- refactor(shell): improve script robustness and shellcheck compliance
+- refactor(shell): Improve eza command depth handling
+- refactor(ai): Declare variables separately (SC2155)
+- refactor(ci): Consolidate setup and installer steps
+- refactor(shell): improve variable expansion robustness
+- refactor(shell): Standardize alias quoting in system config
+- chore: release v1.17.0 - fix idempotency and shell syntax errors
+- refactor(scripts): Address ShellCheck SC2155 warning
+- refactor(install): improve loader setup robustness and feedback
+- refactor(install): make setup_root_loader idempotent
+- refactor(install): improve deployment target and symlink logic
+- refactor(install): use templates for shell RC file setup
+- chore(ci): remove verbose internal comments from workflow
+- refactor(fcd): improve navigation logic and exit safety
+- refactor(install): streamline config deployment logic
+- refactor(install): improve root shell config for bash/zsh
+- refactor(install): パッケージインストール関数を再構築し効率化
+- chore: Update project version to 1.14.0
+- refactor: Standardize submodule URL format
+- refactor: Improve installer output and setup clarity
+- refactor(install): Unify config deployment with deploy_conf
+- refactor: Optimize LLM call with diff limit and model
+- chore: Add base coding style rules to .editorconfig
+- chore: silence remaining ShellCheck warnings
+- refactor: Apply shellcheck directives and fix alias syntax
+- chore: Ignore local shell script patterns
+- refactor: Update gcm Gemini model and user prompts
+- refactor(config): remove powerlevel10k theme entry
+- chore: prepare for v1.10.0 release
+- chore(release): Bump to v1.9.0 with enhanced zero-enter installer
+- refactor(bashrc): Improve path management and stabilize Zoxide init
+- chore: Remove development artifacts from script
+- chore(readme): Balance backticks for correct code block syntax
+- refactor(install): streamline root environment handling and finalize session setup
+- refactor: streamline AI commit message generation logic
+- refactor: modularize shell configurations for Zsh and Bash
+- chore: update README and promote to v1.4.1
+- chore: update README and promote to v1.4.1
+- chore: restore docker icon
+- refactor: some misdirection
+- refactor: refactor: dotfilesの構成を刷新しマルチユーザー(root)対応を強化
+- refactor: split common_aliases.sh into _system, _git, and _docker
+- refactor: Merge Git aliases
+- refactor: overhaul environment setup for robustness
+- refactor: dynamic generation of .nanorc with absolute paths
+- refactor: save install path
+- chore: 背景色との戦いに終止符。最高の開発環境が完成 (feat. ジンジャーエール)
+---

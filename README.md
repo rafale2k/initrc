@@ -36,6 +36,31 @@
 
 ---
 
+## 📸 Visual Gallery & Demos
+
+`initrc` の主要な機能と、洗練された開発環境のインターフェースを紹介します。
+
+### 🤖 AI-Driven Release Workflow
+`bin/release` コマンドを実行すると、Gemini AI が前回のタグからの差分を自動解析。情熱的なリリースノートを生成し、GitHub と CHANGELOG を一瞬で同期します。
+(assets/55.jpg)
+
+
+
+### 📋 Universal Clipboard (OSC52 + Native)
+SSH 越しでも、ローカル環境でも。`copyfile` や `osc_copy` を使えば、常に「手元のクリップボード」にデータが届きます。OSC52 エスケープシーケンスと OS 標準ツール（pbcopy/clip.exe/xclip）のハイブリッド仕様です。
+(assets/56.jpg)
+
+
+### 🎨 Deep Blue "Professional" Prompt
+Powerlevel10k をカスタマイズし、カレントディレクトリの背景を視認性の高い **Deep Navy (Color 18)** に刷新。ノイズを削ぎ落とし、長時間のコーディングでも集中力を切らさない配色を実現しました。root時には背景色をTokyoNightに、プロンプトに赤背景にROOTと明記しました。
+(assets/57.jpg)
+
+
+
+---
+
+---
+
 ## 🏗️ v1.25.0 - What's New
 - **Automated SRE Release**: `bin/release` による自動 Lint、CHANGELOG 生成、GitHub Release 連携を完全自動化。
 - **Tagging Standard**: バージョニングに `v` プレフィックスを導入。セマンティックバージョニングを厳守。

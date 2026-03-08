@@ -19,9 +19,11 @@ jobs:
       - name: Extract Changelog for this version
         id: extract_changelog
         run: |
-          # ヒアドキュメントで awk スクリプトを安全に実行
+          # 1. awkで「最初のブロック」だけを抜き出す
+          # blockフラグが1の間だけ出力し、次の見出しが出たら即座にexit(終了)する
+          # もし見出しが ## で始まらなくても [v で始まれば捕まえるように改良
           cat << 'EOF' > extract.awk
-          /^(## )?\[v/ {
+          /^[# ]*\[v/ || /^## \[v/ {
             if (block == 1) exit;
             block = 1;
           }
@@ -30,9 +32,14 @@ jobs:
 
           awk -f extract.awk CHANGELOG.md > RELEASE_NOTE.md
 
-          echo "--- DEBUG: EXTRACTED CONTENT ---"
+          # 2. 【重要】もし RELEASE_NOTE.md が 100行を超えてたら、歴史改変のゴミとみなして強制カット
+          if [ $(wc -l < RELEASE_NOTE.md) -gt 100 ]; then
+            head -n 20 RELEASE_NOTE.md > RELEASE_NOTE_FIXED.md
+            mv RELEASE_NOTE_FIXED.md RELEASE_NOTE.md
+          fi
+
+          echo "--- DEBUG: FINAL CONTENT ---"
           cat RELEASE_NOTE.md
-          echo "--------------------------------"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

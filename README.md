@@ -40,18 +40,17 @@
 
 ### 🤖 AI-Driven Release Workflow
 `bin/release` コマンドを実行すると、Gemini AI が前回のタグからの差分を自動解析。情熱的なリリースノートを生成し、GitHub と CHANGELOG を一瞬で同期します。
-(assets/55.jpg)
-
+![AI Release Workflow](assets/55.jpg)
 
 
 ### 📋 Universal Clipboard (OSC52 + Native)
 SSH 越しでも、ローカル環境でも。`copyfile` や `osc_copy` を使えば、常に「手元のクリップボード」にデータが届きます。OSC52 エスケープシーケンスと OS 標準ツール（pbcopy/clip.exe/xclip）のハイブリッド仕様です。
-(assets/56.jpg)
+![Clipboard-Demo](assets/56.jpg)
 
 
 ### 🎨 Deep Blue "Professional" Prompt
 Powerlevel10k をカスタマイズし、カレントディレクトリの背景を視認性の高い **Deep Navy (Color 18)** に刷新。ノイズを削ぎ落とし、長時間のコーディングでも集中力を切らさない配色を実現しました。root時には背景色をTokyoNightに、プロンプトに赤背景にROOTと明記しました。
-(assets/57.jpg)
+![root-Demo](assets/57.jpg)
 
 
 

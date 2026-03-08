@@ -1,5 +1,5 @@
 #!/bin/bash
-# bin/release: v-prefix 矯正 & 自動化版
+# bin/release: AI-Summary + v-prefix 矯正 & 自動化版
 
 set -e
 
@@ -12,22 +12,58 @@ fi
 RAW_VER=$1
 [[ $RAW_VER != v* ]] && VERSION="v$RAW_VER" || VERSION="$RAW_VER"
 
+# 前回タグを取得（差分解析用）
+PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+
 echo "🚀 Preparing Release $VERSION..."
 
 # 1. Lint Check
 echo "🔍 Running lint..."
 find . -type f \( -name "*.sh" -o -name "*.zsh" \) -not -path "*/oh-my-zsh/*" -not -path "*/themes/*" -not -path "*/plugins/*" -not -path "*/.git/*" | xargs shellcheck
 
-# 2. Generate CHANGELOG
+# 2. AI Summary Generation (NEW!)
+AI_SUMMARY=""
+if [ -n "$PREV_TAG" ]; then
+    echo "🤖 Gemini is analyzing changes since $PREV_TAG..."
+    
+    # 差分の統計とコミットメッセージを AI に渡す（diff本体だと長すぎる場合があるため）
+    DIFF_DATA=$(git log "$PREV_TAG"..HEAD --oneline --stat)
+    
+    # llm コマンドを使用して要約を生成
+    # ※ llm コマンドがパスに通っており、APIキーが設定されている前提
+    AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "あなたはプロフェッショナルな SRE です。
+    以下の git 差分データから、今回のアップデートの主要な変更点とメリットを、
+    ユーザー向けに 3 行程度の箇条書きで、簡潔かつ情熱的に要約してください。
+    - 日本語で出力してください。
+    - 各行の冒頭に内容に合った絵文字を付けてください。
+    - 専門用語を交えつつも分かりやすく。")
+    
+    echo "--- AI SUMMARY ---"
+    echo "$AI_SUMMARY"
+    echo "------------------"
+fi
+
+# 3. Generate CHANGELOG
+# gen-changelog に AI_SUMMARY を渡すか、一時ファイル経由で結合する
+# ここでは gen-changelog が生成した直後に、サマリーを先頭に差し込む方式にする
 ~/dotfiles/bin/gen-changelog "$VERSION"
 
-# 3. Commit & Tag
+if [ -n "$AI_SUMMARY" ]; then
+    # CHANGELOG.md の最新バージョンの見出し直後にサマリーを挿入
+    # テンポラリファイルを使って安全に置換
+    TEMP_FILE=$(mktemp)
+    awk -v summary="### 🤖 AI Release Summary\n$AI_SUMMARY\n\n---" '
+    /## \[/ && !done { print; print "\n" summary; done=1; next }
+    { print }' CHANGELOG.md > "$TEMP_FILE" && mv "$TEMP_FILE" CHANGELOG.md
+fi
+
+# 4. Commit & Tag
 git add CHANGELOG.md
 git commit -m "chore: release $VERSION"
 git tag -a "$VERSION" -m "Release $VERSION"
 
-# 4. Force Push (Tags & Main)
+# 5. Force Push (Tags & Main)
 echo "📤 Pushing $VERSION to remote..."
 git push origin main --force --tags
 
-echo "✨ Successfully released $VERSION!"
+echo "✨ Successfully released $VERSION with AI Summary!"

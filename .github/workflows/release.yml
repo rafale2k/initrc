@@ -5,7 +5,6 @@ on:
     tags:
       - 'v*'
 
-# ここが重要！リリースの作成とコンテンツの読み取り権限を与える
 permissions:
   contents: write
 
@@ -15,13 +14,21 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # 全履歴を取得して CHANGELOG との整合性を保つ
+
+      - name: Extract Changelog for this version
+        id: extract_changelog
+        run: |
+          # 1. 最新のセクション（1つ目の ## から 2つ目の ## の手前まで）を抽出
+          # 注意: 最初のマッチから次のマッチの「1行前」までを出す
+          sed -n '/^## \[v/,/^## \[v/ { /^## \[v/ { /'"${GITHUB_REF_NAME}"'/ ! q }; p }' CHANGELOG.md | sed '$d' > RELEASE_NOTE.md
+          
+          # デバッグ用に中身を表示
+          cat RELEASE_NOTE.md
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          # CHANGELOG.md の内容をリリースノートに反映
-          body_path: CHANGELOG.md 
+          # 全体ではなく、切り出した RELEASE_NOTE.md を使う
+          body_path: RELEASE_NOTE.md 
           draft: false
           prerelease: false

@@ -1,0 +1,34 @@
+#!/bin/bash
+# bin/release: バージョンアップ、CHANGELOG更新、タグ打ち、Pushを全自動化
+
+set -e
+
+if [ -z "$1" ]; then
+    echo "❌ Usage: release v1.X.X"
+    exit 1
+fi
+
+VERSION=$1
+
+echo "🚀 Releasing $VERSION..."
+
+# 1. 念のための Lint チェック
+echo "🔍 Running lint..."
+~/dotfiles/common/_git.sh # lint エイリアスが定義されているファイルをソース
+# (実際には alias なので直接コマンドを叩くのが確実)
+find . -type f \( -name "*.sh" -o -name "*.zsh" \) -not -path "*/oh-my-zsh/*" -not -path "*/themes/*" -not -path "*/plugins/*" -not -path "*/.git/*" | xargs shellcheck
+
+# 2. CHANGELOG 更新
+echo "📝 Updating CHANGELOG.md..."
+~/dotfiles/bin/gen-changelog "$VERSION"
+
+# 3. コミット & タグ打ち
+git add CHANGELOG.md
+git commit -m "chore: release $VERSION"
+git tag -a "$VERSION" -m "Release $VERSION"
+
+# 4. Push (歴史改変後なので --force をデフォルトに)
+echo "📤 Pushing to remote..."
+git push origin main --force --tags
+
+echo "✨ Release $VERSION successfully finished!"

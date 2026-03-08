@@ -1,0 +1,27 @@
+#!/bin/bash
+# bin/gen-changelog: Git ログから CHANGELOG.md を生成/更新する
+
+VERSION=$(git describe --tags --abbrev=0)
+DATE=$(date +%Y-%m-%d)
+OUTPUT="CHANGELOG.md"
+
+{
+    echo "## [$VERSION] - $DATE"
+    echo "### ✨ Features"
+    git log --pretty=format:"- %s" --grep="^feat"
+    echo -e "\n### 🐛 Fixes"
+    git log --pretty=format:"- %s" --grep="^fix"
+    echo -e "\n### 🔧 Maintenance"
+    git log --pretty=format:"- %s" --grep="^chore\|^refactor"
+    echo -e "\n---"
+} > "NEW_RELEASE.md"
+
+# 既存の CHANGELOG の先頭に挿入
+if [ -f "$OUTPUT" ]; then
+    cat NEW_RELEASE.md "$OUTPUT" > TEMP_LOG.md && mv TEMP_LOG.md "$OUTPUT"
+else
+    mv NEW_RELEASE.md "$OUTPUT"
+fi
+
+rm -f NEW_RELEASE.md
+echo "✅ $OUTPUT updated with $VERSION content."

@@ -1,0 +1,20 @@
+name: Build Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # CHANGELOG.md の最新セクションだけを抽出してボディーに入れる設定
+          body_path: CHANGELOG.md 
+          draft: false
+          prerelease: false

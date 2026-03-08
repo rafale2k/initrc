@@ -173,36 +173,57 @@ elif command -v batcat &> /dev/null; then
     alias bat='batcat'
 fi
 
-# --- OSC52 Clipboard Helpers (ShellCheck Compliant) ---
+# --- Hybrid Clipboard Helpers (OSC52 + Native OS Integration) ---
+# 汎用的なクリップボード書き込み関数
+_smart_copy() {
+  local content="$1"
+  local encoded
+  encoded=$(echo -n "$content" | base64 | tr -d '\n')
 
-# 1. ファイルの中身をコピー (copyfile)
+  # 1. 常に OSC52 シーケンスを送信 (SSH 越しや tmux 越しに有効)
+  printf '\033]52;c;%s\007' "$encoded"
+
+  # 2. ローカル OS のクリップボードツールがあれば実行
+  if command -v pbcopy >/dev/null 2>&1; then
+    # macOS
+    echo -n "$content" | pbcopy
+  elif command -v clip.exe >/dev/null 2>&1; then
+    # Windows (WSL)
+    echo -n "$content" | clip.exe
+  elif [ -n "$DISPLAY" ] && command -v xclip >/dev/null 2>&1; then
+    # Linux (X11)
+    echo -n "$content" | xclip -selection clipboard
+  elif [ -n "$WAYLAND_DISPLAY" ] && command -v wl-copy >/dev/null 2>&1; then
+    # Linux (Wayland)
+    echo -n "$content" | wl-copy
+  fi
+}
+
+# 1. ファイルの中身をコピー
 function copyfile() {
   local file=$1
   if [[ -f "$file" ]]; then
-    local encoded
-    encoded=$(base64 < "$file" | tr -d '\n')
-    # \033]52;c;%s\007 の %s 部分に後から encoded を流し込む
-    printf '\033]52;c;%s\007' "$encoded"
-    echo "📄 File content of '$file' copied via OSC52"
+    local data
+    data=$(cat "$file")
+    _smart_copy "$data"
+    echo "📄 File content of '$file' copied to clipboard (OSC52 + Native)"
   else
     echo "❌ File not found: $file"
     return 1
   fi
 }
 
-# 2. 現在の絶対パスをコピー (copypath)
+# 2. 現在の絶対パスをコピー
 function copypath() {
   local path=${1:-$PWD}
-  local encoded
-  encoded=$(echo -n "$path" | base64 | tr -d '\n')
-  printf '\033]52;c;%s\007' "$encoded"
-  echo "📍 Path '$path' copied via OSC52"
+  _smart_copy "$path"
+  echo "📍 Path '$path' copied to clipboard (OSC52 + Native)"
 }
 
-# 3. パイプからの入力をコピー (osc_copy)
+# 3. パイプからの入力をコピー
 function osc_copy() {
-  local content
-  content=$(base64 | tr -d '\n')
-  printf '\033]52;c;%s\007' "$content"
-  echo "📋 Input copied via OSC52"
+  local data
+  data=$(cat) # 標準入力をすべて読み込む
+  _smart_copy "$data"
+  echo "📋 Input copied to clipboard (OSC52 + Native)"
 }

@@ -35,6 +35,7 @@
   # The list of segments shown on the left. Fill it with the most important segments.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
     # =========================[ Line #1 ]=========================
+    env_icon
     os_icon                 # os identifier
     dir                     # current directory
     vcs                     # git status
@@ -1853,3 +1854,8 @@ typeset -g POWERLEVEL9K_CONFIG_FILE=${${(%):-%x}:a}
 
 (( ${#p10k_config_opts} )) && setopt ${p10k_config_opts[@]}
 'builtin' 'unset' 'p10k_config_opts'
+# p10k のカスタム要素「env_icon」を定義
+function prompt_env_icon() {
+  # アイコンがあれば、色を指定して表示 (例: 15番は白)
+  p10k segment -f 15 -t "$ENV_ICON"
+}

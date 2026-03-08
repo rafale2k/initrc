@@ -18,6 +18,11 @@ function _omb_theme_PROMPT_COMMAND() {
     [ "$EUID" -eq 0 ] && PS_SYMBOL='#'
 
     PS1="${EXIT_S}${ROOT_MARKER}\[\e[0;32m\]\u@\h\[\e[0m\]:\[\e[0;36m\]\w\[\e[0m\]\n${PS_SYMBOL} "
+
+    if [[ -n "$ENV_ICON" ]]; then
+        # \h (ホスト名) の前とか、一番最初に入れるのがおすすめ
+        PS1="$ENV_ICON $PS1"
+    fi
 }
 
 _omb_util_add_prompt_command _omb_theme_PROMPT_COMMAND

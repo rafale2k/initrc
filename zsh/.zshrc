@@ -70,3 +70,11 @@ fi
 # ------------------------------------------------------------------------------
 # 基本は options.zsh 側に移したが、
 # plugins 読み込み順の関係でここに残したいものがあれば追記
+if [[ -o interactive ]]; then
+    echo "✨ Today's Oracle:"
+    echo "SREの格言を1つ、日本語で短く出力して。語尾は大阪弁で。" | ginv --stream false
+fi
+if [[ -n "$ENV_ICON" ]]; then
+  # 既存の PROMPT の先頭にアイコンとスペースを追加
+  PROMPT="$ENV_ICON $PROMPT"
+fi

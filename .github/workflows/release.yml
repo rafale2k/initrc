@@ -1,8 +1,13 @@
 name: Build Release
+
 on:
   push:
     tags:
       - 'v*'
+
+# ここが重要！リリースの作成とコンテンツの読み取り権限を与える
+permissions:
+  contents: write
 
 jobs:
   release:
@@ -10,11 +15,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+        with:
+          fetch-depth: 0 # 全履歴を取得して CHANGELOG との整合性を保つ
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          # CHANGELOG.md の最新セクションだけを抽出してボディーに入れる設定
+          # CHANGELOG.md の内容をリリースノートに反映
           body_path: CHANGELOG.md 
           draft: false
           prerelease: false

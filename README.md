@@ -85,6 +85,24 @@ K8s クラスターの状態、Namespace の異常、Events を解析。
 
 ---
 
+### 📋 OSC52 Clipboard Integration (Remote-to-Local)
+SSH 経由のリモートサーバー上でも、手元の PC のクリップボードに直接データを送り込む SRE 仕様の連携機能です。`xclip` や `pbcopy` が不要で、ターミナルのエスケープシーケンスのみで動作します。
+
+
+#### 1. `copyfile [file]`
+指定したファイルの中身を、ローカル PC のクリップボードにコピーします。
+- `copyfile ~/.ssh/id_rsa.pub`
+
+#### 2. `copypath`
+現在のディレクトリの絶対パス（または指定したパス）をコピーします。
+- `copypath`
+
+#### 3. `osc_copy` (Pipe Support)
+標準入力をそのままローカルのクリップボードへ流し込みます。
+- `cat log.txt | grep "ERROR" | osc_copy`
+
+---
+
 ## 🎨 Terminal Colors
 
 | User | Theme | Background | Highlights |

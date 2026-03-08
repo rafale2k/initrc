@@ -173,9 +173,32 @@ elif command -v batcat &> /dev/null; then
     alias bat='batcat'
 fi
 
-# Git 基本 (loader 失敗時のバックアップ)
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gp='git push'
-alias gl='git pull'
+# --- OSC52 Clipboard Helpers ---
+
+# 1. ファイルの中身をコピー (copyfile)
+function copyfile() {
+  local file=$1
+  if [[ -f "$file" ]]; then
+    printf "\033]52;c;$(base64 < "$file" | tr -d '\n')\007"
+    echo "📄 File content of '$file' copied via OSC52"
+  else
+    echo "❌ File not found: $file"
+    return 1
+  fi
+}
+
+# 2. 現在の絶対パスをコピー (copypath)
+function copypath() {
+  local path=${1:-$PWD}
+  printf "\033]52;c;$(echo -n "$path" | base64 | tr -d '\n')\007"
+  echo "📍 Path '$path' copied via OSC52"
+}
+
+# 3. パイプからの入力をコピー (osc_copy)
+# 例: ls | osc_copy
+function osc_copy() {
+  local content
+  content=$(base64 | tr -d '\n')
+  printf "\033]52;c;$content\007"
+  echo "📋 Input copied via OSC52"
+}

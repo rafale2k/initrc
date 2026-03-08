@@ -1,3 +1,4 @@
+
 name: Build Release
 
 on:
@@ -18,12 +19,14 @@ jobs:
       - name: Extract Changelog for this version
         id: extract_changelog
         run: |
-          # 1. 最新のセクション（1つ目の ## から 2つ目の ## の手前まで）を抽出
-          # 注意: 最初のマッチから次のマッチの「1行前」までを出す
-          sed -n '/^## \[v/,/^## \[v/ { /^## \[v/ { /'"${GITHUB_REF_NAME}"'/ ! q }; p }' CHANGELOG.md | sed '$d' > RELEASE_NOTE.md
+          # 1. 最初の '## [v' で始まる行から、2つ目の '## [v' の直前までを抽出
+          # 2つ目の見出しが現れた瞬間に exit するので、過去ログは絶対に入らへん
+          awk '/^## \[v/{if (count++) exit} {print}' CHANGELOG.md > RELEASE_NOTE.md
           
-          # デバッグ用に中身を表示
+          # デバッグ：抽出された中身をログに出す（Actionsの実行ログで見れるで）
+          echo "--- EXTRACTED NOTE ---"
           cat RELEASE_NOTE.md
+          echo "----------------------"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

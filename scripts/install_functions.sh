@@ -40,42 +40,62 @@ install_all_packages() {
     
     echo "📦 Starting Package Installation..."
 
-    # PMの判定とインストール
+    # 1. パッケージマネージャーでのインストール
     if command -v brew >/dev/null 2>&1; then
-        echo "🍺 Homebrew detected."
         brew install "${common_pkgs[@]}" fd eza bat || true
     elif command -v apt-get >/dev/null 2>&1; then
-        echo "📦 apt detected."
         _sudo apt-get update -qq || true
-        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true
+        # Ubuntu/Debian は batcat, fdfind という名前
+        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat || true
     elif command -v dnf >/dev/null 2>&1; then
-        echo "📦 dnf detected."
-        _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find eza bat || true
+        # AlmaLinux 等で epel-release が必要な場合への配慮
+        _sudo dnf install -y -q epel-release || true
+        _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat || true
     fi
 
-    # Linux用のシンボリックリンク作成
+    # 2. 名前の正規化 (batcat -> bat, fdfind -> fd)
+    # パッケージマネージャーで入った実体を探して $HOME/bin にリンク
     if [ "$(uname)" = "Linux" ]; then
-        [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
-        [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
-    fi
-
-    # Mac用のHomebrewリンク作成
-    if [ "$(uname)" = "Darwin" ] && command -v brew >/dev/null 2>&1; then
-        local b_bin; b_bin=$(brew --prefix)/bin
-        [ -f "${b_bin}/eza" ] && ln -sf "${b_bin}/eza" "$HOME/bin/eza"
-        [ -f "${b_bin}/bat" ] && ln -sf "${b_bin}/bat" "$HOME/bin/bat"
-        [ -f "${b_bin}/fd" ] && ln -sf "${b_bin}/fd" "$HOME/bin/fd"
-    fi
-
-    # 最終防衛ライン: ezaだけは絶対に入れる (全OS共通)
-    if ! command -v eza >/dev/null 2>&1 && [ ! -f "$HOME/bin/eza" ]; then
-        local arch; arch=$(uname -m)
-        local os_name; os_name="unknown-linux-gnu"
-        [ "$(uname)" = "Darwin" ] && os_name="apple-darwin"
+        # bat の解決
+        if command -v batcat >/dev/null 2>&1; then
+            ln -sf "$(command -v batcat)" "$HOME/bin/bat"
+        elif command -v bat >/dev/null 2>&1; then
+            ln -sf "$(command -v bat)" "$HOME/bin/bat"
+        fi
         
-        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_name}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
+        # fd の解決
+        if command -v fdfind >/dev/null 2>&1; then
+            ln -sf "$(command -v fdfind)" "$HOME/bin/fd"
+        elif command -v fd >/dev/null 2>&1; then
+            ln -sf "$(command -v fd)" "$HOME/bin/fd"
+        fi
+    fi
+
+    # 3. 最終救済: それでも bat/fd が無いならバイナリを落とす
+    local arch; arch=$(uname -m)
+    local os_type; os_type=$(uname -s)
+
+    # eza (これは今のままでOK)
+    if ! command -v eza >/dev/null 2>&1 && [ ! -f "$HOME/bin/eza" ]; then
+        local e_os="unknown-linux-gnu"
+        [ "$os_type" = "Darwin" ] && e_os="apple-darwin"
+        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${e_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
         find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \; 2>/dev/null || true
-        chmod +x "$HOME/bin/eza" || true
+        chmod +x "$HOME/bin/eza"
+    fi
+
+    # bat 救済 (Linuxのみ)
+    if [ "$os_type" = "Linux" ] && ! command -v bat >/dev/null 2>&1 && [ ! -f "$HOME/bin/bat" ]; then
+        echo "⬇️ Downloading bat binary..."
+        curl -fLsS "https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
+        chmod +x "$HOME/bin/bat"
+    fi
+
+    # fd 救済 (Linuxのみ)
+    if [ "$os_type" = "Linux" ] && ! command -v fd >/dev/null 2>&1 && [ ! -f "$HOME/bin/fd" ]; then
+        echo "⬇️ Downloading fd binary..."
+        curl -fLsS "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
+        chmod +x "$HOME/bin/fd"
     fi
 }
 

@@ -40,30 +40,25 @@ if [ -d "$_ld_common_dir" ]; then
 fi
 
 # OS判定
-# OS判定
 OS_TYPE=$(uname -s)
 
-# コマンドのパス解決
+# $HOME/bin を最優先に
+export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+
 if [ "$OS_TYPE" = "Darwin" ]; then
-    # Homebrewのパスを最優先で追加
-    BREW_PREFIX=$(brew --prefix 2>/dev/null)
-    if [ -n "$BREW_PREFIX" ]; then
-        # システムの /bin より前に brew のパスをねじ込む
-        export PATH="$BREW_PREFIX/bin:$BREW_PREFIX/sbin:$PATH"
+    # Mac: brewがある場合のみパスを追加し、aliasを張る
+    if command -v brew >/dev/null 2>&1; then
+        BREW_BIN=$(brew --prefix)/bin
+        export PATH="$BREW_BIN:$PATH"
+        alias eza="$BREW_BIN/eza"
+        alias bat="$BREW_BIN/bat"
+        alias fd="$BREW_BIN/fd"
     fi
-    
-    # SC2139対策：バックスラッシュで実行時に評価させる
-    alias eza='$(brew --prefix)/bin/eza'
-    alias bat='$(brew --prefix)/bin/bat'
-    alias fd='$(brew --prefix)/bin/fd'
 else
-    # Linux用（debian系等の名前の違いを吸収）
+    # Linux: debian系等の名前の違いを吸収
     alias bat='if command -v batcat >/dev/null 2>&1; then batcat; else command bat; fi'
     alias fd='if command -v fdfind >/dev/null 2>&1; then fdfind; else command fd; fi'
 fi
-
-# $HOME/bin をさらにその上に被せる
-export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 
 # 5. シェル別の設定
 if [ -n "${ZSH_VERSION:-}" ]; then

@@ -38,20 +38,20 @@ install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    # 【最重要】Macの GitHub Actions 環境で "/bin/bat" 等への不正リンクが作られるのを防ぐため
-    # リンクを張る前に $HOME/bin 内の既存リンクを徹底的に削除
-    echo "🧹 Wiping existing symlinks in $HOME/bin..."
+    # 既存の腐ったリンクを物理削除
     rm -f "$HOME/bin/eza" "$HOME/bin/bat" "$HOME/bin/fd"
 
     echo "📦 Installing packages via $PM..."
     case "$PM" in
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
-            local brew_bin; brew_bin=$(brew --prefix)/bin
-            # リンク先を brew の実体絶対パスに固定して、誤ったエイリアス評価を回避
-            ln -sf "${brew_bin}/eza" "$HOME/bin/eza"
-            ln -sf "${brew_bin}/bat" "$HOME/bin/bat"
-            ln -sf "${brew_bin}/fd" "$HOME/bin/fd"
+            # 変数を使わず、Macの標準的なbrewパスを直接指定してリンク
+            local b_bin="/usr/local/bin"
+            [ -d "/opt/homebrew/bin" ] && b_bin="/opt/homebrew/bin"
+            
+            ln -sf "${b_bin}/eza" "$HOME/bin/eza"
+            ln -sf "${b_bin}/bat" "$HOME/bin/bat"
+            ln -sf "${b_bin}/fd" "$HOME/bin/fd"
             ;;
         "apt") 
             _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true 
@@ -61,43 +61,35 @@ install_all_packages() {
             ;;
     esac
 
-    # Linuxのみ：パッケージ名の違いをシンボリックリンクで吸収
+    # Linux用のパス調整
     if [ "$(uname)" = "Linux" ]; then
-        echo "🐧 Applying Linux-specific symlinks..."
         [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
         [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
         [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sf /usr/bin/fd-find "$HOME/bin/fd"
     fi
 
+    # --- フォールバック (コマンドが見つからない場合のみ) ---
     local arch; arch=$(uname -m)
-    # --- eza ダウンロード (全OS共通フォールバック) ---
     if ! command -v eza >/dev/null 2>&1; then
-        echo "⬇️ Downloading eza binary..."
         local eza_os="unknown-linux-gnu"
-        [[ "$(uname)" == "Darwin" ]] && eza_os="apple-darwin"
-        if curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${eza_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
-            find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
-            chmod +x "$HOME/bin/eza"
-        fi
+        [ "$(uname)" = "Darwin" ] && eza_os="apple-darwin"
+        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${eza_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+        find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
+        chmod +x "$HOME/bin/eza"
     fi
 
-    # --- bat/fd ダウンロード (Mac以外で OS パッケージから入らなかった場合) ---
     if [ "$(uname)" != "Darwin" ]; then
         if ! command -v bat >/dev/null 2>&1; then
-            echo "⬇️ Downloading bat binary..."
             local bat_v="v0.24.0"
-            if curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
-                find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
-                chmod +x "$HOME/bin/bat"
-            fi
+            curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+            find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
+            chmod +x "$HOME/bin/bat"
         fi
         if ! command -v fd >/dev/null 2>&1; then
-            echo "⬇️ Downloading fd binary..."
             local fd_v="v10.2.0"
-            if curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
-                find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
-                chmod +x "$HOME/bin/fd"
-            fi
+            curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+            find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
+            chmod +x "$HOME/bin/fd"
         fi
     fi
 }

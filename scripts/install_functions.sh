@@ -36,15 +36,25 @@ install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    # Macの幽霊リンクを物理的に消去
-    echo "🧹 Cleaning up broken symlinks in $HOME/bin..."
-    find "$HOME/bin" -xtype l -delete 2>/dev/null || true
+    # 【改修】Macでも確実に動くゾンビリンク削除
+    # リンク先が存在しないもの、および Mac で悪さをしている /bin/bat へのリンクを物理破壊
+    echo "🧹 Purging broken or incorrect symlinks in $HOME/bin..."
+    for link in "$HOME/bin"/*; do
+        if [ -L "$link" ]; then
+            # リンク先が存在しない、またはリンク先が /bin/bat や /bin/fd になっているものを削除
+            target=$(readlink "$link")
+            if [ ! -e "$link" ] || [[ "$target" == "/bin/bat" ]] || [[ "$target" == "/bin/fd" ]]; then
+                rm "$link"
+            fi
+        fi
+    done
 
     echo "📦 Installing packages via $PM..."
     case "$PM" in
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
             local brew_bin; brew_bin=$(brew --prefix)/bin
+            # Macはここだけで完結させる
             ln -sfn "${brew_bin}/eza" "$HOME/bin/eza"
             ln -sfn "${brew_bin}/bat" "$HOME/bin/bat"
             ln -sfn "${brew_bin}/fd" "$HOME/bin/fd"
@@ -53,8 +63,8 @@ install_all_packages() {
         "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
     esac
 
-    # Linux専用：パスの調整
-    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # 【改修】Linux判定を完璧に (OSTYPEがlinux*の時のみ実行)
+    if [[ "$OSTYPE" == linux* ]]; then
         echo "🐧 Applying Linux-specific symlinks..."
         [ -f /usr/bin/batcat ] && ln -sfn /usr/bin/batcat "$HOME/bin/bat"
         [ -f /usr/bin/fdfind ] && ln -sfn /usr/bin/fdfind "$HOME/bin/fd"
@@ -77,24 +87,22 @@ install_all_packages() {
         done
     fi
 
-    # --- bat ダウンロード ---
-    if ! command -v bat >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
-        echo "⬇️ Downloading bat binary..."
-        local bat_v="v0.24.0"
-        local bat_os="unknown-linux-musl"
-        curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-${bat_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
-        find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
-        chmod +x "$HOME/bin/bat"
-    fi
-
-    # --- fd ダウンロード ---
-    if ! command -v fd >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
-        echo "⬇️ Downloading fd binary..."
-        local fd_v="v10.2.0"
-        local fd_os="unknown-linux-musl"
-        curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-${fd_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
-        find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
-        chmod +x "$HOME/bin/fd"
+    # --- bat/fd は Mac(brew) 以外の場合のみフォールバック ---
+    if [ "$PM" != "brew" ]; then
+        if ! command -v bat >/dev/null 2>&1; then
+            echo "⬇️ Downloading bat binary..."
+            local bat_v="v0.24.0"
+            curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+            find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
+            chmod +x "$HOME/bin/bat"
+        fi
+        if ! command -v fd >/dev/null 2>&1; then
+            echo "⬇️ Downloading fd binary..."
+            local fd_v="v10.2.0"
+            curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+            find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
+            chmod +x "$HOME/bin/fd"
+        fi
     fi
 }
 
@@ -102,11 +110,8 @@ setup_oh_my_zsh() {
     [ ! -d "$HOME/.oh-my-zsh" ] && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     local custom_dir="$HOME/.oh-my-zsh/custom"
     mkdir -p "$custom_dir/themes" "$custom_dir/plugins"
-    
-    # Powerlevel10k リンク
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$custom_dir/themes/powerlevel10k"
     
-    # 【復活】プラグインのループ処理
     echo "🔗 Linking Zsh plugins..."
     for p in zsh-autosuggestions zsh-syntax-highlighting history-search-multi-word; do
         if [ -d "$DOTPATH/zsh/plugins/$p" ]; then

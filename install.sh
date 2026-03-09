@@ -62,7 +62,8 @@ setup_root_loader "$HOME"
 
 echo "⚙️  Verifying PATH in .zshrc..."
 if ! grep -q "export PATH=\"\$HOME/bin:\$PATH\"" "$HOME/.zshrc"; then
-    sed -i '1i export PATH="$HOME/bin:$PATH"' "$HOME/.zshrc"
+    # SC2016 対策: ダブルクォートを使って変数を適切にエスケープ
+    sed -i "1i export PATH=\"\$HOME/bin:\$PATH\"" "$HOME/.zshrc"
 fi
 
 export PATH="$HOME/bin:$PATH"

@@ -25,7 +25,6 @@ alias gms='git stash && git checkout $(git symbolic-ref --short refs/remotes/ori
 alias gsum='git summary'
 alias gcount='git effort --above 5'
 alias gline='git log --pretty=format:"%C(yellow)%h%Creset %C(magenta)%ad%Creset %s %C(cyan)(%an)%Creset" --date=short'
-# 強力なグラフ表示 (git-extras がなくても動く標準コマンド版)
 alias ggraph='git log --graph --all --format=format:"%C(bold blue)%h%C(reset) - %C(bold green)(%ar)%C(reset) %C(white)%s%C(reset) %C(bold red)- %an%C(reset)%C(bold yellow)%d%C(reset)" --abbrev-commit --date=relative'
 
 gtoday() {
@@ -59,7 +58,8 @@ g() {
     local up; up=$(git rev-parse --abbrev-ref "@{u}" 2>/dev/null)
     if [ -n "$up" ]; then
         local c; c=$(git rev-list --left-right --count "$br"..."$up")
-        echo -e "* \033[33m$br\033[0m (Ahead: $(echo $c | awk '{print $1}'), Behind: $(echo $c | awk '{print $2}'))"
+        # SC2086 対策: ダブルクォートで変数を囲む
+        echo -e "* \033[33m$br\033[0m (Ahead: $(echo "$c" | awk '{print $1}'), Behind: $(echo "$c" | awk '{print $2}'))"
     else echo -e "* \033[33m$br\033[0m (No remote)"; fi
     echo -e "\n\033[36m-- Changes --\033[0m"
     git status --short | sed 's/^/  /'

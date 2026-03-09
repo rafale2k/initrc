@@ -35,83 +35,47 @@ setup_os_repos() {
 }
 
 install_all_packages() {
+    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    # PM 変数が何であれ、brew があれば brew を使う執念
+    echo "📦 Starting Package Installation..."
+
+    # PMの判定とインストール
     if command -v brew >/dev/null 2>&1; then
-        echo "🍺 Homebrew detected. Installing..."
-        brew install tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras fd eza bat || true
-        
-        # リンク作成を確実に
-        local b_bin; b_bin=$(brew --prefix)/bin
-        for t in eza bat fd; do
-            [ -f "${b_bin}/$t" ] && ln -sf "${b_bin}/$t" "$HOME/bin/$t"
-        done
+        echo "🍺 Homebrew detected."
+        brew install "${common_pkgs[@]}" fd eza bat || true
     elif command -v apt-get >/dev/null 2>&1; then
-        elif command -v apt-get >/dev/null 2>&1; then target_pm="apt";
-        elif command -v dnf >/dev/null 2>&1; then target_pm="dnf"; fi
+        echo "📦 apt detected."
+        _sudo apt-get update -qq || true
+        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true
+    elif command -v dnf >/dev/null 2>&1; then
+        echo "📦 dnf detected."
+        _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find eza bat || true
     fi
 
-    case "$target_pm" in
-        "brew")
-            echo "🍺 Installing via Homebrew..."
-            # GitHub ActionsのMac環境で brew update は時間がかかるのでスキップ
-            brew install "${common_pkgs[@]}" fd eza bat || true
-            
-            # 実体パスから $HOME/bin へリンク
-            local b_bin; b_bin=$(brew --prefix)/bin
-            [ -f "${b_bin}/eza" ] && ln -sf "${b_bin}/eza" "$HOME/bin/eza"
-            [ -f "${b_bin}/bat" ] && ln -sf "${b_bin}/bat" "$HOME/bin/bat"
-            [ -f "${b_bin}/fd" ] && ln -sf "${b_bin}/fd" "$HOME/bin/fd"
-            ;;
-        "apt")
-            _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true
-            ;;
-        "dnf")
-            _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true
-            ;;
-    esac
-
-    # 2. Linux用のリンク調整
+    # Linux用のシンボリックリンク作成
     if [ "$(uname)" = "Linux" ]; then
         [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
         [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
     fi
 
-    # 3. 【Macの命綱】brewで入らなかった場合、直接バイナリを落とす
-    local arch; arch=$(uname -m)
-    local os_name; os_name=$(uname -s)
+    # Mac用のHomebrewリンク作成
+    if [ "$(uname)" = "Darwin" ] && command -v brew >/dev/null 2>&1; then
+        local b_bin; b_bin=$(brew --prefix)/bin
+        [ -f "${b_bin}/eza" ] && ln -sf "${b_bin}/eza" "$HOME/bin/eza"
+        [ -f "${b_bin}/bat" ] && ln -sf "${b_bin}/bat" "$HOME/bin/bat"
+        [ -f "${b_bin}/fd" ] && ln -sf "${b_bin}/fd" "$HOME/bin/fd"
+    fi
 
-    # eza の強制インストール (Mac/Linux共通)
+    # 最終防衛ライン: ezaだけは絶対に入れる (全OS共通)
     if ! command -v eza >/dev/null 2>&1 && [ ! -f "$HOME/bin/eza" ]; then
-        echo "⚠️ eza not found. Downloading binary..."
-        local e_os="unknown-linux-gnu"
-        [ "$os_name" = "Darwin" ] && e_os="apple-darwin"
-        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${e_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
+        local arch; arch=$(uname -m)
+        local os_name; os_name="unknown-linux-gnu"
+        [ "$(uname)" = "Darwin" ] && os_name="apple-darwin"
+        
+        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_name}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
         find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \; 2>/dev/null || true
-        chmod +x "$HOME/bin/eza"
-    fi
-
-    # Macでもし bat/fd がリンクされていなければ、ここで強制ダウンロード
-    if ! command -v bat >/dev/null 2>&1 && [ ! -f "$HOME/bin/bat" ]; then
-        echo "⚠️ bat fallback download..."
-        # Mac用バイナリURL (darwin)
-        if [ "$os_name" = "Darwin" ]; then
-            curl -fLsS "https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-${arch}-apple-darwin.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-        else
-            curl -fLsS "https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-        fi
-        chmod +x "$HOME/bin/bat"
-    fi
-
-    if ! command -v fd >/dev/null 2>&1 && [ ! -f "$HOME/bin/fd" ]; then
-        echo "⚠️ fd fallback download..."
-        if [ "$os_name" = "Darwin" ]; then
-            curl -fLsS "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-${arch}-apple-darwin.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-        else
-            curl -fLsS "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-        fi
-        chmod +x "$HOME/bin/fd"
+        chmod +x "$HOME/bin/eza" || true
     fi
 }
 

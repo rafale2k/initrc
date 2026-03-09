@@ -70,16 +70,30 @@ jobs:
       - name: 🔍 Verify Global Command Links
         shell: bash
         run: |
-          # source が失敗しても続行するようにする
-          source ./common/loader.sh || true
+          # $HOME/bin を確実に PATH に入れる
           export PATH="$HOME/bin:$PATH"
           
-          echo "--- Checking Tools with Execution ---"
-          # 存在確認を優先し、実行は補助的にする
-          [ -x "$HOME/bin/eza" ] || command -v eza || (ls -la "$HOME/bin" && exit 1)
-          [ -x "$HOME/bin/bat" ] || command -v bat || exit 1
-          [ -x "$HOME/bin/fd" ] || command -v fd || exit 1
-          echo "✅ All tools verified."
+          # Mac の場合は Brew のパスも追加
+          if [ "$(uname)" = "Darwin" ]; then
+            [ -d "/opt/homebrew/bin" ] && export PATH="/opt/homebrew/bin:$PATH"
+            [ -d "/usr/local/bin" ] && export PATH="/usr/local/bin:$PATH"
+          fi
+
+          echo "Current PATH: $PATH"
+          echo "--- Checking Tools ---"
+          
+          # 存在確認 (無理に source せず、コマンドがあるかだけで判定)
+          for tool in eza bat fd; do
+            if command -v "$tool" >/dev/null 2>&1 || [ -x "$HOME/bin/$tool" ]; then
+              echo "✅ $tool found"
+            else
+              echo "❌ $tool not found"
+              ls -la "$HOME/bin" || echo "bin directory missing"
+              exit 1
+            fi
+          done
+          
+          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv found" || exit 1
 
       - name: 👮 ShellCheck
         run: |
@@ -120,37 +134,30 @@ jobs:
           chmod +x install.sh
           ./install.sh
 
-      - name: 🔍 Verify Global Command Links (~/bin)
+      - name: 🔍 Verify Global Command Links
         shell: bash
         run: |
-          # 1. Homebrew の環境変数を「安全に」ロード (エラーでも死なせない)
-          if [ -x /opt/homebrew/bin/brew ]; then
-            eval "$(/opt/homebrew/bin/brew shellenv)" || true
-          fi
-          if [ -x /usr/local/bin/brew ]; then
-            eval "$(/usr/local/bin/brew shellenv)" || true
+          # $HOME/bin を確実に PATH に入れる
+          export PATH="$HOME/bin:$PATH"
+          
+          # Mac の場合は Brew のパスも追加
+          if [ "$(uname)" = "Darwin" ]; then
+            [ -d "/opt/homebrew/bin" ] && export PATH="/opt/homebrew/bin:$PATH"
+            [ -d "/usr/local/bin" ] && export PATH="/usr/local/bin:$PATH"
           fi
 
-          # 2. loader.sh を絶対パスで読み込み (失敗しても続行)
-          source "$GITHUB_WORKSPACE/common/loader.sh" || true
-          
-          # 3. $HOME/bin を PATH の最優先に
-          export PATH="$HOME/bin:$PATH"
           echo "Current PATH: $PATH"
-          
           echo "--- Checking Tools ---"
-          # ファイルの実体を最優先で探す
+          
+          # 存在確認 (無理に source せず、コマンドがあるかだけで判定)
           for tool in eza bat fd; do
-              # 物理ファイルが存在するか、またはPATHが通っているか
-              if [ -x "$HOME/bin/$tool" ] || command -v "$tool" >/dev/null 2>&1; then
-                  echo "✅ $tool found"
-              else
-                  echo "❌ $tool not found"
-                  echo "Listing contents of $HOME/bin:"
-                  ls -la "$HOME/bin" || echo "Directory $HOME/bin not found"
-                  exit 1
-              fi
+            if command -v "$tool" >/dev/null 2>&1 || [ -x "$HOME/bin/$tool" ]; then
+              echo "✅ $tool found"
+            else
+              echo "❌ $tool not found"
+              ls -la "$HOME/bin" || echo "bin directory missing"
+              exit 1
+            fi
           done
           
-          echo "--- Checking AI Wrapper ---"
-          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv found" || { echo "❌ ginv missing"; exit 1; }
+          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv found" || exit 1

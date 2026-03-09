@@ -17,11 +17,13 @@ setup_os_repos() {
         local codename; codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
 
         _sudo mkdir -p /etc/apt/keyrings
-        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
-        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
+        if wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null; then
+            echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
+        fi
         
-        _sudo wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${os_id} ${codename} stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        if _sudo wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null; then
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${os_id} ${codename} stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        fi
 
     elif [ "$PM" = "dnf" ]; then
         if [ "$OS" = "rhel" ]; then
@@ -36,15 +38,16 @@ install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    # 既存のリンクを徹底的に掃除（Macの /bin/bat ゾンビ対策）
-    rm -f "$HOME/bin/bat" "$HOME/bin/fd" "$HOME/bin/eza"
+    # MacのGitHub Actions環境に居座る /bin/bat への不正リンクを物理的に破壊
+    echo "🧹 Wiping ghost symlinks..."
+    rm -f "$HOME/bin/eza" "$HOME/bin/bat" "$HOME/bin/fd"
 
     echo "📦 Installing packages via $PM..."
     case "$PM" in
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
             local brew_bin; brew_bin=$(brew --prefix)/bin
-            # リンクを張る前に alias 等の影響を避けるためフルパス指定
+            # リンク先を brew の実体に固定
             ln -sf "${brew_bin}/eza" "$HOME/bin/eza"
             ln -sf "${brew_bin}/bat" "$HOME/bin/bat"
             ln -sf "${brew_bin}/fd" "$HOME/bin/fd"
@@ -53,8 +56,9 @@ install_all_packages() {
         "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
     esac
 
-    # Linuxのみ：パッケージ名の違いを吸収
+    # Linux用のパス調整 (Macでは絶対実行しない)
     if [ "$(uname)" = "Linux" ]; then
+        echo "🐧 Applying Linux-specific symlinks..."
         [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
         [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
         [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sf /usr/bin/fd-find "$HOME/bin/fd"
@@ -63,26 +67,32 @@ install_all_packages() {
     local arch; arch=$(uname -m)
     # --- eza ダウンロード (全OS共通フォールバック) ---
     if ! command -v eza >/dev/null 2>&1; then
+        echo "⬇️ Downloading eza binary..."
         local eza_os="unknown-linux-gnu"
         [[ "$(uname)" == "Darwin" ]] && eza_os="apple-darwin"
-        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${eza_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
-        find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
-        chmod +x "$HOME/bin/eza"
+        if curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${eza_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
+            find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
+            chmod +x "$HOME/bin/eza"
+        fi
     fi
 
-    # --- bat/fd ダウンロード (Mac(brew) 以外で入らなかった場合) ---
+    # --- bat/fd ダウンロード (Linux環境でインストールに失敗した場合) ---
     if [ "$(uname)" != "Darwin" ]; then
         if ! command -v bat >/dev/null 2>&1; then
+            echo "⬇️ Downloading bat binary..."
             local bat_v="v0.24.0"
-            curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
-            find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
-            chmod +x "$HOME/bin/bat"
+            if curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
+                find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
+                chmod +x "$HOME/bin/bat"
+            fi
         fi
         if ! command -v fd >/dev/null 2>&1; then
+            echo "⬇️ Downloading fd binary..."
             local fd_v="v10.2.0"
-            curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
-            find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
-            chmod +x "$HOME/bin/fd"
+            if curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
+                find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
+                chmod +x "$HOME/bin/fd"
+            fi
         fi
     fi
 }
@@ -95,8 +105,12 @@ setup_oh_my_zsh() {
     mkdir -p "$custom_dir/themes" "$custom_dir/plugins"
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$custom_dir/themes/powerlevel10k"
     
+    echo "🔗 Linking Zsh plugins..."
     for p in zsh-autosuggestions zsh-syntax-highlighting history-search-multi-word; do
-        [ -d "$DOTPATH/zsh/plugins/$p" ] && ln -sfn "$DOTPATH/zsh/plugins/$p" "$custom_dir/plugins/$p"
+        if [ -d "$DOTPATH/zsh/plugins/$p" ]; then
+            ln -sfn "$DOTPATH/zsh/plugins/$p" "$custom_dir/plugins/$p"
+            echo "✅ Linked $p"
+        fi
     done
 }
 
@@ -113,6 +127,7 @@ EOF
 }
 
 deploy_configs() {
+    # 既存の関数を維持
     safe_replace() { perl -pe "s|__DOTPATH__|$DOTPATH|g" "$1" > "$2"; }
     safe_replace "$DOTPATH/zsh/.zshrc" "$1/.zshrc"
     safe_replace "$DOTPATH/bash/.bashrc" "$1/.bashrc"

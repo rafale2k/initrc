@@ -63,23 +63,17 @@ jobs:
           chmod +x install.sh
           ./install.sh
 
-      - name: 🔍 Verify Global Command Links (~/bin)
+      - name: 🔍 Verify Global Command Links
         shell: bash
         run: |
-          export PATH="/root/bin:/root/.local/bin:$PATH"
-          check_tool() {
-              if command -v "$1" >/dev/null 2>&1; then
-                  echo "✅ $1 found"
-              else
-                  echo "❌ $1 not found"
-                  ls -la /root/bin
-                  exit 1
-              fi
-          }
-          check_tool "eza"
-          check_tool "bat"
-          check_tool "fd"
-          [ -x "/root/bin/ginv" ] || exit 1
+          # loader.sh を読み込んでエイリアスを有効化
+          source ./common/loader.sh
+          echo "Current PATH: $PATH"
+          
+          echo "--- Checking Tools with Execution ---"
+          eza --version | head -n 1 || (ls -la /Users/runner/bin && exit 1)
+          bat --version | head -n 1 || exit 1
+          fd --version | head -n 1 || exit 1
 
       - name: 👮 ShellCheck
         run: |

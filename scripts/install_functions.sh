@@ -36,25 +36,16 @@ install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    # 【改修】Macでも確実に動くゾンビリンク削除
-    # リンク先が存在しないもの、および Mac で悪さをしている /bin/bat へのリンクを物理破壊
-    echo "🧹 Purging broken or incorrect symlinks in $HOME/bin..."
-    for link in "$HOME/bin"/*; do
-        if [ -L "$link" ]; then
-            # リンク先が存在しない、またはリンク先が /bin/bat や /bin/fd になっているものを削除
-            target=$(readlink "$link")
-            if [ ! -e "$link" ] || [[ "$target" == "/bin/bat" ]] || [[ "$target" == "/bin/fd" ]]; then
-                rm "$link"
-            fi
-        fi
-    done
+    # 【改修】問答無用で既存のリンクを消す（リンクなら中身に関わらず削除）
+    echo "🧹 Wiping existing symlinks in $HOME/bin to prevent ghost links..."
+    find "$HOME/bin" -type l -exec rm -f {} +
 
     echo "📦 Installing packages via $PM..."
     case "$PM" in
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
             local brew_bin; brew_bin=$(brew --prefix)/bin
-            # Macはここだけで完結させる
+            # 確実にフルパスで打ち込む
             ln -sfn "${brew_bin}/eza" "$HOME/bin/eza"
             ln -sfn "${brew_bin}/bat" "$HOME/bin/bat"
             ln -sfn "${brew_bin}/fd" "$HOME/bin/fd"
@@ -63,17 +54,15 @@ install_all_packages() {
         "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
     esac
 
-    # 【改修】Linux判定を完璧に (OSTYPEがlinux*の時のみ実行)
-    if [[ "$OSTYPE" == linux* ]]; then
-        echo "🐧 Applying Linux-specific symlinks..."
-        [ -f /usr/bin/batcat ] && ln -sfn /usr/bin/batcat "$HOME/bin/bat"
-        [ -f /usr/bin/fdfind ] && ln -sfn /usr/bin/fdfind "$HOME/bin/fd"
-        [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sfn /usr/bin/fd-find "$HOME/bin/fd"
-    fi
+    # 【改修】「ファイルが実在する場合のみ」リンクを張る（OS判定に頼らない）
+    echo "🔗 Creating command aliases..."
+    [ -f /usr/bin/batcat ] && ln -sfn /usr/bin/batcat "$HOME/bin/bat"
+    [ -f /usr/bin/fdfind ] && ln -sfn /usr/bin/fdfind "$HOME/bin/fd"
+    [ -f /usr/bin/fd-find ] && ln -sfn /usr/bin/fd-find "$HOME/bin/fd"
 
     local arch; arch=$(uname -m)
     local os_type="unknown-linux-gnu"
-    [[ "$OSTYPE" == "darwin"* ]] && os_type="apple-darwin"
+    [[ "$(uname -s)" == "Darwin" ]] && os_type="apple-darwin"
 
     # --- eza ダウンロード ---
     if ! command -v eza >/dev/null 2>&1; then
@@ -87,8 +76,8 @@ install_all_packages() {
         done
     fi
 
-    # --- bat/fd は Mac(brew) 以外の場合のみフォールバック ---
-    if [ "$PM" != "brew" ]; then
+    # --- bat/fd ダウンロード (Mac以外で未インストールの場合のみ) ---
+    if [[ "$(uname -s)" != "Darwin" ]]; then
         if ! command -v bat >/dev/null 2>&1; then
             echo "⬇️ Downloading bat binary..."
             local bat_v="v0.24.0"

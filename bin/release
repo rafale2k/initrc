@@ -21,22 +21,21 @@ echo "🚀 Preparing Release $VERSION..."
 echo "🔍 Running lint..."
 find . -type f \( -name "*.sh" -o -name "*.zsh" \) -not -path "*/oh-my-zsh/*" -not -path "*/themes/*" -not -path "*/plugins/*" -not -path "*/.git/*" | xargs shellcheck
 
-# 2. AI Summary Generation (NEW!)
+# 2. AI Summary Generation
 AI_SUMMARY=""
 if [ -n "$PREV_TAG" ]; then
     echo "🤖 Gemini is analyzing changes since $PREV_TAG..."
     
-    # 差分の統計とコミットメッセージを AI に渡す（diff本体だと長すぎる場合があるため）
+    # 差分の統計とコミットメッセージを抽出
     DIFF_DATA=$(git log "$PREV_TAG"..HEAD --oneline --stat)
     
     # llm コマンドを使用して要約を生成
-    # ※ llm コマンドがパスに通っており、APIキーが設定されている前提
     AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "あなたはプロフェッショナルな SRE です。
     以下の git 差分データから、今回のアップデートの主要な変更点とメリットを、
     ユーザー向けに 3 行程度の箇条書きで、簡潔かつ情熱的に要約してください。
     - 日本語で出力してください。
     - 各行の冒頭に内容に合った絵文字を付けてください。
-    - 専門用語を交えつつも分かりやすく。")
+    - 余計な挨拶は不要です。")
     
     echo "--- AI SUMMARY ---"
     echo "$AI_SUMMARY"
@@ -44,16 +43,26 @@ if [ -n "$PREV_TAG" ]; then
 fi
 
 # 3. Generate CHANGELOG
-# gen-changelog に AI_SUMMARY を渡すか、一時ファイル経由で結合する
-# ここでは gen-changelog が生成した直後に、サマリーを先頭に差し込む方式にする
+# ※ gen-changelog が既存の CHANGELOG.md を更新することを前提
 ~/dotfiles/bin/gen-changelog "$VERSION"
 
 if [ -n "$AI_SUMMARY" ]; then
-    # CHANGELOG.md の最新バージョンの見出し直後にサマリーを挿入
-    # テンポラリファイルを使って安全に置換
+    echo "📝 Inserting AI Summary into CHANGELOG.md..."
     TEMP_FILE=$(mktemp)
-    awk -v summary="### 🤖 AI Release Summary\n$AI_SUMMARY\n\n---" '
-    /## \[/ && !done { print; print "\n" summary; done=1; next }
+    
+    # AWK の修正ポイント: 
+    # done フラグを使って、"一番最初に見つかった" 見出しの後にだけ挿入する
+    awk -v summary="> ### 🤖 AI Release Summary
+> $AI_SUMMARY
+
+---" '
+    BEGIN { done = 0 }
+    /## \[/ && done == 0 { 
+        print; 
+        print "\n" summary; 
+        done = 1; 
+        next 
+    }
     { print }' CHANGELOG.md > "$TEMP_FILE" && mv "$TEMP_FILE" CHANGELOG.md
 fi
 

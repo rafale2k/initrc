@@ -95,6 +95,7 @@ jobs:
     runs-on: macos-latest
     env:
       DOTPATH: ${{ github.workspace }}
+      # runnerのホームディレクトリを基準にパスを通す
       PATH: /Users/runner/bin:/usr/local/bin:/usr/bin:/bin
 
     steps:
@@ -115,5 +116,27 @@ jobs:
       - name: 🔍 Verify Global Command Links (~/bin)
         shell: bash
         run: |
+          # $HOME を使って確実にパスを通す
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-          command -v eza && command -v bat && command -v fd && [ -x "$HOME/bin/ginv" ]
+          echo "Current PATH: $PATH"
+          
+          # インストールされた実体とパスを個別に確認
+          echo "--- Checking Tools ---"
+          tools=("eza" "bat" "fd")
+          for tool in "${tools[@]}"; do
+              if command -v "$tool" >/dev/null 2>&1; then
+                  echo "✅ $tool found at $(command -v "$tool")"
+              else
+                  echo "❌ $tool not found"
+                  ls -la "$HOME/bin"
+                  exit 1
+              fi
+          done
+
+          echo "--- Checking AI Wrapper ---"
+          if [ -x "$HOME/bin/ginv" ]; then
+              echo "✅ ginv found"
+          else
+              echo "❌ ginv not found"
+              exit 1
+          fi

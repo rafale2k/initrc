@@ -46,17 +46,16 @@ mkdir -p "$DOCKER_CONFIG"
 # OS判定
 OS_TYPE=$(uname -s)
 
-# $HOME/bin を優先
+# $HOME/bin を最優先
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 
 if [ "$OS_TYPE" = "Darwin" ]; then
-    # Mac は Brew のパスを追加
-    [ -d "/opt/homebrew/bin" ] && export PATH="/opt/homebrew/bin:$PATH"
-    [ -d "/usr/local/bin" ] && export PATH="/usr/local/bin:$PATH"
+    # Mac: Brewの標準パスを静的に追加
+    export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 else
-    # Linux は名前解決のみ
-    command -v batcat >/dev/null 2>&1 && alias bat='batcat'
-    command -v fdfind >/dev/null 2>&1 && alias fd='fdfind'
+    # Linux: エイリアスは実行時に存在チェックする安全な書き方に変更
+    if command -v batcat >/dev/null 2>&1; then alias bat='batcat'; fi
+    if command -v fdfind >/dev/null 2>&1; then alias fd='fdfind'; fi
 fi
 
 # 5. シェル別の設定

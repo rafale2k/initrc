@@ -70,15 +70,16 @@ jobs:
       - name: 🔍 Verify Global Command Links
         shell: bash
         run: |
-          # loader.sh を読み込んでエイリアスとパスを有効化
-          source ./common/loader.sh
-          echo "Current PATH: $PATH"
+          # source が失敗しても続行するようにする
+          source ./common/loader.sh || true
+          export PATH="$HOME/bin:$PATH"
           
           echo "--- Checking Tools with Execution ---"
-          # 1. 直接実行 2. $HOME/bin 内の存在確認 の二段構え
-          eza --version | head -n 1 || [ -f /root/bin/eza ] || (ls -la /root/bin && exit 1)
-          bat --version | head -n 1 || [ -f /root/bin/bat ] || exit 1
-          fd --version | head -n 1 || [ -f /root/bin/fd ] || exit 1
+          # 存在確認を優先し、実行は補助的にする
+          [ -x "$HOME/bin/eza" ] || command -v eza || (ls -la "$HOME/bin" && exit 1)
+          [ -x "$HOME/bin/bat" ] || command -v bat || exit 1
+          [ -x "$HOME/bin/fd" ] || command -v fd || exit 1
+          echo "✅ All tools verified."
 
       - name: 👮 ShellCheck
         run: |

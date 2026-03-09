@@ -95,7 +95,7 @@ jobs:
     runs-on: macos-latest
     env:
       DOTPATH: ${{ github.workspace }}
-      # 【重要】Intel Mac (/usr/local/bin) と M1/M2 Mac (/opt/homebrew/bin) 両方のパスを優先追加
+      # PATH に brew の場所をこれでもかと詰め込む
       PATH: /Users/runner/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
 
     steps:
@@ -110,31 +110,47 @@ jobs:
           OS: darwin
           PM: brew
         run: |
+          # Mac環境で brew のパスを確実に通した状態で実行
+          if [ -d "/opt/homebrew/bin" ]; then
+            export PATH="/opt/homebrew/bin:$PATH"
+          elif [ -d "/usr/local/bin" ]; then
+            export PATH="/usr/local/bin:$PATH"
+          fi
+          
           chmod +x install.sh
           ./install.sh
 
       - name: 🔍 Verify Global Command Links (~/bin)
         shell: bash
         run: |
-          # 設定を反映
-          source ./common/loader.sh
-          # さらに念のため $HOME/bin を PATH の最優先に
+          # 1. Homebrew の環境変数を強制ロード
+          if [ -x /opt/homebrew/bin/brew ]; then
+            eval "$(/opt/homebrew/bin/brew shellenv)"
+          elif [ -x /usr/local/bin/brew ]; then
+            eval "$(/usr/local/bin/brew shellenv)"
+          fi
+
+          # 2. loader.sh を絶対パスで読み込み
+          source "$GITHUB_WORKSPACE/common/loader.sh"
+          
+          # 3. $HOME/bin を PATH の最優先に
           export PATH="$HOME/bin:$PATH"
           echo "Current PATH: $PATH"
           
           echo "--- Checking Tools ---"
+          # 実行確認と物理ファイル確認の二段構え
           tools=("eza" "bat" "fd")
           for tool in "${tools[@]}"; do
-              # 実行可能か、または $HOME/bin に実体があるかを確認
               if command -v "$tool" >/dev/null 2>&1 || [ -x "$HOME/bin/$tool" ]; then
-                  echo "✅ $tool found"
+                  echo "✅ $tool found at $(command -v $tool || echo $HOME/bin/$tool)"
               else
                   echo "❌ $tool not found"
+                  echo "Directory listing of $HOME/bin:"
                   ls -la "$HOME/bin"
                   exit 1
               fi
           done
-
+          
           echo "--- Checking AI Wrapper ---"
           if [ -x "$HOME/bin/ginv" ]; then
               echo "✅ ginv found"
@@ -142,3 +158,4 @@ jobs:
               echo "❌ ginv not found"
               exit 1
           fi
+

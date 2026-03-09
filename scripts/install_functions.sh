@@ -35,16 +35,19 @@ setup_os_repos() {
 }
 
 install_all_packages() {
-    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
-    rm -f "$HOME/bin/eza" "$HOME/bin/bat" "$HOME/bin/fd"
-
-    echo "📦 Starting Package Installation..."
-
-    # 1. パッケージマネージャー判定 (変数が空の場合のフォールバック強化)
-    local target_pm="$PM"
-    if [ -z "$target_pm" ]; then
-        if command -v brew >/dev/null 2>&1; then target_pm="brew";
+    
+    # PM 変数が何であれ、brew があれば brew を使う執念
+    if command -v brew >/dev/null 2>&1; then
+        echo "🍺 Homebrew detected. Installing..."
+        brew install tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras fd eza bat || true
+        
+        # リンク作成を確実に
+        local b_bin; b_bin=$(brew --prefix)/bin
+        for t in eza bat fd; do
+            [ -f "${b_bin}/$t" ] && ln -sf "${b_bin}/$t" "$HOME/bin/$t"
+        done
+    elif command -v apt-get >/dev/null 2>&1; then
         elif command -v apt-get >/dev/null 2>&1; then target_pm="apt";
         elif command -v dnf >/dev/null 2>&1; then target_pm="dnf"; fi
     fi

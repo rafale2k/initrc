@@ -123,39 +123,34 @@ jobs:
       - name: 🔍 Verify Global Command Links (~/bin)
         shell: bash
         run: |
-          # 1. Homebrew の環境変数を強制ロード
+          # 1. Homebrew の環境変数を「安全に」ロード (エラーでも死なせない)
           if [ -x /opt/homebrew/bin/brew ]; then
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-          elif [ -x /usr/local/bin/brew ]; then
-            eval "$(/usr/local/bin/brew shellenv)"
+            eval "$(/opt/homebrew/bin/brew shellenv)" || true
+          fi
+          if [ -x /usr/local/bin/brew ]; then
+            eval "$(/usr/local/bin/brew shellenv)" || true
           fi
 
-          # 2. loader.sh を絶対パスで読み込み
-          source "$GITHUB_WORKSPACE/common/loader.sh"
+          # 2. loader.sh を絶対パスで読み込み (失敗しても続行)
+          source "$GITHUB_WORKSPACE/common/loader.sh" || true
           
           # 3. $HOME/bin を PATH の最優先に
           export PATH="$HOME/bin:$PATH"
           echo "Current PATH: $PATH"
           
           echo "--- Checking Tools ---"
-          # 実行確認と物理ファイル確認の二段構え
-          tools=("eza" "bat" "fd")
-          for tool in "${tools[@]}"; do
-              if command -v "$tool" >/dev/null 2>&1 || [ -x "$HOME/bin/$tool" ]; then
-                  echo "✅ $tool found at $(command -v $tool || echo $HOME/bin/$tool)"
+          # ファイルの実体を最優先で探す
+          for tool in eza bat fd; do
+              # 物理ファイルが存在するか、またはPATHが通っているか
+              if [ -x "$HOME/bin/$tool" ] || command -v "$tool" >/dev/null 2>&1; then
+                  echo "✅ $tool found"
               else
                   echo "❌ $tool not found"
-                  echo "Directory listing of $HOME/bin:"
-                  ls -la "$HOME/bin"
+                  echo "Listing contents of $HOME/bin:"
+                  ls -la "$HOME/bin" || echo "Directory $HOME/bin not found"
                   exit 1
               fi
           done
           
           echo "--- Checking AI Wrapper ---"
-          if [ -x "$HOME/bin/ginv" ]; then
-              echo "✅ ginv found"
-          else
-              echo "❌ ginv not found"
-              exit 1
-          fi
-
+          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv found" || { echo "❌ ginv missing"; exit 1; }

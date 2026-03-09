@@ -38,8 +38,9 @@ install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    # MacのGitHub Actions環境に居座る /bin/bat への不正リンクを物理的に破壊
-    echo "🧹 Wiping ghost symlinks..."
+    # 【最重要】Macの GitHub Actions 環境で "/bin/bat" 等への不正リンクが作られるのを防ぐため
+    # リンクを張る前に $HOME/bin 内の既存リンクを徹底的に削除
+    echo "🧹 Wiping existing symlinks in $HOME/bin..."
     rm -f "$HOME/bin/eza" "$HOME/bin/bat" "$HOME/bin/fd"
 
     echo "📦 Installing packages via $PM..."
@@ -47,16 +48,20 @@ install_all_packages() {
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
             local brew_bin; brew_bin=$(brew --prefix)/bin
-            # リンク先を brew の実体に固定
+            # リンク先を brew の実体絶対パスに固定して、誤ったエイリアス評価を回避
             ln -sf "${brew_bin}/eza" "$HOME/bin/eza"
             ln -sf "${brew_bin}/bat" "$HOME/bin/bat"
             ln -sf "${brew_bin}/fd" "$HOME/bin/fd"
             ;;
-        "apt") _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true ;;
-        "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
+        "apt") 
+            _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true 
+            ;;
+        "dnf") 
+            _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true 
+            ;;
     esac
 
-    # Linux用のパス調整 (Macでは絶対実行しない)
+    # Linuxのみ：パッケージ名の違いをシンボリックリンクで吸収
     if [ "$(uname)" = "Linux" ]; then
         echo "🐧 Applying Linux-specific symlinks..."
         [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
@@ -76,7 +81,7 @@ install_all_packages() {
         fi
     fi
 
-    # --- bat/fd ダウンロード (Linux環境でインストールに失敗した場合) ---
+    # --- bat/fd ダウンロード (Mac以外で OS パッケージから入らなかった場合) ---
     if [ "$(uname)" != "Darwin" ]; then
         if ! command -v bat >/dev/null 2>&1; then
             echo "⬇️ Downloading bat binary..."
@@ -127,7 +132,6 @@ EOF
 }
 
 deploy_configs() {
-    # 既存の関数を維持
     safe_replace() { perl -pe "s|__DOTPATH__|$DOTPATH|g" "$1" > "$2"; }
     safe_replace "$DOTPATH/zsh/.zshrc" "$1/.zshrc"
     safe_replace "$DOTPATH/bash/.bashrc" "$1/.bashrc"

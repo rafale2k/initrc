@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# shellcheck disable=SC1091
 _sudo() {
     if [ -z "${SUDO_CMD:-}" ]; then "$@"; else $SUDO_CMD "$@"; fi
 }
@@ -20,7 +21,6 @@ setup_os_repos() {
         wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
         echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
         
-        # Docker 用のリポジトリ登録 (Shellcheck SC2046 対策)
         _sudo wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
         echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${os_id} ${codename} stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
@@ -52,21 +52,21 @@ install_all_packages() {
         (cd /tmp && git clone --depth 1 https://github.com/tj/git-extras.git && cd git-extras && _sudo make install)
     fi
 
-    # --- バイナリ直接ダウンロードの OS/Arch 判定 ---
     local arch; arch=$(uname -m)
     local os_type="unknown-linux-gnu"
     [[ "$OSTYPE" == "darwin"* ]] && os_type="apple-darwin"
 
-    # eza のインストール (堅牢版)
     if ! command -v eza >/dev/null 2>&1; then
         echo "⬇️ Downloading eza..."
         local eza_url="https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz"
-        curl -fL "$eza_url" | tar xz -C "$HOME/bin" 2>/dev/null || true
-        find "$HOME/bin" -maxdepth 2 -name "eza" -type f -exec mv {} "$HOME/bin/eza" \; 2>/dev/null || true
+        # 展開先を一時ディレクトリにして、確実に見つけ出す
+        mkdir -p /tmp/eza_build
+        curl -fL "$eza_url" | tar xz -C /tmp/eza_build 2>/dev/null || true
+        find /tmp/eza_build -type f -name "eza" -exec mv {} "$HOME/bin/eza" \;
         chmod +x "$HOME/bin/eza"
+        rm -rf /tmp/eza_build
     fi
 
-    # bat のインストール (Macのbrew失敗時やLinux用)
     if ! command -v bat >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
         local bat_v="v0.24.0"
         local bat_os="unknown-linux-musl"
@@ -74,7 +74,6 @@ install_all_packages() {
         curl -L "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-${bat_os}.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 "bat-${bat_v}-${arch}-${bat_os}/bat" 2>/dev/null || true
     fi
 
-    # fd のインストール
     if ! command -v fd >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
         local fd_v="v10.2.0"
         local fd_os="unknown-linux-musl"
@@ -94,7 +93,6 @@ setup_oh_my_zsh() {
 }
 
 setup_ai_tools() {
-    # pipx で llm を入れる。入ってなければ実行
     command -v llm >/dev/null 2>&1 || { pipx install llm && pipx inject llm llm-gemini; }
     cat << 'EOF' > "$HOME/bin/ginv"
 #!/bin/bash
@@ -105,7 +103,6 @@ EOF
 }
 
 deploy_configs() {
-    # $1 は HOME などの展開先パス
     safe_replace() { perl -pe "s|__DOTPATH__|$DOTPATH|g" "$1" > "$2"; }
     safe_replace "$DOTPATH/zsh/.zshrc" "$1/.zshrc"
     safe_replace "$DOTPATH/bash/.bashrc" "$1/.bashrc"

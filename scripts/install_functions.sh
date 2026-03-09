@@ -19,8 +19,8 @@ setup_os_repos() {
         echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
         
         # Docker 用に codename を使用
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $codename stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null || true
-
+        _sudo wget -qO- https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $codename stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     elif [ "$PM" = "dnf" ]; then
         # SC2015 対策: A && B || C を使わず if 文で明確に
         if [ "$OS" = "rhel" ]; then
@@ -41,6 +41,7 @@ install_all_packages() {
         "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
     esac
 
+    # シンボリックリンク (Linux用)
     [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
     [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
     [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sf /usr/bin/fd-find "$HOME/bin/fd"
@@ -50,17 +51,33 @@ install_all_packages() {
         (cd /tmp && git clone --depth 1 https://github.com/tj/git-extras.git && cd git-extras && _sudo make install)
     fi
 
+    # --- OSとアーキテクチャの判定 ---
     local arch; arch=$(uname -m)
+    local os_type; os_type="unknown-linux-gnu"
+    [[ "$OSTYPE" == "darwin"* ]] && os_type="apple-darwin"
+
+    # eza の手動インストール
     if ! command -v eza >/dev/null 2>&1; then
-        curl -L "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-unknown-linux-gnu.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
+        echo "⬇️ Downloading eza..."
+        curl -L "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz" | tar xz -C "$HOME/bin" ./eza 2>/dev/null || \
+        curl -L "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz" | tar xz -C "$HOME/bin"
+        chmod +x "$HOME/bin/eza"
     fi
+
+    # bat / fd の手動インストール (Macのbrew失敗時やLinux用)
     if ! command -v bat >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
         local bat_v="v0.24.0"
-        curl -L "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 "bat-${bat_v}-${arch}-unknown-linux-musl/bat" 2>/dev/null || true
+        # Linuxは musl, Macは darwin
+        local bat_os="unknown-linux-musl"
+        [[ "$os_type" == "apple-darwin" ]] && bat_os="apple-darwin"
+        curl -L "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-${bat_os}.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 "bat-${bat_v}-${arch}-${bat_os}/bat" 2>/dev/null || true
     fi
+
     if ! command -v fd >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
         local fd_v="v10.2.0"
-        curl -L "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 "fd-${fd_v}-${arch}-unknown-linux-musl/fd" 2>/dev/null || true
+        local fd_os="unknown-linux-musl"
+        [[ "$os_type" == "apple-darwin" ]] && fd_os="apple-darwin"
+        curl -L "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-${fd_os}.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 "fd-${fd_v}-${arch}-${fd_os}/fd" 2>/dev/null || true
     fi
 }
 

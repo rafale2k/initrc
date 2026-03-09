@@ -10,17 +10,13 @@ else
 fi
 
 _ld_script_dir="$(cd "$(dirname "$_ld_current_script")" && pwd)"
-# SC2155 対策: 宣言と代入を分離
 DOTPATH="$(cd "$_ld_script_dir/.." && pwd)"
 export DOTPATH
 export DOTFILES_PATH="$DOTPATH"
 export DOTFILES_ROOT="$DOTPATH"
 
-# 2. PATH の設定
-case ":$PATH:" in
-    *":$HOME/bin:"*) ;;
-    *) export PATH="$HOME/bin:$PATH" ;;
-esac
+# 2. PATH の設定 ($HOME/bin を最優先)
+export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 
 # 3. .env の読み込み
 if [ -f "$DOTPATH/configs/.env" ]; then
@@ -30,10 +26,14 @@ fi
 # 4. 共通設定 (_*.sh) の一括読み込み
 _ld_common_dir="$DOTPATH/common"
 if [ -d "$_ld_common_dir" ]; then
+    # nullglob 相当の処理を POSIX 準拠で書く
     for _ld_f in "$_ld_common_dir"/_*.sh; do
-        # loader.sh 自体は source しない
-        [[ "$_ld_f" == *"loader.sh" ]] && continue
-        if [ -r "$_ld_f" ]; then
+        # ファイルが実在する場合のみ source
+        if [ -f "$_ld_f" ]; then
+            # loader.sh 自体は source しない (念のため)
+            case "$_ld_f" in
+                *loader.sh) continue ;;
+            esac
             source "$_ld_f"
         fi
     done
@@ -41,19 +41,16 @@ fi
 
 # Docker の権限エラー (Permission Denied) 回避
 export DOCKER_CONFIG="$HOME/.docker_temp"
-mkdir -p "$DOCKER_CONFIG"
+[ ! -d "$DOCKER_CONFIG" ] && mkdir -p "$DOCKER_CONFIG"
 
 # OS判定
 OS_TYPE=$(uname -s)
-
-# $HOME/bin を最優先
-export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 
 if [ "$OS_TYPE" = "Darwin" ]; then
     # Mac: Brewの標準パスを静的に追加
     export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 else
-    # Linux: エイリアスは実行時に存在チェックする安全な書き方に変更
+    # Linux: エイリアス設定
     if command -v batcat >/dev/null 2>&1; then alias bat='batcat'; fi
     if command -v fdfind >/dev/null 2>&1; then alias fd='fdfind'; fi
 fi
@@ -67,7 +64,9 @@ if [ -n "${ZSH_VERSION:-}" ]; then
     [ -r "$_ld_zsh_dir/_p10k.zsh" ]   && source "$_ld_zsh_dir/_p10k.zsh"
     alias reload='exec zsh -l'
 elif [ -n "${BASH_VERSION:-}" ]; then
-    [ "${EUID:-}" -eq 0 ] && export PS1='\[\e[1;37;41m\] ROOT \[\e[0m\] \[\e[01;31m\]\u@\h\[\e[0m\]:\[\033[01;34m\]\w\[\033[00m\]# '
+    if [ "${EUID:-}" -eq 0 ]; then
+        export PS1='\[\e[1;37;41m\] ROOT \[\e[0m\] \[\e[01;31m\]@\h\[\e[0m\]:\[\e[01;34m\]\w\[\e[00m\]# '
+    fi
     alias reload='source ~/.bashrc'
 fi
 

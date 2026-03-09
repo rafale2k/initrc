@@ -56,14 +56,24 @@ install_all_packages() {
     local os_type="unknown-linux-gnu"
     [[ "$OSTYPE" == "darwin"* ]] && os_type="apple-darwin"
 
+    # eza のインストール (超堅牢デバッグ版)
     if ! command -v eza >/dev/null 2>&1; then
         echo "⬇️ Downloading eza..."
         local eza_url="https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz"
-        # 展開先を一時ディレクトリにして、確実に見つけ出す
+        echo "URL: $eza_url"
+        
         mkdir -p /tmp/eza_build
-        curl -fL "$eza_url" | tar xz -C /tmp/eza_build 2>/dev/null || true
-        find /tmp/eza_build -type f -name "eza" -exec mv {} "$HOME/bin/eza" \;
-        chmod +x "$HOME/bin/eza"
+        # -v をつけて展開内容を表示、エラーも隠さない
+        if curl -fLsS "$eza_url" | tar xzv -C /tmp/eza_build; then
+            echo "✅ Extraction successful. Contents of /tmp/eza_build:"
+            ls -R /tmp/eza_build
+            # 階層を問わずファイル名が 'eza' の実行ファイルを探して移動
+            find /tmp/eza_build -type f -name "eza" -exec mv {} "$HOME/bin/eza" \;
+            chmod +x "$HOME/bin/eza"
+            echo "🚀 eza moved to $HOME/bin/eza"
+        else
+            echo "❌ Failed to download or extract eza"
+        fi
         rm -rf /tmp/eza_build
     fi
 

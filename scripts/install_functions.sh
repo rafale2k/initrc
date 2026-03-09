@@ -13,7 +13,6 @@ setup_os_repos() {
         
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
-        
         # shellcheck source=/dev/null
         local os_id; os_id=$(. /etc/os-release; echo "$ID")
 
@@ -36,12 +35,15 @@ setup_os_repos() {
 install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
-    echo "📦 Installing packages via $PM..."
+    
+    # Macの幽霊リンクを物理的に消去
+    echo "🧹 Cleaning up broken symlinks in $HOME/bin..."
+    find "$HOME/bin" -xtype l -delete 2>/dev/null || true
 
+    echo "📦 Installing packages via $PM..."
     case "$PM" in
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
-            # MacはHomebrewのパスを優先してリンクを張る
             local brew_bin; brew_bin=$(brew --prefix)/bin
             ln -sfn "${brew_bin}/eza" "$HOME/bin/eza"
             ln -sfn "${brew_bin}/bat" "$HOME/bin/bat"
@@ -51,8 +53,8 @@ install_all_packages() {
         "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
     esac
 
-    # Linux専用のシンボリックリンク修正ロジック
-    if [ "$OS" = "linux" ]; then
+    # Linux専用：パスの調整
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "🐧 Applying Linux-specific symlinks..."
         [ -f /usr/bin/batcat ] && ln -sfn /usr/bin/batcat "$HOME/bin/bat"
         [ -f /usr/bin/fdfind ] && ln -sfn /usr/bin/fdfind "$HOME/bin/fd"
@@ -63,7 +65,7 @@ install_all_packages() {
     local os_type="unknown-linux-gnu"
     [[ "$OSTYPE" == "darwin"* ]] && os_type="apple-darwin"
 
-    # --- eza フォールバック ---
+    # --- eza ダウンロード ---
     if ! command -v eza >/dev/null 2>&1; then
         echo "⬇️ Downloading eza binary..."
         local eza_urls=("https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz" "https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz")
@@ -75,7 +77,7 @@ install_all_packages() {
         done
     fi
 
-    # --- bat フォールバック (Mac以外) ---
+    # --- bat ダウンロード ---
     if ! command -v bat >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
         echo "⬇️ Downloading bat binary..."
         local bat_v="v0.24.0"
@@ -85,7 +87,7 @@ install_all_packages() {
         chmod +x "$HOME/bin/bat"
     fi
 
-    # --- fd フォールバック (Mac以外) ---
+    # --- fd ダウンロード ---
     if ! command -v fd >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
         echo "⬇️ Downloading fd binary..."
         local fd_v="v10.2.0"
@@ -100,9 +102,17 @@ setup_oh_my_zsh() {
     [ ! -d "$HOME/.oh-my-zsh" ] && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     local custom_dir="$HOME/.oh-my-zsh/custom"
     mkdir -p "$custom_dir/themes" "$custom_dir/plugins"
+    
+    # Powerlevel10k リンク
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$custom_dir/themes/powerlevel10k"
+    
+    # 【復活】プラグインのループ処理
+    echo "🔗 Linking Zsh plugins..."
     for p in zsh-autosuggestions zsh-syntax-highlighting history-search-multi-word; do
-        [ -d "$DOTPATH/zsh/plugins/$p" ] && ln -sfn "$DOTPATH/zsh/plugins/$p" "$custom_dir/plugins/$p"
+        if [ -d "$DOTPATH/zsh/plugins/$p" ]; then
+            ln -sfn "$DOTPATH/zsh/plugins/$p" "$custom_dir/plugins/$p"
+            echo "✅ Linked $p"
+        fi
     done
 }
 

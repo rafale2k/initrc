@@ -1,208 +1,93 @@
 #!/bin/bash
 
-# --- Technical Standards ---
-# Final robust cross-distro installer.
-# Fixes SC2086, SC2034, and adds full binary fallback for fd/bat/eza.
-
 _sudo() {
-    if command -v sudo >/dev/null 2>&1; then
-        sudo "$@"
-    else
-        "$@"
-    fi
+    if [ -z "${SUDO_CMD:-}" ]; then "$@"; else $SUDO_CMD "$@"; fi
 }
 
 setup_os_repos() {
-    local dotpath_tmp
-    dotpath_tmp=$(cd "$(dirname "$0")/.." && pwd)
-    [ -z "${DOTPATH:-}" ] && DOTPATH="$dotpath_tmp"
-    
     if [ "$PM" = "apt" ]; then
-        echo "⚙️  Configuring apt repositories..."
+        echo "⚙️  Configuring apt..."
         _sudo apt-get update -qq || true
         _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
-        
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
-        
         _sudo mkdir -p /etc/apt/keyrings
-        
-        # Eza repo
-        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | \
-            _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
-        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | \
-            _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
-        
-        # Docker repo
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
-            _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $codename stable" | \
-            _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        
-        _sudo apt-get update -qq || true
-        
+        wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
+        echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
     elif [ "$PM" = "dnf" ]; then
-        echo "⚙️  Configuring dnf repositories..."
-        if grep -qi "Alma" /etc/os-release 2>/dev/null; then
-            echo "  📦 Enabling EPEL for AlmaLinux..."
-            _sudo dnf install -y -q epel-release || true
-        fi
+        [ "$OS" = "rhel" ] && _sudo dnf install -y -q epel-release || true
         _sudo dnf makecache -q || true
     fi
 }
 
 install_all_packages() {
-    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx)
+    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
-    export PATH="$HOME/bin:$PATH"
+    echo "📦 Installing packages..."
 
-    if [ "$OS" = "mac" ]; then
-        brew install "${common_pkgs[@]}" fd eza bat
-    else
-        if [ "$PM" = "apt" ]; then
-            _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true
-        elif [ "$PM" = "dnf" ]; then
-            _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true
-        fi
-    fi
+    case "$PM" in
+        "brew") brew install "${common_pkgs[@]}" fd eza bat ;;
+        "apt") _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true ;;
+        "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
+    esac
 
-    # --- Naming Normalization ---
+    # Naming Normalization
     [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
     [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
-    # DNFでfd-findとして入った場合のリンク
     [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sf /usr/bin/fd-find "$HOME/bin/fd"
 
-    # --- FALLBACK: eza ---
+    # git-extras fallback (Build from source)
+    if ! command -v git-summary >/dev/null 2>&1; then
+        echo "⚠️  git-extras not found. Building from source..."
+        (cd /tmp && git clone --depth 1 https://github.com/tj/git-extras.git && cd git-extras && _sudo make install)
+    fi
+
+    # Fallbacks for modern tools
+    local arch; arch=$(uname -m)
     if ! command -v eza >/dev/null 2>&1; then
-        echo "⚠️  eza missing. Downloading binary..."
-        local arch
-        arch=$(uname -m)
         curl -L "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-unknown-linux-gnu.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
-        chmod +x "$HOME/bin/eza" 2>/dev/null || true
     fi
-
-    # --- FALLBACK: bat (Fixed SC2086) ---
-    if ! command -v bat >/dev/null 2>&1; then
-        echo "⚠️  bat missing. Downloading binary..."
-        local arch bat_v="v0.24.0"
-        arch=$(uname -m)
-        curl -L "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C /tmp/ 2>/dev/null || true
-        mv "/tmp/bat-${bat_v}-${arch}-unknown-linux-musl/bat" "$HOME/bin/bat" 2>/dev/null || true
-        chmod +x "$HOME/bin/bat"
+    if ! command -v bat >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
+        local bat_v="v0.24.0"
+        curl -L "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 "bat-${bat_v}-${arch}-unknown-linux-musl/bat" 2>/dev/null || true
     fi
-
-    # --- FALLBACK: fd (AlmaLinux/DNF workaround) ---
-    if ! command -v fd >/dev/null 2>&1; then
-        echo "⚠️  fd missing. Downloading binary..."
-        local arch fd_v="v10.2.0"
-        arch=$(uname -m)
-        curl -L "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C /tmp/ 2>/dev/null || true
-        mv "/tmp/fd-${fd_v}-${arch}-unknown-linux-musl/fd" "$HOME/bin/fd" 2>/dev/null || true
-        chmod +x "$HOME/bin/fd"
+    if ! command -v fd >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
+        local fd_v="v10.2.0"
+        curl -L "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 "fd-${fd_v}-${arch}-unknown-linux-musl/fd" 2>/dev/null || true
     fi
 }
 
 setup_oh_my_zsh() {
-    # 1. 本体がない場合は入れる (省略)
-    if [ ! -d "$HOME/.oh-my-zsh" ]; then
-        CHSH=no RUNZSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-    fi
-
-    # 2. Powerlevel10k のリンク作成を「鉄壁」にする
-    local p10k_src="$DOTPATH/zsh/themes/powerlevel10k"
-    local p10k_dest="$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
-
-    if [ -d "$p10k_src" ]; then
-        echo "🔗 Linking Powerlevel10k theme..."
-        mkdir -p "$HOME/.oh-my-zsh/custom/themes"
-        # 既存の壊れたリンクがあれば削除
-        rm -rf "$p10k_dest"
-        # 絶対パスで確実にリンク
-        ln -sf "$p10k_src" "$p10k_dest"
-    else
-        echo "❌ Error: Powerlevel10k source not found at $p10k_src"
-        echo "💡 Did you run 'git submodule update --init --recursive'?"
-        exit 1
-    fi
-
-    local custom_plugin_dir="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}/plugins"
-    mkdir -p "$custom_plugin_dir"
-
-    # サブモジュールの実体があるパス
-    local sub_src="$DOTPATH/zsh/plugins"
-
-    # 指定したプラグインをリンクする関数
-    link_plugin() {
-        local name=$1
-        if [ -d "$sub_src/$name" ]; then
-            echo "🔗 Linking $name..."
-            ln -sfn "$sub_src/$name" "$custom_plugin_dir/$name"
-        else
-            # 実体がないのに読み込もうとするとエラーが出るので警告
-            echo "⚠️  Warning: Submodule $name not found in $sub_src"
-        fi
-    }
-
-    # 必要なプラグインを全部リンク
-    link_plugin "zsh-autosuggestions"
-    link_plugin "zsh-syntax-highlighting"
-    link_plugin "history-search-multi-word"
+    [ ! -d "$HOME/.oh-my-zsh" ] && sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    local custom_dir="$HOME/.oh-my-zsh/custom"
+    mkdir -p "$custom_dir/themes" "$custom_dir/plugins"
+    [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$custom_dir/themes/powerlevel10k"
+    for p in zsh-autosuggestions zsh-syntax-highlighting history-search-multi-word; do
+        [ -d "$DOTPATH/zsh/plugins/$p" ] && ln -sfn "$DOTPATH/zsh/plugins/$p" "$custom_dir/plugins/$p"
+    done
 }
 
 setup_ai_tools() {
-    export PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-    if ! command -v llm >/dev/null 2>&1; then
-        pipx install llm || true
-        pipx inject llm llm-gemini || true
-    fi
-    local ginv_path="$HOME/bin/ginv"
-    mkdir -p "$(dirname "$ginv_path")"
-    cat << 'EOF' > "$ginv_path"
+    command -v llm >/dev/null 2>&1 || { pipx install llm && pipx inject llm llm-gemini; }
+    cat << 'EOF' > "$HOME/bin/ginv"
 #!/bin/bash
-if [ -z "$1" ]; then exit 1; fi
-llm -m gemini-2.5-flash "$1"
+[ -z "$1" ] && exit 1
+llm -m gemini-2.0-flash "$1"
 EOF
-    chmod +x "$ginv_path"
+    chmod +x "$HOME/bin/ginv"
 }
 
 deploy_configs() {
-    local target_home="${1:-$HOME}"
-    local dotpath_tmp
-    dotpath_tmp=$(cd "$(dirname "$0")/.." && pwd)
-    [ -z "$DOTPATH" ] && DOTPATH="$dotpath_tmp"
-
-    mkdir -p "$target_home/.dotfiles_backup"
-    
-    safe_replace() {
-        local src="$1" dst="$2"
-        [ ! -f "$src" ] && return 0
-        [ -L "$dst" ] && rm "$dst"
-        perl -pe "s|__DOTPATH__|$DOTPATH|g" "$src" > "$dst"
-    }
-
-    safe_replace "$DOTPATH/zsh/.zshrc" "$target_home/.zshrc"
-    safe_replace "$DOTPATH/bash/.bashrc" "$target_home/.bashrc"
-    ln -sf "$DOTPATH/configs/gitconfig" "$target_home/.gitconfig"
+    safe_replace() { perl -pe "s|__DOTPATH__|$DOTPATH|g" "$1" > "$2"; }
+    safe_replace "$DOTPATH/zsh/.zshrc" "$1/.zshrc"
+    safe_replace "$DOTPATH/bash/.bashrc" "$1/.bashrc"
+    ln -sf "$DOTPATH/configs/gitconfig" "$1/.gitconfig"
 }
 
 setup_root_loader() {
-    local target_home=$1
-    echo "🛡️ Configuring Root loader for $target_home..."
-
-    # Rootの.bashrcに、共通設定を読み込むフックを追記
-    # sudo 経由で Root の領域に書き込む
-    $SUDO_CMD bash -c "cat << 'EOF' >> /root/.bashrc
-
-# --- Rafale SRE Root Loader ---
+    _sudo bash -c "cat << 'EOF' > /root/.bashrc_rafale
 export DOTPATH='$DOTPATH'
-if [ -f \"\$DOTPATH/common/loader.sh\" ]; then
-    source \"\$DOTPATH/common/loader.sh\"
-fi
-if [ -f \"\$DOTPATH/bash/options.sh\" ]; then
-    source \"\$DOTPATH/bash/options.sh\"
-fi
+[ -f \"\$DOTPATH/common/loader.sh\" ] && . \"\$DOTPATH/common/loader.sh\"
 EOF"
-}
-deploy_local_configs() {
-    return 0
+    _sudo bash -c "grep -q '.bashrc_rafale' /root/.bashrc || echo 'source /root/.bashrc_rafale' >> /root/.bashrc"
 }

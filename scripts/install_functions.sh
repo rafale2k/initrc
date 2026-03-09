@@ -13,7 +13,6 @@ setup_os_repos() {
         
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
-        
         # shellcheck source=/dev/null
         local os_id; os_id=$(. /etc/os-release; echo "$ID")
 
@@ -41,7 +40,6 @@ install_all_packages() {
     case "$PM" in
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
-            # Mac の brew パスを HOME/bin にリンク
             ln -sf "$(brew --prefix)/bin/eza" "$HOME/bin/eza"
             ln -sf "$(brew --prefix)/bin/bat" "$HOME/bin/bat"
             ln -sf "$(brew --prefix)/bin/fd" "$HOME/bin/fd"
@@ -50,34 +48,47 @@ install_all_packages() {
         "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
     esac
 
+    # OSパッケージ版のシンボリックリンク作成
     [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
     [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
-    [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sf /usr/bin/fd-find "$HOME/bin/fd"
 
+    local arch; arch=$(uname -m)
+    local os_type="unknown-linux-gnu"
+    [[ "$OSTYPE" == "darwin"* ]] && os_type="apple-darwin"
+
+    # --- eza ダウンロード ---
     if ! command -v eza >/dev/null 2>&1; then
         echo "⬇️ Downloading eza binary..."
-        local arch; arch=$(uname -m)
-        [ "$arch" = "x86_64" ] && arch="x86_64"
-        local os_type="unknown-linux-gnu"
-        [[ "$OSTYPE" == "darwin"* ]] && os_type="apple-darwin"
-
-        # URL候補を複数試す
-        local urls=(
-            "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz"
-            "https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
-        )
-
-        for url in "${urls[@]}"; do
-            echo "Trying: $url"
+        local eza_urls=("https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz" "https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz")
+        for url in "${eza_urls[@]}"; do
             if curl -fLsS "$url" | tar xz -C "$HOME/bin" 2>/dev/null; then
-                # 展開されたファイルを探してリネーム
-                find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \; 2>/dev/null
+                find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
                 chmod +x "$HOME/bin/eza" && break
             fi
         done
     fi
 
-    # bat / fd のフォールバック (略)
+    # --- bat ダウンロード ---
+    if ! command -v bat >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
+        echo "⬇️ Downloading bat binary..."
+        local bat_v="v0.24.0"
+        local bat_os="unknown-linux-musl"
+        [[ "$os_type" == "apple-darwin" ]] && bat_os="apple-darwin"
+        curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-${bat_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+        find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
+        chmod +x "$HOME/bin/bat"
+    fi
+
+    # --- fd ダウンロード ---
+    if ! command -v fd >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
+        echo "⬇️ Downloading fd binary..."
+        local fd_v="v10.2.0"
+        local fd_os="unknown-linux-musl"
+        [[ "$os_type" == "apple-darwin" ]] && fd_os="apple-darwin"
+        curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-${fd_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+        find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
+        chmod +x "$HOME/bin/fd"
+    fi
 }
 
 setup_oh_my_zsh() {
@@ -85,6 +96,9 @@ setup_oh_my_zsh() {
     local custom_dir="$HOME/.oh-my-zsh/custom"
     mkdir -p "$custom_dir/themes" "$custom_dir/plugins"
     [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$custom_dir/themes/powerlevel10k"
+    for p in zsh-autosuggestions zsh-syntax-highlighting history-search-multi-word; do
+        [ -d "$DOTPATH/zsh/plugins/$p" ] && ln -sfn "$DOTPATH/zsh/plugins/$p" "$custom_dir/plugins/$p"
+    done
 }
 
 setup_ai_tools() {

@@ -39,11 +39,8 @@ jobs:
     steps:
       - name: 📦 Pre-install Git & Tools
         run: |
-          rm -rf /root/.docker
-          mkdir -p /root/.docker
-          echo "{}" > /root/.docker/config.json
-          chmod 700 /root/.docker
-          chmod 600 /root/.docker/config.json
+          # Docker config 警告を物理的に消去
+          rm -rf /root/.docker || true
           
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
             apt-get update -qq && apt-get install -y -qq git curl tar gzip xz-utils
@@ -86,7 +83,6 @@ jobs:
 
       - name: 👮 ShellCheck
         run: |
-          # xz-utils が入ったので ShellCheck の解凍も通るはず
           if ! command -v shellcheck >/dev/null 2>&1; then
             export SC_VER="v0.10.0"
             curl -sSL "https://github.com/koalaman/shellcheck/releases/download/${SC_VER}/shellcheck-${SC_VER}.linux.x86_64.tar.xz" | tar xJ -C /tmp
@@ -120,9 +116,4 @@ jobs:
         shell: bash
         run: |
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-          # Mac で eza が確実にあるか確認
-          if ! command -v eza >/dev/null 2>&1; then
-            ls -la "$HOME/bin"
-            exit 1
-          fi
-          echo "✅ eza found"
+          command -v eza && command -v bat && command -v fd && [ -x "$HOME/bin/ginv" ]

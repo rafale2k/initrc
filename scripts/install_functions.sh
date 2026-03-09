@@ -10,19 +10,21 @@ setup_os_repos() {
         _sudo apt-get update -qq || true
         _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release || true
         
-        # SC2034 対策: codename をリポジトリ登録で適切に使用
         local codename
         codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
         
+        # shellcheck source=/dev/null
+        local os_id; os_id=$(. /etc/os-release; echo "$ID")
+
         _sudo mkdir -p /etc/apt/keyrings
         wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null || true
         echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
         
-        # Docker 用に codename を使用
-        _sudo wget -qO- https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $codename stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        # Docker 用のリポジトリ登録 (Shellcheck SC2046 対策)
+        _sudo wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null || true
+        echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${os_id} ${codename} stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
     elif [ "$PM" = "dnf" ]; then
-        # SC2015 対策: A && B || C を使わず if 文で明確に
         if [ "$OS" = "rhel" ]; then
             _sudo dnf install -y -q epel-release || true
         fi
@@ -41,7 +43,6 @@ install_all_packages() {
         "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
     esac
 
-    # シンボリックリンク (Linux用)
     [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
     [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
     [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sf /usr/bin/fd-find "$HOME/bin/fd"
@@ -51,28 +52,29 @@ install_all_packages() {
         (cd /tmp && git clone --depth 1 https://github.com/tj/git-extras.git && cd git-extras && _sudo make install)
     fi
 
-    # --- OSとアーキテクチャの判定 ---
+    # --- バイナリ直接ダウンロードの OS/Arch 判定 ---
     local arch; arch=$(uname -m)
-    local os_type; os_type="unknown-linux-gnu"
+    local os_type="unknown-linux-gnu"
     [[ "$OSTYPE" == "darwin"* ]] && os_type="apple-darwin"
 
-    # eza の手動インストール
+    # eza のインストール (堅牢版)
     if ! command -v eza >/dev/null 2>&1; then
         echo "⬇️ Downloading eza..."
-        curl -L "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz" | tar xz -C "$HOME/bin" ./eza 2>/dev/null || \
-        curl -L "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz" | tar xz -C "$HOME/bin"
+        local eza_url="https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${os_type}.tar.gz"
+        curl -fL "$eza_url" | tar xz -C "$HOME/bin" 2>/dev/null || true
+        find "$HOME/bin" -maxdepth 2 -name "eza" -type f -exec mv {} "$HOME/bin/eza" \; 2>/dev/null || true
         chmod +x "$HOME/bin/eza"
     fi
 
-    # bat / fd の手動インストール (Macのbrew失敗時やLinux用)
+    # bat のインストール (Macのbrew失敗時やLinux用)
     if ! command -v bat >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
         local bat_v="v0.24.0"
-        # Linuxは musl, Macは darwin
         local bat_os="unknown-linux-musl"
         [[ "$os_type" == "apple-darwin" ]] && bat_os="apple-darwin"
         curl -L "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-${bat_os}.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 "bat-${bat_v}-${arch}-${bat_os}/bat" 2>/dev/null || true
     fi
 
+    # fd のインストール
     if ! command -v fd >/dev/null 2>&1 && [ "$PM" != "brew" ]; then
         local fd_v="v10.2.0"
         local fd_os="unknown-linux-musl"
@@ -92,6 +94,7 @@ setup_oh_my_zsh() {
 }
 
 setup_ai_tools() {
+    # pipx で llm を入れる。入ってなければ実行
     command -v llm >/dev/null 2>&1 || { pipx install llm && pipx inject llm llm-gemini; }
     cat << 'EOF' > "$HOME/bin/ginv"
 #!/bin/bash
@@ -102,6 +105,7 @@ EOF
 }
 
 deploy_configs() {
+    # $1 は HOME などの展開先パス
     safe_replace() { perl -pe "s|__DOTPATH__|$DOTPATH|g" "$1" > "$2"; }
     safe_replace "$DOTPATH/zsh/.zshrc" "$1/.zshrc"
     safe_replace "$DOTPATH/bash/.bashrc" "$1/.bashrc"

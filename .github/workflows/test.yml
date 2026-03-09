@@ -1,38 +1,117 @@
-name: macOS Install Test
+name: 🐳 Linux Distros Compatibility Test
 
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  test-macos:
-    runs-on: macos-latest
+  matrix-test:
+    name: 🚀 ${{ matrix.os }} Build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: "Ubuntu 24.04"
+            image: "ubuntu:24.04"
+            pkg_manager: "apt"
+          - os: "AlmaLinux 9"
+            image: "almalinux:9"
+            pkg_manager: "dnf"
+          - os: "Debian 12"
+            image: "debian:12"
+            pkg_manager: "apt"
+          - os: "Fedora 41"
+            image: "fedora:41"
+            pkg_manager: "dnf"
+
+    container:
+      image: ${{ matrix.image }}
+      options: --user root
+
+    env:
+      HOME: /root
+      # 最初から /root/bin を優先順位のトップに入れておく
+      PATH: /root/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+      DOTPATH: ${{ github.workspace }}
+
     steps:
-      - name: Checkout code
+      - name: 📦 Pre-install Git & Fix Ownership
+        run: |
+          # Docker config のパーミッション問題を解決
+          mkdir -p /root/.docker
+          echo "{}" > /root/.docker/config.json
+          chmod 700 /root/.docker
+          chmod 600 /root/.docker/config.json
+          
+          if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
+            export DEBIAN_FRONTEND=noninteractive
+            apt-get update && apt-get install -y git
+          else
+            dnf install -y --allowerasing git
+          fi
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: 🚚 Checkout Repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Run install.sh
+      - name: 🛠️ Execute initrc Installer
+        env:
+          CI: true
+          DEBIAN_FRONTEND: noninteractive
+          OS: linux
+          PM: ${{ matrix.pkg_manager }}
         run: |
           chmod +x install.sh
-          # CI環境であることを明示して実行
-          CI=true ./install.sh
+          ./install.sh
 
-      - name: Verify installation
+      - name: 🔍 Verify Global Command Links (~/bin)
+        shell: bash
         run: |
-          # Homebrewと自作binのパスをGitHub Actionsの環境に強制注入
-          echo "/opt/homebrew/bin" >> $GITHUB_PATH
-          echo "/usr/local/bin" >> $GITHUB_PATH
-          echo "$HOME/.local/bin" >> $GITHUB_PATH
+          # 各ステップの冒頭で PATH を再定義して確実性を高める
+          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          echo "--- Checking Modern CLI Tools ---"
           
-          # このステップ内でも即時反映させる
-          export PATH="/opt/homebrew/bin:/usr/local/bin:$HOME/.local/bin:$PATH"
+          check_tool() {
+              if command -v "$1" >/dev/null 2>&1; then
+                  echo "✅ $1 found at $(command -v "$1")"
+                  "$1" --version | head -n 1
+              else
+                  echo "❌ $1 not found in PATH ($PATH)"
+                  echo "Contents of $HOME/bin:"
+                  ls -la "$HOME/bin" 2>/dev/null || echo "Directory not found"
+                  exit 1
+              fi
+          }
+
+          check_tool "eza"
+          check_tool "bat"
+          check_tool "fd"
           
-          echo "🔍 Checking versions..."
-          zsh --version
-          # bat や fd がインストールされていれば which でパスが出るはず
-          which bat || echo "bat not found"
-          which fd || echo "fd not found"
-          
-          echo "✅ All checks passed!"
+          echo "--- Checking AI Wrappers ---"
+          if [ -x "$HOME/bin/ginv" ]; then
+              echo "✅ ginv found"
+          else
+              echo "❌ ginv not found"
+              ls -la "$HOME/bin"
+              exit 1
+          fi
+
+      - name: 🧪 Idempotency & Integrity Verification
+        run: |
+          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          [ -f "$HOME/.zshrc" ] && grep -q "common/loader.sh" "$HOME/.zshrc" && echo "✅ Integrity okay"
+
+      - name: 👮 ShellCheck
+        run: |
+          if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
+            apt-get install -y shellcheck
+          else
+            dnf install -y shellcheck
+          fi
+          # scripts 配下のスクリプトをまとめてチェック
+          find . -name "*.sh" -not -path "./.git/*" | xargs shellcheck

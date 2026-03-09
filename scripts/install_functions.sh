@@ -40,17 +40,22 @@ install_all_packages() {
     case "$PM" in
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
-            ln -sf "$(brew --prefix)/bin/eza" "$HOME/bin/eza"
-            ln -sf "$(brew --prefix)/bin/bat" "$HOME/bin/bat"
-            ln -sf "$(brew --prefix)/bin/fd" "$HOME/bin/fd"
+            # brewのバイナリ場所を特定してリンクを張る（Intel/Apple Silicon両対応）
+            local brew_bin; brew_bin=$(brew --prefix)/bin
+            ln -sf "${brew_bin}/eza" "$HOME/bin/eza"
+            ln -sf "${brew_bin}/bat" "$HOME/bin/bat"
+            ln -sf "${brew_bin}/fd" "$HOME/bin/fd"
             ;;
         "apt") _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true ;;
         "dnf") _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true ;;
     esac
 
-    # OSパッケージ版のシンボリックリンク作成
-    [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
-    [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
+    # Linux用のパスフォールバック（Macでは通らないように条件追加）
+    if [ "$OS" = "linux" ]; then
+        [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
+        [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
+        [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sf /usr/bin/fd-find "$HOME/bin/fd"
+    fi
 
     local arch; arch=$(uname -m)
     local os_type="unknown-linux-gnu"

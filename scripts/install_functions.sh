@@ -38,20 +38,19 @@ install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    # 既存の腐ったリンクを物理削除
+    # 既存のゴミを徹底掃除
     rm -f "$HOME/bin/eza" "$HOME/bin/bat" "$HOME/bin/fd"
 
     echo "📦 Installing packages via $PM..."
     case "$PM" in
         "brew") 
             brew install "${common_pkgs[@]}" fd eza bat
-            # 変数を使わず、Macの標準的なbrewパスを直接指定してリンク
-            local b_bin="/usr/local/bin"
-            [ -d "/opt/homebrew/bin" ] && b_bin="/opt/homebrew/bin"
-            
-            ln -sf "${b_bin}/eza" "$HOME/bin/eza"
-            ln -sf "${b_bin}/bat" "$HOME/bin/bat"
-            ln -sf "${b_bin}/fd" "$HOME/bin/fd"
+            # brew自体のパスを確実に取得
+            local b_bin; b_bin=$(brew --prefix)/bin
+            # 実体がある場合のみリンク（無理な上書きを避ける）
+            [ -f "${b_bin}/eza" ] && ln -sf "${b_bin}/eza" "$HOME/bin/eza"
+            [ -f "${b_bin}/bat" ] && ln -sf "${b_bin}/bat" "$HOME/bin/bat"
+            [ -f "${b_bin}/fd" ] && ln -sf "${b_bin}/fd" "$HOME/bin/fd"
             ;;
         "apt") 
             _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true 
@@ -61,35 +60,37 @@ install_all_packages() {
             ;;
     esac
 
-    # Linux用のパス調整
+    # Linux用のパス調整 (Macでは絶対無視)
     if [ "$(uname)" = "Linux" ]; then
         [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
         [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
-        [ -f /usr/bin/fd-find ] && [ ! -f "$HOME/bin/fd" ] && ln -sf /usr/bin/fd-find "$HOME/bin/fd"
     fi
 
-    # --- フォールバック (コマンドが見つからない場合のみ) ---
     local arch; arch=$(uname -m)
+    # --- フォールバック (全環境共通) ---
     if ! command -v eza >/dev/null 2>&1; then
         local eza_os="unknown-linux-gnu"
         [ "$(uname)" = "Darwin" ] && eza_os="apple-darwin"
-        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${eza_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
-        find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
-        chmod +x "$HOME/bin/eza"
+        if curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${eza_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
+            find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
+            chmod +x "$HOME/bin/eza"
+        fi
     fi
 
     if [ "$(uname)" != "Darwin" ]; then
         if ! command -v bat >/dev/null 2>&1; then
             local bat_v="v0.24.0"
-            curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
-            find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
-            chmod +x "$HOME/bin/bat"
+            if curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
+                find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
+                chmod +x "$HOME/bin/bat"
+            fi
         fi
         if ! command -v fd >/dev/null 2>&1; then
             local fd_v="v10.2.0"
-            curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
-            find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
-            chmod +x "$HOME/bin/fd"
+            if curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
+                find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
+                chmod +x "$HOME/bin/fd"
+            fi
         fi
     fi
 }

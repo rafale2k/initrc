@@ -46,18 +46,21 @@ OS_TYPE=$(uname -s)
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 
 if [ "$OS_TYPE" = "Darwin" ]; then
-    # Mac: brewがある場合のみパスを追加し、aliasを張る
-    if command -v brew >/dev/null 2>&1; then
-        BREW_BIN=$(brew --prefix)/bin
-        export PATH="$BREW_BIN:$PATH"
-        alias eza="$BREW_BIN/eza"
-        alias bat="$BREW_BIN/bat"
-        alias fd="$BREW_BIN/fd"
+    # Mac: Brewのパスを動的に追加
+    if [ -d "/opt/homebrew/bin" ]; then
+        export PATH="/opt/homebrew/bin:$PATH"
+    elif [ -d "/usr/local/bin" ]; then
+        export PATH="/usr/local/bin:$PATH"
     fi
+    # エイリアスは使わず、PATHの優先順位に任せる
 else
-    # Linux: debian系等の名前の違いを吸収
-    alias bat='if command -v batcat >/dev/null 2>&1; then batcat; else command bat; fi'
-    alias fd='if command -v fdfind >/dev/null 2>&1; then fdfind; else command fd; fi'
+    # Linux: 名前が違うものだけエイリアス
+    if command -v batcat >/dev/null 2>&1; then
+        alias bat='batcat'
+    fi
+    if command -v fdfind >/dev/null 2>&1; then
+        alias fd='fdfind'
+    fi
 fi
 
 # 5. シェル別の設定

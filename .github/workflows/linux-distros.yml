@@ -1,4 +1,4 @@
-name: 🐳 Linux Distros Compatibility Test
+name: 🐳 Multi-Platform Compatibility Test
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [ main ]
 
 jobs:
-  matrix-test:
+  # --- Linux 各ディストリビューションのテスト ---
+  linux-matrix-test:
     name: 🚀 ${{ matrix.os }} Build
     runs-on: ubuntu-latest
     strategy:
@@ -33,12 +34,16 @@ jobs:
 
     env:
       HOME: /root
-      PATH: /root/bin:/usr/local/bin:/usr/bin:/bin
+      PATH: /root/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
+      DOTPATH: ${{ github.workspace }}
 
     steps:
       - name: 📦 Pre-install Git & Fix Ownership
         run: |
-          mkdir -p /root/.docker && echo "{}" > /root/.docker/config.json
+          mkdir -p /root/.docker
+          echo "{}" > /root/.docker/config.json
+          chmod 700 /root/.docker
+          chmod 600 /root/.docker/config.json
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
             export DEBIAN_FRONTEND=noninteractive
             apt-get update && apt-get install -y git
@@ -66,7 +71,64 @@ jobs:
         shell: bash
         run: |
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
-          echo "--- Checking Modern CLI Tools ---"
+          check_tool() {
+              if command -v "$1" >/dev/null 2>&1; then
+                  echo "✅ $1 found at $(command -v "$1")"
+                  "$1" --version | head -n 1
+              else
+                  echo "❌ $1 not found in PATH ($PATH)"
+                  ls -la "$HOME/bin" 2>/dev/null || echo "Directory not found"
+                  exit 1
+              fi
+          }
+          check_tool "eza"
+          check_tool "bat"
+          check_tool "fd"
+          [ -x "$HOME/bin/ginv" ] && echo "✅ ginv found" || exit 1
+
+      - name: 🧪 Idempotency & Integrity Verification
+        run: |
+          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          [ -f "$HOME/.zshrc" ] && grep -q "common/loader.sh" "$HOME/.zshrc" && echo "✅ Integrity okay"
+
+      - name: 👮 ShellCheck
+        run: |
+          if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
+            apt-get install -y shellcheck
+          else
+            dnf install -y shellcheck
+          fi
+          find . -name "*.sh" -not -path "./.git/*" | xargs shellcheck
+
+  # --- macOS のテスト ---
+  macos-test:
+    name: 🍎 macOS latest Build
+    runs-on: macos-latest
+    env:
+      DOTPATH: ${{ github.workspace }}
+      # macOSはデフォルトで /Users/runner/bin などがパスに入っていないので明示
+      PATH: /Users/runner/bin:/usr/local/bin:/usr/bin:/bin
+
+    steps:
+      - name: 🚚 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: 🛠️ Execute initrc Installer
+        env:
+          CI: true
+          OS: darwin
+          PM: brew
+        run: |
+          chmod +x install.sh
+          ./install.sh
+
+      - name: 🔍 Verify Global Command Links (~/bin)
+        shell: bash
+        run: |
+          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          echo "PATH is: $PATH"
           
           check_tool() {
               if command -v "$1" >/dev/null 2>&1; then
@@ -82,11 +144,9 @@ jobs:
           check_tool "eza"
           check_tool "bat"
           check_tool "fd"
-          
-          echo "--- Checking AI Wrappers ---"
           [ -x "$HOME/bin/ginv" ] && echo "✅ ginv found" || exit 1
 
-      - name: 🧪 Idempotency & Integrity Verification
+      - name: 🧪 Integrity Verification
         run: |
           export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
           [ -f "$HOME/.zshrc" ] && grep -q "common/loader.sh" "$HOME/.zshrc" && echo "✅ Integrity okay"

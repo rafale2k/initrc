@@ -33,15 +33,15 @@ jobs:
 
     env:
       HOME: /root
-      # 【重要】権限のない /root/.docker を回避し、Permission Denied を防ぐ
+      # 【重要】権限のない /root/.docker を無視させ、Permission Denied を完全に封じ込める
       DOCKER_CONFIG: /tmp/.docker
-      PATH: /root/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
       DOTPATH: ${{ github.workspace }}
+      PATH: /root/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
 
     steps:
       - name: 📦 Pre-install Git & Tools
         run: |
-          # 警告の元を物理的に隔離
+          # Docker config のゴミを物理的に掃除
           mkdir -p /tmp/.docker
           rm -rf /root/.docker || true
           
@@ -50,6 +50,7 @@ jobs:
           else
             dnf install -y -q --allowerasing git curl tar gzip xz
           fi
+          # checkout用の安全設定
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
 
       - name: 🚚 Checkout Repository
@@ -74,9 +75,10 @@ jobs:
           echo "Current PATH: $PATH"
           
           echo "--- Checking Tools with Execution ---"
-          eza --version | head -n 1 || (ls -la /root/bin && exit 1)
-          bat --version | head -n 1 || exit 1
-          fd --version | head -n 1 || exit 1
+          # 1. 直接実行 2. $HOME/bin 内の存在確認 の二段構え
+          eza --version | head -n 1 || [ -f /root/bin/eza ] || (ls -la /root/bin && exit 1)
+          bat --version | head -n 1 || [ -f /root/bin/bat ] || exit 1
+          fd --version | head -n 1 || [ -f /root/bin/fd ] || exit 1
 
       - name: 👮 ShellCheck
         run: |
@@ -92,7 +94,7 @@ jobs:
     runs-on: macos-latest
     env:
       DOTPATH: ${{ github.workspace }}
-      # 【重要】Intel/M1 両方の Homebrew パスを明示的に含める
+      # 【重要】Intel Mac (/usr/local/bin) と M1/M2 Mac (/opt/homebrew/bin) 両方のパスを優先追加
       PATH: /Users/runner/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
 
     steps:
@@ -113,15 +115,17 @@ jobs:
       - name: 🔍 Verify Global Command Links (~/bin)
         shell: bash
         run: |
-          # インストール後にパスを再評価
+          # 設定を反映
           source ./common/loader.sh
+          # さらに念のため $HOME/bin を PATH の最優先に
+          export PATH="$HOME/bin:$PATH"
           echo "Current PATH: $PATH"
           
           echo "--- Checking Tools ---"
-          # command -v が alias を拾わない場合に備え type も併用
           tools=("eza" "bat" "fd")
           for tool in "${tools[@]}"; do
-              if command -v "$tool" >/dev/null 2>&1 || type "$tool" >/dev/null 2>&1; then
+              # 実行可能か、または $HOME/bin に実体があるかを確認
+              if command -v "$tool" >/dev/null 2>&1 || [ -x "$HOME/bin/$tool" ]; then
                   echo "✅ $tool found"
               else
                   echo "❌ $tool not found"

@@ -39,28 +39,24 @@ if [ -d "$_ld_common_dir" ]; then
     done
 fi
 
+# Docker の権限エラー (Permission Denied) 回避
+export DOCKER_CONFIG="$HOME/.docker_temp"
+mkdir -p "$DOCKER_CONFIG"
+
 # OS判定
 OS_TYPE=$(uname -s)
 
-# $HOME/bin を最優先に
+# $HOME/bin を優先
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
 
 if [ "$OS_TYPE" = "Darwin" ]; then
-    # Mac: Brewのパスを動的に追加
-    if [ -d "/opt/homebrew/bin" ]; then
-        export PATH="/opt/homebrew/bin:$PATH"
-    elif [ -d "/usr/local/bin" ]; then
-        export PATH="/usr/local/bin:$PATH"
-    fi
-    # エイリアスは使わず、PATHの優先順位に任せる
+    # Mac は Brew のパスを追加
+    [ -d "/opt/homebrew/bin" ] && export PATH="/opt/homebrew/bin:$PATH"
+    [ -d "/usr/local/bin" ] && export PATH="/usr/local/bin:$PATH"
 else
-    # Linux: 名前が違うものだけエイリアス
-    if command -v batcat >/dev/null 2>&1; then
-        alias bat='batcat'
-    fi
-    if command -v fdfind >/dev/null 2>&1; then
-        alias fd='fdfind'
-    fi
+    # Linux は名前解決のみ
+    command -v batcat >/dev/null 2>&1 && alias bat='batcat'
+    command -v fdfind >/dev/null 2>&1 && alias fd='fdfind'
 fi
 
 # 5. シェル別の設定

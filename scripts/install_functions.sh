@@ -38,59 +38,56 @@ install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    # 既存のゴミを徹底掃除
+    # 既存のリンクを徹底掃除
     rm -f "$HOME/bin/eza" "$HOME/bin/bat" "$HOME/bin/fd"
 
-    echo "📦 Installing packages via $PM..."
-    case "$PM" in
-        "brew") 
-            brew install "${common_pkgs[@]}" fd eza bat
-            # brew自体のパスを確実に取得
-            local b_bin; b_bin=$(brew --prefix)/bin
-            # 実体がある場合のみリンク（無理な上書きを避ける）
-            [ -f "${b_bin}/eza" ] && ln -sf "${b_bin}/eza" "$HOME/bin/eza"
-            [ -f "${b_bin}/bat" ] && ln -sf "${b_bin}/bat" "$HOME/bin/bat"
-            [ -f "${b_bin}/fd" ] && ln -sf "${b_bin}/fd" "$HOME/bin/fd"
-            ;;
-        "apt") 
-            _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true 
-            ;;
-        "dnf") 
-            _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true 
-            ;;
-    esac
+    echo "📦 Attempting package installation..."
+    # PM が空でも、直接コマンドの有無で判定する
+    if command -v brew >/dev/null 2>&1; then
+        brew install "${common_pkgs[@]}" fd eza bat
+        local b_bin; b_bin=$(brew --prefix)/bin
+        ln -sf "${b_bin}/eza" "$HOME/bin/eza"
+        ln -sf "${b_bin}/bat" "$HOME/bin/bat"
+        ln -sf "${b_bin}/fd" "$HOME/bin/fd"
+    elif command -v apt-get >/dev/null 2>&1; then
+        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find eza bat || true
+    elif command -v dnf >/dev/null 2>&1; then
+        _sudo dnf install -y -q "${common_pkgs[@]}" fd-find eza bat || true
+    fi
 
-    # Linux用のパス調整 (Macでは絶対無視)
+    # Linux用のパス調整 (batcat / fdfind 対策)
     if [ "$(uname)" = "Linux" ]; then
         [ -f /usr/bin/batcat ] && ln -sf /usr/bin/batcat "$HOME/bin/bat"
         [ -f /usr/bin/fdfind ] && ln -sf /usr/bin/fdfind "$HOME/bin/fd"
     fi
 
+    # --- 強制フォールバック (インストールに失敗してコマンドがない場合、直接バイナリを落とす) ---
     local arch; arch=$(uname -m)
-    # --- フォールバック (全環境共通) ---
-    if ! command -v eza >/dev/null 2>&1; then
+    local os_name; os_name=$(uname -s)
+
+    # eza の救済
+    if ! command -v eza >/dev/null 2>&1 && [ ! -f "$HOME/bin/eza" ]; then
+        echo "⬇️ Falling back to direct binary download for eza..."
         local eza_os="unknown-linux-gnu"
-        [ "$(uname)" = "Darwin" ] && eza_os="apple-darwin"
-        if curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${eza_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
-            find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
-            chmod +x "$HOME/bin/eza"
-        fi
+        [ "$os_name" = "Darwin" ] && eza_os="apple-darwin"
+        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${eza_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+        find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \;
+        chmod +x "$HOME/bin/eza"
     fi
 
-    if [ "$(uname)" != "Darwin" ]; then
-        if ! command -v bat >/dev/null 2>&1; then
+    # Mac以外での bat/fd 救済
+    if [ "$os_name" != "Darwin" ]; then
+        if ! command -v bat >/dev/null 2>&1 && [ ! -f "$HOME/bin/bat" ]; then
             local bat_v="v0.24.0"
-            if curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
-                find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
-                chmod +x "$HOME/bin/bat"
-            fi
+            curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_v}/bat-${bat_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+            find "$HOME/bin" -type f -name "bat" ! -name "*.gz" -exec mv {} "$HOME/bin/bat" \;
+            chmod +x "$HOME/bin/bat"
         fi
-        if ! command -v fd >/dev/null 2>&1; then
+        if ! command -v fd >/dev/null 2>&1 && [ ! -f "$HOME/bin/fd" ]; then
             local fd_v="v10.2.0"
-            if curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null; then
-                find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
-                chmod +x "$HOME/bin/fd"
-            fi
+            curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_v}/fd-${fd_v}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null
+            find "$HOME/bin" -type f -name "fd" ! -name "*.gz" -exec mv {} "$HOME/bin/fd" \;
+            chmod +x "$HOME/bin/fd"
         fi
     fi
 }

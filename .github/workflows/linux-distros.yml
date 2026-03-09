@@ -33,13 +33,16 @@ jobs:
 
     env:
       HOME: /root
+      # 【重要】権限のない /root/.docker を回避し、Permission Denied を防ぐ
+      DOCKER_CONFIG: /tmp/.docker
       PATH: /root/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin
       DOTPATH: ${{ github.workspace }}
 
     steps:
       - name: 📦 Pre-install Git & Tools
         run: |
-          # Docker config 警告を物理的に消去
+          # 警告の元を物理的に隔離
+          mkdir -p /tmp/.docker
           rm -rf /root/.docker || true
           
           if [ "${{ matrix.pkg_manager }}" = "apt" ]; then
@@ -66,12 +69,12 @@ jobs:
       - name: 🔍 Verify Global Command Links
         shell: bash
         run: |
-          # loader.sh を読み込んでエイリアスを有効化
+          # loader.sh を読み込んでエイリアスとパスを有効化
           source ./common/loader.sh
           echo "Current PATH: $PATH"
           
           echo "--- Checking Tools with Execution ---"
-          eza --version | head -n 1 || (ls -la /Users/runner/bin && exit 1)
+          eza --version | head -n 1 || (ls -la /root/bin && exit 1)
           bat --version | head -n 1 || exit 1
           fd --version | head -n 1 || exit 1
 
@@ -89,8 +92,8 @@ jobs:
     runs-on: macos-latest
     env:
       DOTPATH: ${{ github.workspace }}
-      # runnerのホームディレクトリを基準にパスを通す
-      PATH: /Users/runner/bin:/usr/local/bin:/usr/bin:/bin
+      # 【重要】Intel/M1 両方の Homebrew パスを明示的に含める
+      PATH: /Users/runner/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin
 
     steps:
       - name: 🚚 Checkout Repository
@@ -110,16 +113,16 @@ jobs:
       - name: 🔍 Verify Global Command Links (~/bin)
         shell: bash
         run: |
-          # $HOME を使って確実にパスを通す
-          export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
+          # インストール後にパスを再評価
+          source ./common/loader.sh
           echo "Current PATH: $PATH"
           
-          # インストールされた実体とパスを個別に確認
           echo "--- Checking Tools ---"
+          # command -v が alias を拾わない場合に備え type も併用
           tools=("eza" "bat" "fd")
           for tool in "${tools[@]}"; do
-              if command -v "$tool" >/dev/null 2>&1; then
-                  echo "✅ $tool found at $(command -v "$tool")"
+              if command -v "$tool" >/dev/null 2>&1 || type "$tool" >/dev/null 2>&1; then
+                  echo "✅ $tool found"
               else
                   echo "❌ $tool not found"
                   ls -la "$HOME/bin"

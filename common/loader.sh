@@ -55,6 +55,13 @@ else
     if command -v fdfind >/dev/null 2>&1; then alias fd='fdfind'; fi
 fi
 
+# 自作の self_heal を読み込み
+if [ -f "$DOTPATH/scripts/self_heal.sh" ]; then
+    source "$DOTPATH/scripts/self_heal.sh"
+    # 起動時にバックグラウンドで実行（プロンプト表示を待たせない）
+    dcheck >/dev/null 2>&1 &!
+fi
+
 # 5. シェル別の設定
 if [ -n "${ZSH_VERSION:-}" ]; then
     _ld_zsh_dir="$DOTPATH/zsh"
@@ -68,6 +75,19 @@ elif [ -n "${BASH_VERSION:-}" ]; then
         export PS1='\[\e[1;37;41m\] ROOT \[\e[0m\] \[\e[01;31m\]@\h\[\e[0m\]:\[\e[01;34m\]\w\[\e[00m\]# '
     fi
     alias reload='source ~/.bashrc'
+fi
+
+if command -v zoxide >/dev/null 2>&1; then
+    # zsh の場合
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        eval "$(zoxide init zsh)"
+    # bash の場合
+    elif [ -n "${BASH_VERSION:-}" ]; then
+        eval "$(zoxide init bash)"
+    fi
+    
+    # 共通のエイリアス (cd を z に置き換える)
+    alias j='zi'  # インタラクティブ検索 (fzf連携)
 fi
 
 unset _ld_f _ld_common_dir _ld_zsh_dir _ld_current_script _ld_script_dir

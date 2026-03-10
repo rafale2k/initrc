@@ -57,9 +57,18 @@ fi
 
 # 自作の self_heal を読み込み
 if [ -f "$DOTPATH/scripts/self_heal.sh" ]; then
+    # shellcheck source=/dev/null
     source "$DOTPATH/scripts/self_heal.sh"
-    # 起動時にバックグラウンドで実行（プロンプト表示を待たせない）
-    dcheck >/dev/null 2>&1 &!
+    
+    # バックグラウンドで実行
+    # & は標準的なバックグラウンド実行
+    # { ... } &> /dev/null で出力を完全に消す
+    { dcheck >/dev/null 2>&1 ; } & 
+    
+    # zsh の場合は disown でシェル終了時の道連れを防ぐ
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        disown %1 >/dev/null 2>&1 || true
+    fi
 fi
 
 # 5. シェル別の設定

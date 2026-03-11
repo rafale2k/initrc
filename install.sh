@@ -2,7 +2,7 @@
 set -u
 
 # --- 🏷️ Version Definition ---
-readonly VERSION="1.26.1"
+readonly VERSION="1.28.0"
 
 # パス確定
 DOTPATH=$(cd "$(dirname "$0")" && pwd)

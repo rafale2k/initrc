@@ -1,6 +1,6 @@
-# 🚀 v1.25.0 - The AI-Enhanced SRE Framework
+# 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-1.25.0-blue)
+![Version](https://img.shields.io/badge/version-1.28.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -23,8 +23,8 @@
 ![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
-> SRE（Site Reliability Engineering）としての「堅牢性」と「知能」を追求したターミナル環境。
-> すべてのスクリプトは **Shellcheck** をパス。AI 連携による次世代のオペレーション体験を提供します。
+>SRE（Site Reliability Engineering）としての「堅牢性」と「自己修復」を追求したターミナル環境。
+>macOS および主要な Linux ディストリビューションで動作し、ShellCheck を完全にパスした信頼性の高いスクリプト群を提供します。
 
 ---
 
@@ -58,70 +58,45 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 
 ---
 
-## 🏗️ v1.25.0 - What's New
-- **Automated SRE Release**: `bin/release` による自動 Lint、CHANGELOG 生成、GitHub Release 連携を完全自動化。
-- **Tagging Standard**: バージョニングに `v` プレフィックスを導入。セマンティックバージョニングを厳守。
-- **AI-Native Workflow**: `llm` と `Gemini` を統合。シェルから直接インフラ診断が可能。
-- **Modular Architecture**: `common/`, `zsh/`, `bash/` への責務分離により、保守性を極限まで向上。
+## ✨ What's New (v1.28.0)
 
-## 🚀 Concept
-- **Reliability First**: `if-else` とエラーハンドリングを徹底。破壊的コマンドの誤実行を AI が検知。
-- **Context Awareness**: 一般ユーザーは **Monokai Dark**、rootユーザーは **Tokyo Night**。視覚的安全装置を完備。
-- **Zero Friction**: ツール間の競合（Zoxide vs Frameworks）を完全に排除。
+- **Stealth Self-Healing (`dcheck`)**: ターミナル起動時にバックグラウンドで環境を自動診断。不足ツールを検知するとサイレントに再インストール。
+- **Smart Navigation (`zoxide`)**: `cd` を超える爆速移動ツールを統合。Mac/Linux/Bash/Zsh すべてで共通の操作感を実現。
+- **Safe Manual Backup (`bu`)**: 設定ファイル編集前の自動バックアップ機能を搭載。30日経過後の古いバックアップは自動削除。
+- **CI/CD Robustness**: GitHub Actions におけるマルチプラットフォーム・テストを完備。
+
+---
+
+## 🛠️ Key Features
+
+### 1. Autonomous Maintenance
+- **dcheck**: 1時間おきに裏で環境の整合性をチェック。作業の手を止めずに環境の「腐敗」を防ぎます。
+- **Idempotent Installer**: どの環境で何度実行しても、常に最適な状態に収束。
+
+### 2. SRE & Productivity Tools
+- **zoxide (j/zi)**: 過去の履歴からディレクトリをインタラクティブに瞬間移動。
+- **eza/bat/fd**: 次世代の標準ツールを統合し、視認性と検索速度を極限まで向上。
+- **Git Aliases**: `gquick` (一括Push)、`gs` (Status) など、手数を減らすエイリアス群。
+
+### 3. Safety Net
+- **bu [file]**: ファイルをいじる前に実行。`~/.dotfiles_backup/manual` にタイムスタンプ付きで保存。
+- **bulist**: バックアップ履歴を古い順に一覧表示（eza ソート最適化済み）。
 
 ---
 
 ## 🤖 AI Assistant (SRE Copilot)
-自然言語でシェルを操作する、SRE 専用の AI 関数群です。
+自然言語でシェルを操作する、SRE 専用の AI 関数群。
 
-### 1. `ask` (General Assistant)
-自然言語からシェルコマンドを生成し、実行の可否を問います。
-- `ask 'find large files and sort by size'`
-
-### 2. `dask` (Docker Assistant)
-Docker のコンテキスト（Status, Logs, Compose）を自動解析し、トラブルシューティングを提案。
-- `dask 'why is the web container restarting?'`
-
-### 3. `kask` (Kubernetes Assistant)
-K8s クラスターの状態、Namespace の異常、Events を解析。
-- `kask 'check failed pods in production'`
-
-### 4. `wtf` (Contextual Debugger)
-直前のエラーメッセージやクリップボードの内容を解析し、原因と対策を提示。
+- **`ask`**: シェルコマンドの生成・実行支援。
+- **`dask`**: Docker コンテナのログ解析・トラブルシューティング。
+- **`wtf`**: 直前のエラーメッセージの原因と対策を提示。
 
 ---
 
-## 🛠️ The SRE Toolkit (Custom Functions)
-
-### 1. `h` (Smart History)
-履歴を `fzf` で曖昧検索。Monokai カラーでハイライトし、プロンプトに復元。
-
-### 2. `l` (Advanced Monitor)
-`l` でログ監視、`l [Port]` でポート調査、`l [Keyword]` でプロセス検索。
-
-### 3. `up` (Directory Jumper)
-`up 3` で 3 階層上へ、`up src` で親ディレクトリの `src` へワープ。
-
-### 4. `lt` (Enhanced Tree)
-`eza` を使用。Git ステータスとアイコン付きのディレクトリ構造表示。
-
----
-
-### 📋 OSC52 Clipboard Integration (Remote-to-Local)
-SSH 経由のリモートサーバー上でも、手元の PC のクリップボードに直接データを送り込む SRE 仕様の連携機能です。`xclip` や `pbcopy` が不要で、ターミナルのエスケープシーケンスのみで動作します。
-
-
-#### 1. `copyfile [file]`
-指定したファイルの中身を、ローカル PC のクリップボードにコピーします。
-- `copyfile ~/.ssh/id_rsa.pub`
-
-#### 2. `copypath`
-現在のディレクトリの絶対パス（または指定したパス）をコピーします。
-- `copypath`
-
-#### 3. `osc_copy` (Pipe Support)
-標準入力をそのままローカルのクリップボードへ流し込みます。
-- `cat log.txt | grep "ERROR" | osc_copy`
+## 📦 Requirements
+- `zsh` / `bash`
+- `fzf`, `eza`, `bat`, `zoxide`, `fd`, `shellcheck`
+- `python3` & `llm` (AI 機能用)
 
 ---
 
@@ -131,12 +106,6 @@ SSH 経由のリモートサーバー上でも、手元の PC のクリップボ
 | :--- | :--- | :--- | :--- |
 | **General** | Monokai Dark | `#272822` | Pink / Green / Cyan |
 | **Root** | Tokyo Night | `#1a1b26` | Blue / Red / Purple |
-
----
-
-## 📦 Requirements
-- `fzf`, `eza`, `bat`, `zoxide`, `ccze`, `shellcheck`
-- `python3` & `llm` (AI 機能用)
 
 ---
 
@@ -158,11 +127,6 @@ reload
 **環境の削除 (Uninstaller):**
 ```bash
 ./uninstall.sh  
-```
-
- **開発者用リリース (SRE workflow):**
-```bash
-bin/release 1.25.0  # 自動的に v1.25.0 としてタグ打ち・リリース
 ```
 
 ---

@@ -2,9 +2,12 @@
 
 # 自己修復メイン関数
 dcheck() {
-    local cache_file="/tmp/.dotfiles_last_check_$(whoami)"
-    local report_file="/tmp/.dcheck_report_$(whoami)"
-    local now; now=$(date +%s)
+    local cache_file
+    cache_file="/tmp/.dotfiles_last_check_$(whoami)"
+    local report_file
+    report_file="/tmp/.dcheck_report_$(whoami)"
+    local now
+    now=$(date +%s)
     local threshold=3600 # 1時間
 
     if [[ "$1" != "--force" ]]; then

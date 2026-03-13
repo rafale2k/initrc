@@ -4,7 +4,8 @@
 # Maintenance Report: Display tools restored by dcheck
 # -----------------------------------------------------------------------------
 show_maintenance_report() {
-    local report_file="/tmp/.dcheck_report_$(whoami)"
+    local report_file
+    report_file="/tmp/.dcheck_report_$(whoami)"
     
     if [ -f "$report_file" ]; then
         # ツールが重複して書き込まれるのを防ぎつつ表示

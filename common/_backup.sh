@@ -1,35 +1,88 @@
 #!/bin/bash
 
-# 改造前にファイルを退避させる関数
-# 使い方: bu ~/.zshrc
-#!/bin/bash
-
-# 改造前にファイルを退避させる関数
+# -----------------------------------------------------------------------------
+# bu: Config File Management System (v2.2 - Fix Zsh parse error)
+# -----------------------------------------------------------------------------
 bu() {
-    local target_file="$1"
+    local cmd="$1"
+    local target="$2"
     local backup_dir="$HOME/.dotfiles_backup/manual"
     
-    if [ -z "$target_file" ] || [ ! -e "$target_file" ]; then
-        echo "❌ Usage: bu <file_path> (File must exist)"
-        return 1
-    fi
+    [ ! -d "$backup_dir" ] && mkdir -p "$backup_dir"
 
-    mkdir -p "$backup_dir"
+    case "$cmd" in
+        "add" | "" | */*)
+            # 引数が1つの時、それがパス（/ を含む）かファイル（. を含む）なら target にセット
+            if [ -z "$target" ]; then
+                if [[ "$cmd" == *"/"* ]] || [[ "$cmd" == *"."* ]]; then
+                    target="$cmd"
+                fi
+            fi
 
-    # タイムスタンプ付きでコピー
-    local timestamp; timestamp=$(date +%Y%m%d_%H%M%S)
-    local filename; filename=$(basename "$target_file")
-    local backup_path="$backup_dir/${filename}_${timestamp}.bak"
+            if [ -z "$target" ] || [ ! -e "$target" ]; then
+                echo "❌ Usage: bu [add] <file_path>"
+                return 1
+            fi
 
-    cp -r "$target_file" "$backup_path"
-    echo "✅ Backup created: $backup_path"
+            local timestamp; timestamp=$(date +%Y%m%d_%H%M%S)
+            local filename; filename=$(basename "$target")
+            local backup_path="$backup_dir/${filename}_${timestamp}.bak"
 
-    # --- お掃除機能 (30日以上前のバックアップを削除) ---
-    # ユーザーの手を止めないよう、静かに実行
-    find "$backup_dir" -name "*.bak" -type f -mtime +30 -delete 2>/dev/null
+            cp -r "$target" "$backup_path"
+            echo "✅ Backup created: $backup_path"
+            find "$backup_dir" -name "*.bak" -type f -mtime +30 -delete 2>/dev/null
+            ;;
+
+        "diff")
+            if [ -z "$target" ] || [ ! -e "$target" ]; then
+                echo "❌ Usage: bu diff <file_path>"
+                return 1
+            fi
+            local filename; filename=$(basename "$target")
+            local latest; latest=$(find "$backup_dir" -name "${filename}_*.bak" -type f -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)
+
+            if [ -z "$latest" ]; then
+                echo "❌ No backup found for $target"
+            else
+                echo "🔍 Comparing $target with latest backup ($latest)..."
+                if command -v colordiff >/dev/null 2>&1; then
+                    diff -u "$latest" "$target" | colordiff
+                else
+                    diff -u "$latest" "$target"
+                fi
+            fi
+            ;;
+
+        "restore")
+            if [ -z "$target" ] || [ ! -e "$target" ]; then
+                echo "❌ Usage: bu restore <file_path>"
+                return 1
+            fi
+            local filename; filename=$(basename "$target")
+            local latest; latest=$(find "$backup_dir" -name "${filename}_*.bak" -type f -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)
+
+            if [ -z "$latest" ]; then
+                echo "❌ No backup found for $target"
+            else
+                echo -n "⚠️ Restore $target from $latest? (y/n): "
+                read -r answer
+                if [[ "$answer" =~ ^[Yy]$ ]]; then
+                    cp -r "$latest" "$target"
+                    echo "✅ Restored $target"
+                else
+                    echo "Cancelled."
+                fi
+            fi
+            ;;
+
+        *)
+            echo "❌ Unknown command: $cmd"
+            echo "Usage: bu [add|diff|restore] <file_path>"
+            return 1
+            ;;
+    esac
 }
 
-# 古い順で見やすく表示 (eza の流儀)
 alias bulist='eza -la --sort oldest $HOME/.dotfiles_backup/manual'
 
 eb() {

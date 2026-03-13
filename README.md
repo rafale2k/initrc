@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-1.28.0-blue)
+![Version](https://img.shields.io/badge/version-1.29.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -57,12 +57,12 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 
 ---
 
-## ✨ What's New (v1.28.0)
+## ✨ What's New (v1.29.0)
 
-- **Stealth Self-Healing (`dcheck`)**: ターミナル起動時にバックグラウンドで環境を自動診断。不足ツールを検知するとサイレントに再インストール。
-- **Smart Navigation (`zoxide`)**: `cd` を超える爆速移動ツールを統合。Mac/Linux/Bash/Zsh すべてで共通の操作感を実現。
-- **Safe Manual Backup (`bu`)**: 設定ファイル編集前の自動バックアップ機能を搭載。30日経過後の古いバックアップは自動削除。
-- **CI/CD Robustness**: GitHub Actions におけるマルチプラットフォーム・テストを完備。
+- **Intelligent Maintenance Report**: `dcheck` が裏でツールを復旧させた際、次回のログイン時にどのツールを直したか自動報告する機能を追加。
+- **Advanced Backup System (bu v2.2)**: `bu diff` による差分確認、`bu restore` による設定の即時復元に対応。
+- **Alias Mentoring**: `cd` を使用した際、より高速な `zoxide (z/j)` の利用を適度な頻度で提案する機能を追加。
+- **Stability Fixes**: サブモジュールの完全同期、および Zsh におけるパースエラーを修正。
 
 ---
 

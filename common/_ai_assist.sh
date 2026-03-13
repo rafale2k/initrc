@@ -3,7 +3,7 @@
 # --- Gemini AI Assistant: ask, wtf, dask, kask & dinv (llm powered v3.1) ---
 
 # [本番級設定] 使用するモデルを一括管理
-export AI_ASSIST_MODEL="gemini/gemini-2.5-flash"
+export AI_ASSIST_MODEL="gemini/gemini-3.0-flash"
 
 # --- 内部ユーティリティ ---
 

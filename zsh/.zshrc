@@ -14,6 +14,8 @@ export DOTPATH="${DOTPATH:-$HOME/dotfiles}"
 export DOTFILES="$DOTPATH"
 export ZSH="$HOME/.oh-my-zsh"
 export EDITOR=nano
+export TERM=xterm-256color
+export COLORTERM=truecolor
 
 path=(
   $HOME/bin
@@ -73,7 +75,7 @@ fi
 # plugins 読み込み順の関係でここに残したいものがあれば追記
 if [[ -o interactive ]]; then
     echo "✨ Today's Oracle:"
-    echo "SREの格言を1つ、日本語で短く出力して。語尾は大阪弁で。" | ginv --stream false
+    echo "SREの格言を1つ、日本語で短く出力して。語尾は大阪弁で。" | ginv --no-stream
 fi
 if [[ -n "$ENV_ICON" ]]; then
   # 既存の PROMPT の先頭にアイコンとスペースを追加

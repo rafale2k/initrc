@@ -63,7 +63,7 @@ if [ -f "$DOTPATH/scripts/self_heal.sh" ]; then
     # バックグラウンドで実行
     # & は標準的なバックグラウンド実行
     # { ... } &> /dev/null で出力を完全に消す
-    { dcheck >/dev/null 2>&1 ; } & 
+    { dcheck > /dev/null 2>&1 || true ; } & 
     
     # zsh の場合は disown でシェル終了時の道連れを防ぐ
     if [ -n "${ZSH_VERSION:-}" ]; then

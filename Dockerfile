@@ -6,18 +6,17 @@ RUN apk add --no-cache \
     docker-cli fzf zoxide
 
 # llm コマンドのインストール
-RUN pip install llm --break-system-packages
+RUN pip install llm llm-gemini --break-system-packages
 
 RUN adduser -D -s /bin/zsh rafale
 RUN addgroup rafale wheel
-USER rafale
 WORKDIR /home/rafale
 
 # 手元で git submodule update --init --recursive 済みである前提
 COPY --chown=rafale:rafale . /home/rafale/dotfiles
 COPY --chown=rafale:rafale ./ /home/rafale/dotfiles/
 
-RUN ls -la /home/rafale/dotfiles
+RUN addgroup docker_host && addgroup rafale docker_host
 
 # install.sh を「Dockerモード」で動かす工夫
 RUN cd /home/rafale/dotfiles && \
@@ -28,18 +27,16 @@ RUN cd /home/rafale/dotfiles && \
     ./install.sh || echo "Installation finished with some skips"
 
 # リンク作成とパス通し、そして install.sh の実行
-RUN cd /home/rafale/dotfiles && \
-    ln -sf /home/rafale/dotfiles/zsh/.zshrc /home/rafale/.zshrc && \
-    ln -sf /home/rafale/dotfiles/zsh/.p10k.zsh /home/rafale/.p10k.zsh && \
-    ln -sfn /home/rafale/dotfiles/oh-my-zsh /home/rafale/.oh-my-zsh && \
-    sed -i 's/\r$//' install.sh && \
-    chmod +x install.sh && \
-    ./install.sh || echo "Installation finished"
+ENV PATH="/home/rafale/dotfiles/bin:/home/rafale/dotfiles/scripts:${PATH}"
+ENV TERM=xterm-256color
 
-# パスを永続的に通す
-ENV PATH="/home/rafale/dotfiles/bin:/home/rafale/dotfiles/scripts:$PATH"
+RUN ln -sf /home/rafale/dotfiles/zsh/.zshrc /home/rafale/.zshrc && \
+    ln -sf /home/rafale/dotfiles/zsh/.p10k.zsh /home/rafale/.p10k.zsh && \
+    ln -sfn /home/rafale/dotfiles/oh-my-zsh /home/rafale/.oh-my-zsh
 
 # 起動時に API キーを渡せるようにする準備（任意）
 # ENV GEMINI_API_KEY="" 
 
+USER rafale
+WORKDIR /home/rafale
 ENTRYPOINT ["/bin/zsh", "-l"]

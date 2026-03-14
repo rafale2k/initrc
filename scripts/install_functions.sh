@@ -123,7 +123,7 @@ setup_ai_tools() {
     cat << 'EOF' > "$HOME/bin/ginv"
 #!/bin/bash
 [ -z "$1" ] && exit 1
-llm -m gemini-2.0-flash "$1"
+llm "$1" -m gemini-2.5-flash --no-stream
 EOF
     chmod +x "$HOME/bin/ginv"
 }

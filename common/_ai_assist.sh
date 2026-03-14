@@ -172,4 +172,4 @@ dinv() {
     echo -e "[File: $file_path]\n$content" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query" | _display_output
 }
 
-alias lz="$DOTPATH/scripts/log_wizard.py"
+alias lz='"$DOTPATH"/scripts/log_wizard.py'

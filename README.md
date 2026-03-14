@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-1.29.0-blue)
+![Version](https://img.shields.io/badge/version-1.31.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -22,8 +22,9 @@
 ![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
 [![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
->SRE（Site Reliability Engineering）としての「堅牢性」と「自己修復」を追求したターミナル環境。
->macOS および主要な Linux ディストリビューションで動作し、ShellCheck を完全にパスした信頼性の高いスクリプト群を提供します。
+> **"Hope is not a strategy."（希望は戦略やない）**
+> SREとしての「堅牢性」と「自己修復」を追求した、AI駆動型の開発・運用環境。
+> v1.31.0 より、Docker Hub を通じた **「ポータブルな城」** としての配布を開始しました。
 
 ---
 
@@ -57,12 +58,12 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 
 ---
 
-## ✨ What's New (v1.29.0)
+## ✨ What's New (v1.31.0)
 
-- **Intelligent Maintenance Report**: `dcheck` が裏でツールを復旧させた際、次回のログイン時にどのツールを直したか自動報告する機能を追加。
-- **Advanced Backup System (bu v2.2)**: `bu diff` による差分確認、`bu restore` による設定の即時復元に対応。
-- **Alias Mentoring**: `cd` を使用した際、より高速な `zoxide (z/j)` の利用を適度な頻度で提案する機能を追加。
-- **Stability Fixes**: サブモジュールの完全同期、および Zsh におけるパースエラーを修正。
+- **Official Docker Image**: `rafale2k/initrc` を Docker Hub に公開。
+- **Intelligent Oracle**: Gemini 2.0 Flash による爆速の「今日のお告げ」機能を統合。
+- **Color Depth Fix**: コンテナ内での `TERM=xterm-256color` 設定により、視覚的なノイズを排除。
+- **Alias Precision**: ShellCheck SC2139 をパスし、動的なパス解決に対応したエイリアス群。
 
 ---
 
@@ -107,8 +108,27 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 | **Root** | Tokyo Night | `#1a1b26` | Blue / Red / Purple |
 
 ---
+## 🐳 Quick Start with Docker (Recommended)
 
-## 🏎️ アップデート・インストール手順
+インストール不要。Docker さえあれば、一瞬で君の「城」を召喚できます。
+
+```bash
+docker run -it --rm \
+  --group-add $(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo 0) \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e LLM_GEMINI_KEY="あなたのGEMINI_API_KEY" \
+  rafale2k/initrc:latest
+```
+💡 Tips for Docker Users
+ホスト側の .zshrc にエイリアスを貼っておくと、次から一瞬で起動できます。
+
+```bash
+alias rfi='docker run -it --rm --group-add $(stat -c "%g" /var/run/docker.sock 2>/dev/null || echo 0) -v /var/run/docker.sock:/var/run/docker.sock -e LLM_GEMINI_KEY="YOUR_KEY" rafale2k/initrc:latest'
+```
+
+---
+
+## 🏎️ Traditional Installation
 
 **新規インストール:**
 ```bash

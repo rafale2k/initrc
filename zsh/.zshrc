@@ -7,6 +7,7 @@ if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${USER}.zsh" ]]; t
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${USER}.zsh"
 fi
 
+export PATH="$HOME/dotfiles/bin:$HOME/dotfiles/scripts:$PATH"
 # 2. パス・基本環境変数定義
 typeset -U path
 export DOTPATH="${DOTPATH:-$HOME/dotfiles}"

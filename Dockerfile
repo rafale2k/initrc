@@ -1,6 +1,11 @@
 FROM alpine:latest
 
+USER root
+
+RUN apk update && apk add sudo \
+    && echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 # 必要なツールを全部盛り（llm用のpython3-pipも含む）
+
 RUN apk add --no-cache \
     bash zsh git curl python3 py3-pip tree openssh \
     docker-cli fzf zoxide

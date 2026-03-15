@@ -66,7 +66,7 @@ git tag -a "$VERSION" -m "Release $VERSION"
 
 # 5. Docker Build & Push (新規追加！)
 echo "🐳 Building Docker Image for version $DOCKER_VER..."
-docker build -t "$DOCKER_REPO:$DOCKER_VER" .
+DOCKER_BUILDKIT=1 docker build --progress=plain -t "$DOCKER_REPO:$DOCKER_VER" .
 docker tag "$DOCKER_REPO:$DOCKER_VER" "$DOCKER_REPO:latest"
 
 echo "📤 Pushing Docker images to Hub..."

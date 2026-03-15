@@ -13,3 +13,6 @@
 .env
 *.key
 .git
+*.local
+assets/
+README.md

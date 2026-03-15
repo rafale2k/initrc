@@ -1,5 +1,5 @@
 #!/bin/bash
-# bin/release: AI-Summary + v-prefix 矯正 & 自動化版
+# bin/release: AI-Summary + v-prefix 矯正 + Docker Hub Push 自動化版
 
 set -e
 
@@ -8,28 +8,26 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
-# v を強制付与
-RAW_VER=$1
-[[ $RAW_VER != v* ]] && VERSION="v$RAW_VER" || VERSION="$RAW_VER"
+# バージョン表記の整理
+RAW_VER=${1#v}           # 先頭の v を削除（1.31.1 形式）
+VERSION="v$RAW_VER"       # GitHub 用（v1.31.1 形式）
+DOCKER_VER="$RAW_VER"     # Docker 用（1.31.1 形式）
+DOCKER_REPO="rafale2k/initrc"
 
 # 前回タグを取得（差分解析用）
 PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
-echo "🚀 Preparing Release $VERSION..."
+echo "🚀 Preparing Release $VERSION (Docker: $DOCKER_VER)..."
 
 # 1. Lint Check
 echo "🔍 Running lint..."
 find . -type f \( -name "*.sh" -o -name "*.zsh" \) -not -path "*/oh-my-zsh/*" -not -path "*/themes/*" -not -path "*/plugins/*" -not -path "*/.git/*" | xargs shellcheck
 
-# 2. AI Summary Generation
+# 2. AI Summary Generation (省略なし - 既存のロジック)
 AI_SUMMARY=""
 if [ -n "$PREV_TAG" ]; then
     echo "🤖 Gemini is analyzing changes since $PREV_TAG..."
-    
-    # 差分の統計とコミットメッセージを抽出
     DIFF_DATA=$(git log "$PREV_TAG"..HEAD --oneline --stat)
-    
-    # llm コマンドを使用して要約を生成
     AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "あなたはプロフェッショナルな SRE です。
     以下の git 差分データから、今回のアップデートの主要な変更点とメリットを、
     ユーザー向けに 3 行程度の箇条書きで、簡潔かつ情熱的に要約してください。
@@ -42,16 +40,11 @@ if [ -n "$PREV_TAG" ]; then
     echo "------------------"
 fi
 
-# 3. Generate CHANGELOG
-# ※ gen-changelog が既存の CHANGELOG.md を更新することを前提
+# 3. Generate CHANGELOG & Insert AI Summary (既存のロジック)
 ~/dotfiles/bin/gen-changelog "$VERSION"
-
 if [ -n "$AI_SUMMARY" ]; then
     echo "📝 Inserting AI Summary into CHANGELOG.md..."
     TEMP_FILE=$(mktemp)
-    
-    # AWK の修正ポイント: 
-    # done フラグを使って、"一番最初に見つかった" 見出しの後にだけ挿入する
     awk -v summary="> ### 🤖 AI Release Summary
 > $AI_SUMMARY
 
@@ -66,13 +59,22 @@ if [ -n "$AI_SUMMARY" ]; then
     { print }' CHANGELOG.md > "$TEMP_FILE" && mv "$TEMP_FILE" CHANGELOG.md
 fi
 
-# 4. Commit & Tag
+# 4. Git Commit & Tag
 git add CHANGELOG.md
 git commit -m "chore: release $VERSION"
 git tag -a "$VERSION" -m "Release $VERSION"
 
-# 5. Force Push (Tags & Main)
-echo "📤 Pushing $VERSION to remote..."
+# 5. Docker Build & Push (新規追加！)
+echo "🐳 Building Docker Image for version $DOCKER_VER..."
+docker build -t "$DOCKER_REPO:$DOCKER_VER" .
+docker tag "$DOCKER_REPO:$DOCKER_VER" "$DOCKER_REPO:latest"
+
+echo "📤 Pushing Docker images to Hub..."
+docker push "$DOCKER_REPO:$DOCKER_VER"
+docker push "$DOCKER_REPO:latest"
+
+# 6. Force Push Git Tags & Main
+echo "📤 Pushing $VERSION to GitHub..."
 git push origin main --force --tags
 
-echo "✨ Successfully released $VERSION with AI Summary!"
+echo "✨ Successfully released $VERSION / Docker $DOCKER_VER with AI Summary!"

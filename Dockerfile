@@ -28,6 +28,7 @@ WORKDIR /home/rafale
 # 4. ここからが「速さ」のキモ：変更の多いファイルを分ける
 # .dockerignore で .git などを除外している前提
 COPY --chown=rafale:rafale . /home/rafale/dotfiles
+RUN git config --global --add safe.directory /home/rafale/dotfiles
 
 # 5. 環境変数
 ENV PATH="/home/rafale/dotfiles/bin:/home/rafale/dotfiles/scripts:${PATH}"

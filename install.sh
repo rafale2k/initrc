@@ -2,7 +2,7 @@
 set -u
 
 # --- 🏷️ Version Definition ---
-readonly VERSION="1.32.1"
+readonly VERSION="1.32.2"
 
 # パス確定
 DOTPATH=$(cd "$(dirname "$0")" && pwd)
@@ -44,8 +44,12 @@ setup_os_repos           # リポジトリ準備
 install_all_packages     # パッケージ + git-extras インストール
 
 echo "🔗 Syncing submodules..."
-git config --global --add safe.directory "$DOTPATH"
-git submodule update --init --recursive || { echo "❌ Git submodule sync failed"; exit 1; }
+if [ -d ".git" ]; then
+    git config --global --add safe.directory "$DOTPATH"
+    git submodule update --init --recursive
+else
+    echo "⚠️ Not a git repo, skipping submodule sync..."
+fi
 
 setup_oh_my_zsh          # OMZ & プラグインリンク
 setup_ai_tools           # AI ツール (ginv) 作成

@@ -38,35 +38,45 @@ install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    echo "📦 Installing standard packages..."
-    # OSごとの標準ツールだけ入れる（ezaは外す）
-    if command -v apk >/dev/null 2>&1; then
-        _sudo apk add --no-cache "${common_pkgs[@]}" fd bat-extras || true
+    echo "📦 Starting Package Installation..."
+
+    # 1. パッケージマネージャー別の処理
+    if command -v brew >/dev/null 2>&1; then
+        brew install "${common_pkgs[@]}" fd eza bat || true
+    elif command -v apk >/dev/null 2>&1; then
+        _sudo apk add --no-cache "${common_pkgs[@]}" fd eza bat-extras || true
     elif command -v apt-get >/dev/null 2>&1; then
         _sudo apt-get update -qq || true
-        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat || true
+        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat eza || true
     elif command -v dnf >/dev/null 2>&1; then
         _sudo dnf install -y -q epel-release || true
-        _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat || true
+        _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat eza || true
     fi
 
-    # 🚀 eza が見つからない場合の「最終兵器」：直接バイナリ取得
-    if ! command -v eza >/dev/null 2>&1; then
-        echo "🚀 Downloading eza binary directly..."
-        local eza_url="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
-        wget -qO- "$eza_url" | tar xz -C "$HOME/bin" || true
-        chmod +x "$HOME/bin/eza"
-    fi
-
-    echo "🔗 Creating links..."
-    # リンク作成（絶対止まらないループ版）
+    # 2. 執念のリンク作成 (既存の壊れたリンクを消してから張る)
+    echo "🔗 Linking binaries..."
+    
+    # マッピング: コマンド名:リンク名
     local pairs=("batcat:bat" "bat:bat" "fdfind:fd" "fd:fd" "eza:eza")
-    for p in "${pairs[@]}"; do
-        local src="${p%%:*}" dst="${p#*:}"
-        if command -v "$src" >/dev/null 2>&1; then
-            ln -sf "$(command -v "$src")" "$HOME/bin/$dst"
+    
+    for pair in "${pairs[@]}"; do
+        local src_cmd="${pair%%:*}"
+        local dst_link="$HOME/bin/${pair#*:}"
+        
+        # 本物の実行ファイルが存在するか確認
+        local src_path
+        src_path=$(command -v "$src_cmd" 2>/dev/null)
+        
+        # src_path が自分自身（$HOME/bin 内）じゃない時だけリンクを張る
+        if [ -n "$src_path" ] && [ "$src_path" != "$dst_link" ]; then
+            rm -f "$dst_link"  # 古いリンクやファイルを一度消す
+            ln -sf "$src_path" "$dst_link"
+            echo "✅ Linked $src_path -> $dst_link"
         fi
     done
+
+    # 最後に ls で中身を強制表示してデバッグ
+    ls -la "$HOME/bin"
 }
 
 setup_oh_my_zsh() {

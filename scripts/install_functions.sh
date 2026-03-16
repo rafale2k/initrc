@@ -7,74 +7,66 @@ _sudo() {
 
 setup_os_repos() {
     if [ "$PM" = "apt" ]; then
-        echo "⚙️  Configuring apt repositories..."
-        _sudo apt-get update -qq || true
-        _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release xz-utils || true
-
+        echo "⚙️  Configuring apt..."
+        if _sudo apt-get update -qq; then
+            _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release xz-utils || true
+        fi
+        
+        # shellcheck source=/dev/null
         local os_id; os_id=$(. /etc/os-release; echo "$ID")
         local codename; codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
 
         _sudo mkdir -p /etc/apt/keyrings
-        # eza repository
         if wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null; then
             echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
         fi
-
-        # Docker repository (Using variables to fix SC2034)
-        if wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null; then
+        
+        if _sudo wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null; then
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${os_id} ${codename} stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         fi
-        
-        _sudo apt-get update -qq || true
 
     elif [ "$PM" = "dnf" ]; then
-        echo "⚙️  Configuring dnf (EPEL)..."
-        _sudo dnf install -y -q epel-release || true
+        if [ "$OS" = "rhel" ]; then
+            _sudo dnf install -y -q epel-release || true
+        fi
+        _sudo dnf install -y -q xz || true
         _sudo dnf makecache -q || true
     fi
 }
 
 install_all_packages() {
-    # 1. 確実に存在する標準パッケージを先に仕留める
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
-    echo "📦 Starting Package Installation..."
-
-    # OSごとのインストール (個別エラーを許容するために {} || true を多用)
+    echo "📦 Installing standard packages..."
+    # OSごとの標準ツールだけ入れる（ezaは外す）
     if command -v apk >/dev/null 2>&1; then
-        _sudo apk add --no-cache "${common_pkgs[@]}" fd eza bat-extras || true
-    elif command -v brew >/dev/null 2>&1; then
-        brew install "${common_pkgs[@]}" fd eza bat || true
+        _sudo apk add --no-cache "${common_pkgs[@]}" fd bat-extras || true
     elif command -v apt-get >/dev/null 2>&1; then
         _sudo apt-get update -qq || true
-        # eza 以外を先に確実に入れる
         _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat || true
-        # eza はリポジトリが死んでる可能性を考慮して単独で挑む
-        _sudo apt-get install -y -qq eza || true
     elif command -v dnf >/dev/null 2>&1; then
         _sudo dnf install -y -q epel-release || true
         _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat || true
-        # Alma/CentOS系では eza が無い場合があるため単独で
-        _sudo dnf install -y -q eza || true
     fi
 
-    # 2. リンク作成 (ここが止まってたから、独立したブロックにする)
-    echo "🔗 Linking binaries..."
-    
-    # 存在するコマンドを片っ端から $HOME/bin にリンクする執念のロジック
-    local cmds=("batcat:bat" "bat:bat" "fdfind:fd" "fd:fd" "eza:eza")
-    for pair in "${cmds[@]}"; do
-        local src="${pair%%:*}"
-        local dst="${pair#*:}"
+    # 🚀 eza が見つからない場合の「最終兵器」：直接バイナリ取得
+    if ! command -v eza >/dev/null 2>&1; then
+        echo "🚀 Downloading eza binary directly..."
+        local eza_url="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
+        wget -qO- "$eza_url" | tar xz -C "$HOME/bin" || true
+        chmod +x "$HOME/bin/eza"
+    fi
+
+    echo "🔗 Creating links..."
+    # リンク作成（絶対止まらないループ版）
+    local pairs=("batcat:bat" "bat:bat" "fdfind:fd" "fd:fd" "eza:eza")
+    for p in "${pairs[@]}"; do
+        local src="${p%%:*}" dst="${p#*:}"
         if command -v "$src" >/dev/null 2>&1; then
             ln -sf "$(command -v "$src")" "$HOME/bin/$dst"
-            echo "✅ Linked $src -> $dst"
         fi
     done
-
-    # 最後に PATH の確認（デバッグ用）
-    ls -la "$HOME/bin"
 }
 
 setup_oh_my_zsh() {

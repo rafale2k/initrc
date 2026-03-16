@@ -2,7 +2,8 @@
 set -u
 
 # --- 🏷️ Version Definition ---
-readonly VERSION="1.33.2"
+INSTALL_DIR=$(cd "$(dirname "$0")" && pwd)
+VERSION=$(cat "$INSTALL_DIR/VERSION")
 
 # パス確定
 DOTPATH=$(cd "$(dirname "$0")" && pwd)

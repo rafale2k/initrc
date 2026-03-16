@@ -30,7 +30,7 @@
 
 ## 🖼️ Showcase
 
-![initrc Showcase Banner](assets/54.png)
+![initrc Showcase Banner](./assets/54.png)
 
 ---
 
@@ -40,17 +40,17 @@
 
 ### 🤖 AI-Driven Release Workflow
 `bin/release` コマンドを実行すると、Gemini AI が前回のタグからの差分を自動解析。情熱的なリリースノートを生成し、GitHub と CHANGELOG を一瞬で同期します。
-![AI Release Workflow](assets/55.jpg)
+![AI Release Workflow](./assets/55.jpg)
 
 
 ### 📋 Universal Clipboard (OSC52 + Native)
 SSH 越しでも、ローカル環境でも。`copyfile` や `osc_copy` を使えば、常に「手元のクリップボード」にデータが届きます。OSC52 エスケープシーケンスと OS 標準ツール（pbcopy/clip.exe/xclip）のハイブリッド仕様です。
-![Clipboard-Demo](assets/56.jpg)
+![Clipboard-Demo](./assets/56.jpg)
 
 
 ### 🎨 Deep Blue "Professional" Prompt
 Powerlevel10k をカスタマイズし、カレントディレクトリの背景を視認性の高い **Deep Navy (Color 18)** に刷新。ノイズを削ぎ落とし、長時間のコーディングでも集中力を切らさない配色を実現しました。root時には背景色をTokyoNightに、プロンプトに赤背景にROOTと明記しました。
-![root-Demo](assets/57.jpg)
+![root-Demo](./assets/57.jpg)
 
 ---
 
@@ -101,11 +101,13 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## [v1.33.2] - 2026-03-16
 
 > ### 🤖 AI Release Summary
-> 限界を突破するパフォーマンス改善で、システムのボトルネックを完膚なきまでに粉砕しました！🚀
-鉄壁の自動化と冗長化により、いかなる障害をも寄せ付けない「不沈艦」の信頼性を手に入れました！🔥
-運用の手離れを極限まで高め、我々の情熱を次なる革新的価値の創造へと解き放ちます！⚡
+> Docker HubのREADME同期を自動化し、ドキュメントの鮮度を極限まで高めたぜ！🚀
+4行の魂のコードが、コンテナ情報の信頼性を宇宙一のレベルに引き上げる！🔥
+手作業を完全に排除し、常に最新の情報を届ける。これこそがSREの理想郷だ！💪
 
 ---
+- quick update: 2026-03-16 22:55:39 (76fa633)
+- chore: release v1.33.2 (2439bf0)
 - chore: release v1.33.2 (e9dab75)
 - chore: release v1.33.2 (d60975b)
 - chore: release v1.33.2 (1efc9ba)

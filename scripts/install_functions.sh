@@ -36,52 +36,45 @@ setup_os_repos() {
 
 install_all_packages() {
     # eza を確実にリストに含める
-    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras eza)
+    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
     echo "📦 Starting Package Installation..."
 
-    # 1. パッケージマネージャーでのインストール
-    if command -v brew >/dev/null 2>&1; then
-        brew install "${common_pkgs[@]}" fd bat || true
+if command -v brew >/dev/null 2>&1; then
+        brew install "${common_pkgs[@]}" fd bat eza || true
     
     elif command -v apk >/dev/null 2>&1; then
-        echo "🏔️  Detected Alpine Linux."
-        _sudo apk add --no-cache "${common_pkgs[@]}" fd-find bat-extras || true
+        _sudo apk add --no-cache "${common_pkgs[@]}" fd-find bat-extras eza || true
 
     elif command -v apt-get >/dev/null 2>&1; then
-        echo "🌀 Detected Debian/Ubuntu."
         _sudo apt-get update -qq || true
-        # setup_os_repos で eza リポジトリが追加されている前提
         _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat || true
+        # eza だけは失敗してもエラーで止めないように個別で叩く
+        _sudo apt-get install -y -qq eza || true
         
     elif command -v dnf >/dev/null 2>&1; then
-        echo "🤠 Detected RHEL-family (Alma/Fedora)."
         _sudo dnf install -y -q epel-release || true
-        # AlmaLinuxなどは --allowerasing があると依存関係の衝突を避けやすい
         _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat || true
+        # Alma/Fedora も eza は個別で。EPEL が効いてれば入るはず。
+        _sudo dnf install -y -q eza || true
     fi
 
-    # 2. 名前の正規化とリンク作成
-    if [ "$(uname)" = "Linux" ]; then
-        # bat の解決
-        if command -v batcat >/dev/null 2>&1; then
-            ln -sf "$(command -v batcat)" "$HOME/bin/bat"
-        elif command -v bat >/dev/null 2>&1; then
-            ln -sf "$(command -v bat)" "$HOME/bin/bat"
-        fi
-        
-        # fd の解決
-        if command -v fdfind >/dev/null 2>&1; then
-            ln -sf "$(command -v fdfind)" "$HOME/bin/fd"
-        elif command -v fd >/dev/null 2>&1; then
-            ln -sf "$(command -v fd)" "$HOME/bin/fd"
-        fi
-
-        # eza の解決 (ここが重要！)
-        if command -v eza >/dev/null 2>&1; then
-            ln -sf "$(command -v eza)" "$HOME/bin/eza"
-        fi
+    # 2. 最後にリンク作成を「ある時だけ」確実に実行する
+    echo "🔗 Creating symbolic links..."
+    
+    # bat / fd の解決 (既存のロジック)
+    [ -n "$(command -v batcat)" ] && ln -sf "$(command -v batcat)" "$HOME/bin/bat"
+    [ -n "$(command -v bat)" ] && ln -sf "$(command -v bat)" "$HOME/bin/bat"
+    [ -n "$(command -v fdfind)" ] && ln -sf "$(command -v fdfind)" "$HOME/bin/fd"
+    [ -n "$(command -v fd)" ] && ln -sf "$(command -v fd)" "$HOME/bin/fd"
+    
+    # eza の解決
+    if command -v eza >/dev/null 2>&1; then
+        ln -sf "$(command -v eza)" "$HOME/bin/eza"
+        echo "✅ eza linked to $HOME/bin/eza"
+    else
+        echo "⚠️ eza command not found, skipping link."
     fi
 }
 

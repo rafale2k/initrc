@@ -20,7 +20,7 @@ echo "🚀 Preparing Release $VERSION..."
 # 2. ファイルの更新
 echo "$DOCK_VER" > VERSION
 # READMEのバッジを更新
-sed -i "s/version-v[0-9.]*-blue/version-v${DOCK_VER}-blue/g" README.md
+sed -i "s/version-.*-blue/version-v${DOCK_VER}-blue/g" README.md
 
 # 3. 前回のタグからの差分（Changelog用データ）を取得
 PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null)

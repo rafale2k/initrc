@@ -70,8 +70,25 @@ LATEST_NOTES=$(awk '/^## \[/ { count++; if (count > 1) exit; } { if (count == 1)
 # 画像パスを GitHub の絶対 URL に置換（Docker Hub 表示用）
 LATEST_NOTES=$(echo "$LATEST_NOTES" | sed "s|\./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g")
 
-START_MARKER=""
-END_MARKER=""
+# 🚀 追加：LATEST_NOTES が空、あるいはヘッダーしか入ってない場合はスキップ
+# 🚀 追加：LATEST_NOTES が空、あるいはヘッダーしか入ってない場合はスキップ
+if [ -z "$(echo "$LATEST_NOTES" | grep -v '^## \[')" ]; then
+    echo "⚠️  Skip: No new release notes found in CHANGELOG.md. Keeping current README."
+else
+    LATEST_NOTES=$(echo "$LATEST_NOTES" | sed "s|\./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g")
+
+    START_MARKER="<!-- RELEASE_NOTES_START -->"
+    END_MARKER="<!-- RELEASE_NOTES_END -->"
+
+    if [ -f README.md ] && grep -q "$START_MARKER" README.md; then
+        TMP_README=$(mktemp)
+        sed -n "1,/$START_MARKER/p" README.md > "$TMP_README"
+        echo -e "\n$LATEST_NOTES\n" >> "$TMP_README"
+        sed -n "/$END_MARKER/,\$p" README.md >> "$TMP_README"
+        mv "$TMP_README" README.md
+        echo "✅ README.md updated."
+    fi
+fi
 
 if [ -f README.md ] && grep -q "$START_MARKER" README.md; then
     TMP_README=$(mktemp)

@@ -1,3 +1,10 @@
+## [v1.35.0] - 2026-03-17
+- chore: release v1.34.4 (bac967b)
+- quick update: 2026-03-17 00:41:25 (c1d168c)
+- quick update: 2026-03-17 00:30:46 (261465e)
+- chore: release v1.34.3 (22cefa6)
+- quick update: 2026-03-17 00:25:49 (203ef20)
+
 ## [v1.34.4] - 2026-03-17
 - quick update: 2026-03-17 00:41:25 (c1d168c)
 - quick update: 2026-03-17 00:30:46 (261465e)

@@ -1,7 +1,7 @@
 #!/bin/bash
-# bin/gen-changelog: v-prefix 完全対応版
+# bin/gen-changelog: ログ件数制限 & v-prefix 完全対応版
 
-# 1. バージョン名の整形（引数がなければ最新タグ、あれば v を強制）
+# 1. バージョン名の整形
 INPUT_VERSION=${1:-$(git describe --tags --match "v*" --abbrev=0 2>/dev/null)}
 [[ $INPUT_VERSION != v* ]] && VERSION="v$INPUT_VERSION" || VERSION="$INPUT_VERSION"
 
@@ -9,7 +9,6 @@ DATE=$(date +%Y-%m-%d)
 OUTPUT="CHANGELOG.md"
 
 # 2. 比較対象となる「一つ前のタグ」を探す
-# --match "v*" で v2 時代になっても v1.x の最終タグを正しく拾える
 PREV_TAG=$(git describe --tags --match "v*" --abbrev=0 "${VERSION}^" 2>/dev/null || echo "")
 
 echo "📖 Generating changelog: $PREV_TAG -> $VERSION"
@@ -17,18 +16,23 @@ echo "📖 Generating changelog: $PREV_TAG -> $VERSION"
 {
     echo "## [$VERSION] - $DATE"
     if [ -n "$PREV_TAG" ]; then
-        # 前回の v* タグからの差分を抽出
-        git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges
+        # ★ 修正ポイント：最新の5件だけに絞る
+        git log "${PREV_TAG}..HEAD" --pretty=format:"- %s (%h)" --no-merges -n 5
+        
+        # 5件以上ある場合は「...and more」を表示
+        TOTAL_CHANGES=$(git rev-list --count "${PREV_TAG}..HEAD")
+        if [ "$TOTAL_CHANGES" -gt 5 ]; then
+            echo -e "\n- ... and $((TOTAL_CHANGES - 5)) more changes."
+        fi
     else
-        # 初回リリース用
-        git log --pretty=format:"- %s (%h)" --no-merges
+        # 初回リリース用（ここも5件に制限）
+        git log --pretty=format:"- %s (%h)" --no-merges -n 5
     fi
     echo -e "\n"
 } > "NEW_RELEASE.md"
 
-# 3. CHANGELOG.md の先頭（2行目以降）に挿入する
+# 3. CHANGELOG.md の先頭に挿入する
 if [ -f "$OUTPUT" ]; then
-    # 既存の内容を下に回す
     cat NEW_RELEASE.md "$OUTPUT" > TEMP_LOG.md && mv TEMP_LOG.md "$OUTPUT"
 else
     mv NEW_RELEASE.md "$OUTPUT"

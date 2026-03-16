@@ -26,10 +26,10 @@ sed -i "s/version-v[0-9.]*-blue/version-v${DOCK_VER}-blue/g" README.md
 PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
 
 if [ -z "$PREV_TAG" ]; then
-    CHANGELOG=$(git log --oneline)
+    CHANGELOG=$(git log --oneline -n 10)
     DIFF_DATA=$(git log --oneline --stat | head -n 50)
 else
-    CHANGELOG=$(git log ${PREV_TAG}..HEAD --oneline)
+    CHANGELOG=$(git log ${PREV_TAG}..HEAD --oneline -n 10)
     DIFF_DATA=$(git log ${PREV_TAG}..HEAD --oneline --stat | head -n 50)
 fi
 

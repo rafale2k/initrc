@@ -49,7 +49,7 @@ find . -type f \( -name "*.sh" -o -name "*.zsh" \) \
 
 # 5. AI Summary (変数名を PREV_TAG に統一して修正)
 echo "🤖 Generating AI summary..."
-AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "SREとして、今回の変更を3行で情熱的に日本語で要約して。各行に絵文字を付けて。")
+#AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "SREとして、今回の変更を3行で情熱的に日本語で要約して。各行に絵文字を付けて。")
 
 # 6. CHANGELOG.md 更新
 ~/dotfiles/bin/gen-changelog "$VERSION"

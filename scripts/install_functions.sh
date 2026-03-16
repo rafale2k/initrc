@@ -35,32 +35,46 @@ setup_os_repos() {
 }
 
 install_all_packages() {
-    # 以前の「確実に通る」リスト
+    # 1. 確実に存在する標準パッケージを先に仕留める
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
     
     echo "📦 Starting Package Installation..."
 
+    # OSごとのインストール (個別エラーを許容するために {} || true を多用)
     if command -v apk >/dev/null 2>&1; then
-        echo "🏔️  Alpine mode"
         _sudo apk add --no-cache "${common_pkgs[@]}" fd eza bat-extras || true
     elif command -v brew >/dev/null 2>&1; then
         brew install "${common_pkgs[@]}" fd eza bat || true
     elif command -v apt-get >/dev/null 2>&1; then
-        # eza をリストに戻す
-        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat eza || true
+        _sudo apt-get update -qq || true
+        # eza 以外を先に確実に入れる
+        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat || true
+        # eza はリポジトリが死んでる可能性を考慮して単独で挑む
+        _sudo apt-get install -y -qq eza || true
     elif command -v dnf >/dev/null 2>&1; then
-        # dnf も eza を含めて一気に叩く
-        _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat eza || true
+        _sudo dnf install -y -q epel-release || true
+        _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat || true
+        # Alma/CentOS系では eza が無い場合があるため単独で
+        _sudo dnf install -y -q eza || true
     fi
 
-    echo "🔗 Creating links..."
-    # 以前の確実なリンク作成ロジック
-    [ -n "$(command -v batcat)" ] && ln -sf "$(command -v batcat)" "$HOME/bin/bat"
-    [ -n "$(command -v bat)" ] && ln -sf "$(command -v bat)" "$HOME/bin/bat"
-    [ -n "$(command -v fdfind)" ] && ln -sf "$(command -v fdfind)" "$HOME/bin/fd"
-    [ -n "$(command -v fd)" ] && ln -sf "$(command -v fd)" "$HOME/bin/fd"
-    [ -n "$(command -v eza)" ] && ln -sf "$(command -v eza)" "$HOME/bin/eza"
+    # 2. リンク作成 (ここが止まってたから、独立したブロックにする)
+    echo "🔗 Linking binaries..."
+    
+    # 存在するコマンドを片っ端から $HOME/bin にリンクする執念のロジック
+    local cmds=("batcat:bat" "bat:bat" "fdfind:fd" "fd:fd" "eza:eza")
+    for pair in "${cmds[@]}"; do
+        local src="${pair%%:*}"
+        local dst="${pair#*:}"
+        if command -v "$src" >/dev/null 2>&1; then
+            ln -sf "$(command -v "$src")" "$HOME/bin/$dst"
+            echo "✅ Linked $src -> $dst"
+        fi
+    done
+
+    # 最後に PATH の確認（デバッグ用）
+    ls -la "$HOME/bin"
 }
 
 setup_oh_my_zsh() {

@@ -30,6 +30,22 @@ WORKDIR /home/rafale
 COPY --chown=rafale:rafale . /home/rafale/dotfiles
 RUN git config --global --add safe.directory /home/rafale/dotfiles
 
+# 1. 必要なリンクを網羅して強制的に貼る (ln -sfn)
+RUN ln -sfn /home/rafale/dotfiles/zsh/.zshrc /home/rafale/.zshrc && \
+    ln -sfn /home/rafale/dotfiles/configs/.p10k.zsh /home/rafale/.p10k.zsh && \
+    ln -sfn /home/rafale/dotfiles/oh-my-zsh /home/rafale/.oh-my-zsh && \
+    ln -sfn /home/rafale/dotfiles/configs/gitconfig /home/rafale/.gitconfig
+
+# 2. リンクの所有権を rafale に渡す
+RUN chown -h rafale:rafale /home/rafale/.zshrc \
+                           /home/rafale/.p10k.zsh \
+                           /home/rafale/.oh-my-zsh \
+                           /home/rafale/.gitconfig
+
+# 3. 最後に念押しでユーザーとディレクトリを指定
+USER rafale
+WORKDIR /home/rafale
+
 # 5. 環境変数
 ENV PATH="/home/rafale/dotfiles/bin:/home/rafale/dotfiles/scripts:${PATH}"
 ENV TERM=xterm-256color

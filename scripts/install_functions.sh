@@ -35,29 +35,34 @@ setup_os_repos() {
 }
 
 install_all_packages() {
-    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
+    local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras eza)
     mkdir -p "$HOME/bin"
     
     echo "📦 Starting Package Installation..."
 
-    # 1. パッケージマネージャーでのインストール
     if command -v brew >/dev/null 2>&1; then
-        brew install "${common_pkgs[@]}" fd eza bat || true
+        brew install "${common_pkgs[@]}" fd bat || true
     
-    # --- ここから追加: Alpine (apk) 対応 ---
     elif command -v apk >/dev/null 2>&1; then
-        echo "🏔️  Detected Alpine Linux. Using apk..."
-        # Alpine は sudo が最初から入ってないこともあるから、一応確認
-        _sudo apk add --no-cache "${common_pkgs[@]}" fd eza bat-extras || true
-    # --- ここまで ---
+        # Alpine は eza がコミュニティリポジトリにある
+        _sudo apk add --no-cache "${common_pkgs[@]}" fd-find bat-extras || true
 
     elif command -v apt-get >/dev/null 2>&1; then
         _sudo apt-get update -qq || true
+        # Debian/Ubuntu は eza を個別で入れるか、さっきの setup_os_repos が効いてる前提
         _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat || true
+        
     elif command -v dnf >/dev/null 2>&1; then
         _sudo dnf install -y -q epel-release || true
+        # Alma/Fedora はこれで行けるはず
         _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat || true
     fi
+
+    # 2. eza のリンクも作る（念のため）
+    if command -v eza >/dev/null 2>&1; then
+        ln -sf "$(command -v eza)" "$HOME/bin/eza"
+    fi    
+
 
     # 2. 名前の正規化 (batcat/bat-extras -> bat, fdfind -> fd)
     # Alpine の bat は 'bat' やったり 'bat-extras' やったりするので柔軟に

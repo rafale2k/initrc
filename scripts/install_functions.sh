@@ -43,18 +43,24 @@ install_all_packages() {
     # 1. パッケージマネージャーでのインストール
     if command -v brew >/dev/null 2>&1; then
         brew install "${common_pkgs[@]}" fd eza bat || true
+    
+    # --- ここから追加: Alpine (apk) 対応 ---
+    elif command -v apk >/dev/null 2>&1; then
+        echo "🏔️  Detected Alpine Linux. Using apk..."
+        # Alpine は sudo が最初から入ってないこともあるから、一応確認
+        _sudo apk add --no-cache "${common_pkgs[@]}" fd eza bat-extras || true
+    # --- ここまで ---
+
     elif command -v apt-get >/dev/null 2>&1; then
         _sudo apt-get update -qq || true
-        # Ubuntu/Debian は batcat, fdfind という名前
         _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat || true
     elif command -v dnf >/dev/null 2>&1; then
-        # AlmaLinux 等で epel-release が必要な場合への配慮
         _sudo dnf install -y -q epel-release || true
         _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat || true
     fi
 
-    # 2. 名前の正規化 (batcat -> bat, fdfind -> fd)
-    # パッケージマネージャーで入った実体を探して $HOME/bin にリンク
+    # 2. 名前の正規化 (batcat/bat-extras -> bat, fdfind -> fd)
+    # Alpine の bat は 'bat' やったり 'bat-extras' やったりするので柔軟に
     if [ "$(uname)" = "Linux" ]; then
         # bat の解決
         if command -v batcat >/dev/null 2>&1; then
@@ -69,33 +75,6 @@ install_all_packages() {
         elif command -v fd >/dev/null 2>&1; then
             ln -sf "$(command -v fd)" "$HOME/bin/fd"
         fi
-    fi
-
-    # 3. 最終救済: それでも bat/fd が無いならバイナリを落とす
-    local arch; arch=$(uname -m)
-    local os_type; os_type=$(uname -s)
-
-    # eza (これは今のままでOK)
-    if ! command -v eza >/dev/null 2>&1 && [ ! -f "$HOME/bin/eza" ]; then
-        local e_os="unknown-linux-gnu"
-        [ "$os_type" = "Darwin" ] && e_os="apple-darwin"
-        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${e_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
-        find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \; 2>/dev/null || true
-        chmod +x "$HOME/bin/eza"
-    fi
-
-    # bat 救済 (Linuxのみ)
-    if [ "$os_type" = "Linux" ] && ! command -v bat >/dev/null 2>&1 && [ ! -f "$HOME/bin/bat" ]; then
-        echo "⬇️ Downloading bat binary..."
-        curl -fLsS "https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-        chmod +x "$HOME/bin/bat"
-    fi
-
-    # fd 救済 (Linuxのみ)
-    if [ "$os_type" = "Linux" ] && ! command -v fd >/dev/null 2>&1 && [ ! -f "$HOME/bin/fd" ]; then
-        echo "⬇️ Downloading fd binary..."
-        curl -fLsS "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-        chmod +x "$HOME/bin/fd"
     fi
 }
 

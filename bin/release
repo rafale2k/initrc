@@ -1,5 +1,5 @@
 #!/bin/bash
-# bin/release: AI-Summary + v-prefix 矯正 + Docker Hub Push 自動化版
+# bin/release: AI-Summary + README Sync + Docker Hub Push 自動化版
 
 set -e
 
@@ -23,7 +23,7 @@ echo "🚀 Preparing Release $VERSION (Docker: $DOCKER_VER)..."
 echo "🔍 Running lint..."
 find . -type f \( -name "*.sh" -o -name "*.zsh" \) -not -path "*/oh-my-zsh/*" -not -path "*/themes/*" -not -path "*/plugins/*" -not -path "*/.git/*" | xargs shellcheck
 
-# 2. AI Summary Generation (省略なし - 既存のロジック)
+# 2. AI Summary Generation
 AI_SUMMARY=""
 if [ -n "$PREV_TAG" ]; then
     echo "🤖 Gemini is analyzing changes since $PREV_TAG..."
@@ -40,7 +40,7 @@ if [ -n "$PREV_TAG" ]; then
     echo "------------------"
 fi
 
-# 3. Generate CHANGELOG & Insert AI Summary (既存のロジック)
+# 3. Generate CHANGELOG & Insert AI Summary
 ~/dotfiles/bin/gen-changelog "$VERSION"
 if [ -n "$AI_SUMMARY" ]; then
     echo "📝 Inserting AI Summary into CHANGELOG.md..."
@@ -59,12 +59,37 @@ if [ -n "$AI_SUMMARY" ]; then
     { print }' CHANGELOG.md > "$TEMP_FILE" && mv "$TEMP_FILE" CHANGELOG.md
 fi
 
-# 4. Git Commit & Tag
-git add CHANGELOG.md
+# 4. Sync Latest Release Notes to README.md (Docker Hub 用)
+echo "🐳 Syncing latest release notes to README.md..."
+# CHANGELOG.md の最新セクション（最初の ## [ から次の ## [ まで）を抽出
+LATEST_NOTES=$(awk '
+    /^## \[/ {
+        if (count == 1) exit;
+        count++;
+        print;
+        next;
+    }
+    count == 1 { print }
+' CHANGELOG.md)
+
+if [ -n "$LATEST_NOTES" ]; then
+    # README.md 内の と END の間を置換
+    # 環境変数 NOTES 経由で Perl に渡すことで特殊文字のエスケープ問題を回避
+    perl -i -0777 -pe '
+        BEGIN { $notes = $ENV{NOTES} }
+        s/().*()/$1\n\n$notes\n\n$2/s
+    ' NOTES="$LATEST_NOTES" README.md
+fi
+
+# 5. Git Commit & Tag
+# VERSIONファイルがある場合は更新、なければスキップ
+[ -f VERSION ] && echo "$DOCKER_VER" > VERSION
+
+git add CHANGELOG.md README.md VERSION 2>/dev/null || true
 git commit -m "chore: release $VERSION"
 git tag -a "$VERSION" -m "Release $VERSION"
 
-# 5. Docker Build & Push (新規追加！)
+# 6. Docker Build & Push
 echo "🐳 Building Docker Image for version $DOCKER_VER..."
 DOCKER_BUILDKIT=1 docker build --progress=plain -t "$DOCKER_REPO:$DOCKER_VER" .
 docker tag "$DOCKER_REPO:$DOCKER_VER" "$DOCKER_REPO:latest"
@@ -73,7 +98,7 @@ echo "📤 Pushing Docker images to Hub..."
 docker push "$DOCKER_REPO:$DOCKER_VER"
 docker push "$DOCKER_REPO:latest"
 
-# 6. Force Push Git Tags & Main
+# 7. Force Push Git Tags & Main
 echo "📤 Pushing $VERSION to GitHub..."
 git push origin main --force --tags
 

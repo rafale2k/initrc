@@ -1859,3 +1859,5 @@ function prompt_env_icon() {
   # アイコンがあれば、色を指定して表示 (例: 15番は白)
   p10k segment -f 15 -t "$ENV_ICON"
 }
+typeset -g POWERLEVEL9K_VCS_SHOW_UNTRACKED_FILES=false
+typeset -g POWERLEVEL9K_VCS_SHOW_IGNORED_FILES=false

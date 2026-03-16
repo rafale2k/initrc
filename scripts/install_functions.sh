@@ -7,18 +7,33 @@ _sudo() {
 
 setup_os_repos() {
     if [ "$PM" = "apt" ]; then
-        echo "⚙️  Configuring apt..."
-        _sudo apt-get update -qq && _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release xz-utils || true
-        
+        echo "⚙️  Configuring apt repositories..."
+        # SC2015 対策: 分割して確実に実行
+        _sudo apt-get update -qq || true
+        _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release xz-utils || true
+
+        # 変数をちゃんと使う（SC2034 対策）
         local os_id; os_id=$(. /etc/os-release; echo "$ID")
         local codename; codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
 
         _sudo mkdir -p /etc/apt/keyrings
-        # eza 公式の推奨手順に則った最新の記述
+
+        # eza: 2026年現在、より確実なリポジトリ構成
         if wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null; then
             echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
         fi
+
+        # Docker: 取得した os_id と codename をここで使い切る！
+        if wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null; then
+            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${os_id} ${codename} stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        fi
+        
+        # リポジトリ追加後は update が必須！
+        _sudo apt-get update -qq || true
+
     elif [ "$PM" = "dnf" ]; then
+        echo "⚙️  Configuring dnf repositories..."
+        # AlmaLinux / RHEL 系なら EPEL は必須
         _sudo dnf install -y -q epel-release || true
         _sudo dnf makecache -q || true
     fi

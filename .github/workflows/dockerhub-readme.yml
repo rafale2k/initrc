@@ -3,13 +3,12 @@ name: Update Docker Hub Description
 on:
   push:
     branches: [ main ]
-    tags: [ "v*" ]      # 🚀 タグが打たれた時も動くように追加
-    paths: [ "README.md", "VERSION" ] # 🚀 VERSIONが変わった時（リリース時）も対象にする
+    tags: [ "v*" ]
+    paths: [ "README.md", "VERSION" ]
 
-# 🚀 ここで Node.js 24 を使うように強制する
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  
+
 jobs:
   dockerhub:
     runs-on: ubuntu-latest
@@ -17,23 +16,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 🚀 ここでパスを GitHub Raw URL に一括変換する
       - name: Rewrite asset paths for Docker Hub
-         run: |
-           # 置換前の状態を1行だけ確認
-           grep "./assets/" README.md | head -n 1 || echo "Not found"
-           
-           # 置換実行
-           sed -i 's|./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g' README.md
-           
-           # 置換後の状態を確認（ここが Raw URL になってれば OK）
-           echo "--- After Replace ---"
-           grep "raw.githubusercontent.com" README.md | head -n 1 || echo "Replace failed"
+        run: |
+          # 1. 置換前の状態を確認
+          echo "--- Before Replace ---"
+          grep "./assets/" README.md | head -n 3 || echo "Not found"
+          
+          # 2. 置換実行 (./assets/ を絶対URLに)
+          sed -i 's|\./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g' README.md
+          
+          # 3. 置換後の状態を確認
+          echo "--- After Replace ---"
+          grep "raw.githubusercontent.com" README.md | head -n 3 || echo "Replace failed"
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: rafale2k/initrc  # ここを書き換える！
+          repository: rafale2k/initrc
           readme-filepath: ./README.md

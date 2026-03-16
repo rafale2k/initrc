@@ -1,36 +1,78 @@
-name: Update Docker Hub Description
+name: Update Docker Hub and Assets
 
 on:
   push:
     branches: [ main ]
     tags: [ "v*" ]
-    paths: [ "README.md", "VERSION" ]
   workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
-  dockerhub:
+  update-hub:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      # 🚀 ここで README の中身をチェックする
+      - name: Debug README Content
+        run: |
+          echo "--- Current README Badge Line ---"
+          grep "img.shields.io" README.md || echo "Shields.io badge NOT FOUND in README.md"
+
+      - name: Update Badge in README
+        run: |
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          # パターンをさらにルーズに： 'badge/' から ')' までの間にある 'version-...' を狙い撃ち
+          sed -i "s/version-[^)]*/version-v${VERSION}-blue/g" README.md
+          
+          echo "--- After Replace Debug ---"
+          grep "img.shields.io" README.md
+
+      - name: Generate OGP Image
+        run: |
+          sudo apt-get install -y imagemagick
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          SUMMARY=$(grep -A 1 "### 🤖 AI-Driven Release Workflow" README.md | tail -n 1 | sed 's/^[[:space:]]*//' | cut -c 1-50)
+          [ -z "$SUMMARY" ] && SUMMARY="Next-gen development environment configuration."
+
+          convert -size 1200x630 xc:#1a1b26 -gravity center \
+            -fill "#7aa2f7" -pointsize 80 -annotate +0-100 "initrc $VERSION" \
+            -fill "#cfc9c2" -pointsize 40 -annotate +0+50 "$SUMMARY..." \
+            assets/ogp.png
 
       - name: Rewrite asset paths for Docker Hub
         run: |
-          echo "--- Before Replace ---"
-          grep "./assets/" README.md | head -n 3 || echo "Not found"
-          
-          # 🚀 パス置換
           sed -i 's|\./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g' README.md
-          
-          echo "--- After Replace ---"
-          grep "raw.githubusercontent.com" README.md | head -n 3 || echo "Replace failed"
 
-      - name: Docker Hub Description
+      - name: Update Docker Hub Description
         uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: rafale2k/initrc
           readme-filepath: ./README.md
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Docker Hub用の置換を戻す
+          git checkout README.md
+          
+          # バッジだけ再度置換
+          VERSION=${{ steps.get_version.outputs.VERSION }}
+          sed -i "s/version-[^)]*/version-v${VERSION}-blue/g" README.md
+          
+          git add README.md assets/ogp.png
+          git commit -m "chore: update badge to $VERSION and regenerate OGP" || echo "No changes to commit"
+          git push origin main

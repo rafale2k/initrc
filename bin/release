@@ -17,6 +17,8 @@ DOCK_VER="$RAW_VER"
 DOCKER_REPO="rafale2k/initrc"
 echo "$DOCK_VER" > VERSION
 
+sed -i "s/version-v[0-9.]*-blue/version-v${NEW_VERSION}-blue/g" README.md
+
 PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
 echo "🚀 Preparing Release $VERSION..."

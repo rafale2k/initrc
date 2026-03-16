@@ -7,12 +7,10 @@ _sudo() {
 
 setup_os_repos() {
     if [ "$PM" = "apt" ]; then
-        echo "⚙️  Configuring apt..."
-        if _sudo apt-get update -qq; then
-            _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release xz-utils || true
-        fi
+        echo "⚙️ Configuring apt..."
+        _sudo apt-get update -qq || true
+        _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release xz-utils || true
         
-        # shellcheck source=/dev/null
         local os_id; os_id=$(. /etc/os-release; echo "$ID")
         local codename; codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
 
@@ -20,17 +18,9 @@ setup_os_repos() {
         if wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null; then
             echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
         fi
-        
-        if _sudo wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null; then
-            echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${os_id} ${codename} stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        fi
-
+        _sudo apt-get update -qq || true
     elif [ "$PM" = "dnf" ]; then
-        if [ "$OS" = "rhel" ]; then
-            _sudo dnf install -y -q epel-release || true
-        fi
-        _sudo dnf install -y -q xz || true
-        _sudo dnf makecache -q || true
+        _sudo dnf install -y -q epel-release || true
     fi
 }
 
@@ -40,43 +30,28 @@ install_all_packages() {
     
     echo "📦 Starting Package Installation..."
 
-    # 1. パッケージマネージャー別の処理
-    if command -v brew >/dev/null 2>&1; then
-        brew install "${common_pkgs[@]}" fd eza bat || true
-    elif command -v apk >/dev/null 2>&1; then
+    # 1.31.0の頃の「シンプルに全部並べる」スタイルに Alpine だけ追加
+    if command -v apk >/dev/null 2>&1; then
         _sudo apk add --no-cache "${common_pkgs[@]}" fd eza bat-extras || true
+    elif command -v brew >/dev/null 2>&1; then
+        brew install "${common_pkgs[@]}" fd eza bat || true
     elif command -v apt-get >/dev/null 2>&1; then
-        _sudo apt-get update -qq || true
         _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat eza || true
     elif command -v dnf >/dev/null 2>&1; then
-        _sudo dnf install -y -q epel-release || true
         _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat eza || true
     fi
 
-    # 2. 執念のリンク作成 (既存の壊れたリンクを消してから張る)
-    echo "🔗 Linking binaries..."
+    echo "🔗 Linking..."
+    # リンク作成も「昔ながらのシンプル構成」
+    rm -f "$HOME/bin/bat" "$HOME/bin/fd" "$HOME/bin/eza"
     
-    # マッピング: コマンド名:リンク名
-    local pairs=("batcat:bat" "bat:bat" "fdfind:fd" "fd:fd" "eza:eza")
+    [ -n "$(command -v batcat)" ] && ln -sf "$(command -v batcat)" "$HOME/bin/bat"
+    [ -n "$(command -v bat)" ] && [ "$(command -v bat)" != "$HOME/bin/bat" ] && ln -sf "$(command -v bat)" "$HOME/bin/bat"
     
-    for pair in "${pairs[@]}"; do
-        local src_cmd="${pair%%:*}"
-        local dst_link="$HOME/bin/${pair#*:}"
-        
-        # 本物の実行ファイルが存在するか確認
-        local src_path
-        src_path=$(command -v "$src_cmd" 2>/dev/null)
-        
-        # src_path が自分自身（$HOME/bin 内）じゃない時だけリンクを張る
-        if [ -n "$src_path" ] && [ "$src_path" != "$dst_link" ]; then
-            rm -f "$dst_link"  # 古いリンクやファイルを一度消す
-            ln -sf "$src_path" "$dst_link"
-            echo "✅ Linked $src_path -> $dst_link"
-        fi
-    done
-
-    # 最後に ls で中身を強制表示してデバッグ
-    ls -la "$HOME/bin"
+    [ -n "$(command -v fdfind)" ] && ln -sf "$(command -v fdfind)" "$HOME/bin/fd"
+    [ -n "$(command -v fd)" ] && [ "$(command -v fd)" != "$HOME/bin/fd" ] && ln -sf "$(command -v fd)" "$HOME/bin/fd"
+    
+    [ -n "$(command -v eza)" ] && [ "$(command -v eza)" != "$HOME/bin/eza" ] && ln -sf "$(command -v eza)" "$HOME/bin/eza"
 }
 
 setup_oh_my_zsh() {

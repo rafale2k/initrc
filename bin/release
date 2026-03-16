@@ -1,5 +1,5 @@
 #!/bin/bash
-# bin/release: AI-Summary + README Sync + Docker Hub Push 自動化版
+# bin/release: AI-Summary + README Sync + Docker Hub Push
 
 set -e
 
@@ -11,25 +11,26 @@ fi
 # バージョン表記の整理
 RAW_VER=${1#v}           # 先頭の v を削除（1.31.1 形式）
 VERSION="v$RAW_VER"       # GitHub 用（v1.31.1 形式）
-DOCKER_VER="$RAW_VER"     # Docker 用（1.31.1 形式）
+DOCK_VER="$RAW_VER"       # Docker 用（1.31.1 形式）
 DOCKER_REPO="rafale2k/initrc"
 
 # 前回タグを取得（差分解析用）
 PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
-echo "🚀 Preparing Release $VERSION (Docker: $DOCKER_VER)..."
+echo "🚀 Preparing Release $VERSION (Docker: $DOCK_VER)..."
 
 # 1. Lint Check
 echo "🔍 Running lint..."
 find . -type f \( -name "*.sh" -o -name "*.zsh" \) -not -path "*/oh-my-zsh/*" -not -path "*/themes/*" -not -path "*/plugins/*" -not -path "*/.git/*" | xargs shellcheck
 
-# 2. AI Summary Generation
+# 2. AI Summary Generation (直近 5 コミットに絞る)
 AI_SUMMARY=""
 if [ -n "$PREV_TAG" ]; then
-    echo "🤖 Gemini is analyzing changes since $PREV_TAG..."
-    DIFF_DATA=$(git log "$PREV_TAG"..HEAD --oneline --stat)
+    echo "🤖 Gemini is analyzing recent changes..."
+    # 差分が多すぎる場合は HEAD~5 程度に絞るのが賢い
+    DIFF_DATA=$(git log "$PREV_TAG"..HEAD --oneline --stat | head -n 50)
     AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "あなたはプロフェッショナルな SRE です。
-    以下の git 差分データから、今回のアップデートの主要な変更点とメリットを、
+    以下の git 差分データから、今回のアップデートの主要な変更点を、
     ユーザー向けに 3 行程度の箇条書きで、簡潔かつ情熱的に要約してください。
     - 日本語で出力してください。
     - 各行の冒頭に内容に合った絵文字を付けてください。
@@ -61,7 +62,6 @@ fi
 
 # 4. Sync Latest Release Notes to README.md (Docker Hub 用)
 echo "🐳 Syncing latest release notes to README.md..."
-# CHANGELOG.md の最新セクション（最初の ## [ から次の ## [ まで）を抽出
 LATEST_NOTES=$(awk '
     /^## \[/ {
         if (count == 1) exit;
@@ -72,34 +72,37 @@ LATEST_NOTES=$(awk '
     count == 1 { print }
 ' CHANGELOG.md)
 
-if [ -n "$LATEST_NOTES" ]; then
-    # README.md 内の と END の間を置換
-    # 環境変数 NOTES 経由で Perl に渡すことで特殊文字のエスケープ問題を回避
-    perl -i -0777 -pe '
-        BEGIN { $notes = $ENV{NOTES} }
-        s/().*()/$1\n\n$notes\n\n$2/s
-    ' NOTES="$LATEST_NOTES" README.md
+if [ -f README.md ] && grep -q "" README.md; then
+    if [ -n "$LATEST_NOTES" ]; then
+        echo "✅ Found tags. Updating README.md..."
+        export NOTES="$LATEST_NOTES"
+        # 一時ファイルに出力して成功時のみ mv する（README消失防止）
+        perl -0777 -pe '
+            BEGIN { $notes = $ENV{NOTES} }
+            s/().*()/$1\n\n$notes\n\n$2/s
+        ' README.md > README.md.tmp && mv README.md.tmp README.md
+    fi
+else
+    echo "⚠️  Skip README Sync: Tags (RELEASE_NOTES_START) not found."
 fi
 
 # 5. Git Commit & Tag
-# VERSIONファイルがある場合は更新、なければスキップ
-[ -f VERSION ] && echo "$DOCKER_VER" > VERSION
-
+[ -f VERSION ] && echo "$DOCK_VER" > VERSION
 git add CHANGELOG.md README.md VERSION 2>/dev/null || true
 git commit -m "chore: release $VERSION"
 git tag -a "$VERSION" -m "Release $VERSION"
 
 # 6. Docker Build & Push
-echo "🐳 Building Docker Image for version $DOCKER_VER..."
-DOCKER_BUILDKIT=1 docker build --progress=plain -t "$DOCKER_REPO:$DOCKER_VER" .
-docker tag "$DOCKER_REPO:$DOCKER_VER" "$DOCKER_REPO:latest"
+echo "🐳 Building Docker Image for version $DOCK_VER..."
+DOCKER_BUILDKIT=1 docker build --progress=plain -t "$DOCKER_REPO:$DOCK_VER" .
+docker tag "$DOCKER_REPO:$DOCK_VER" "$DOCKER_REPO:latest"
 
-echo "📤 Pushing Docker images to Hub..."
-docker push "$DOCKER_REPO:$DOCKER_VER"
+echo "📤 Pushing Docker images..."
+docker push "$DOCKER_REPO:$DOCK_VER"
 docker push "$DOCKER_REPO:latest"
 
-# 7. Force Push Git Tags & Main
-echo "📤 Pushing $VERSION to GitHub..."
+# 7. Force Push
+echo "📤 Pushing to GitHub..."
 git push origin main --force --tags
 
-echo "✨ Successfully released $VERSION / Docker $DOCKER_VER with AI Summary!"
+echo "✨ Successfully released $VERSION!"

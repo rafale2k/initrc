@@ -1,21 +1,28 @@
 #!/bin/bash
-# bin/release: VERSION管理 + AI要約 + README同期 + Docker Hub Push
 
-set -e
+# 1. 今のバージョンをファイルから取得
+CURRENT_VERSION=$(cat VERSION)
 
-# 1. バージョン情報の取得
-if [ -f VERSION ]; then
-    RAW_VER=$(sed 's/^v//' VERSION | tr -d '[:space:]')
-    [ -n "$1" ] && RAW_VER=${1#v}
-else
-    if [ -z "$1" ]; then echo "❌ No version provided"; exit 1; fi
-    RAW_VER=${1#v}
+# 2. 次のバージョンをどうするか決める
+echo "Current version: $CURRENT_VERSION"
+read -p "Enter new version (Press Enter to auto-bump): " NEW_VERSION
+
+# もし何も入力せんかったら、末尾の数字を +1 する（簡易自動化）
+if [ -z "$NEW_VERSION" ]; then
+    NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
 fi
 
-VERSION="v$RAW_VER"
-DOCK_VER="$RAW_VER"
+echo "Releasing v$NEW_VERSION..."
+
+# 3. VERSION ファイルを更新
+echo "$NEW_VERSION" > VERSION
+
+# 4. 以降のスクリプトで使う変数をセット
+# v1.33.2 みたいなタグ用の形式
+TAG_VERSION="v$NEW_VERSION"
+# Docker 等で使う数字だけの形式
+DOCK_VER="$NEW_VERSION"
 DOCKER_REPO="rafale2k/initrc"
-echo "$DOCK_VER" > VERSION
 
 sed -i "s/version-v[0-9.]*-blue/version-v${NEW_VERSION}-blue/g" README.md
 

@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v1.34.3-blue)
+![Version](https://img.shields.io/badge/version-v1.34.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -98,14 +98,10 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.34.3] - 2026-03-17
-
-> ### 🤖 AI Release Summary
-> 究極のデプロイ体験へ！`bin/release`に魂の1行を刻み込んだぞ！🚀
-わずかな修正が爆速の自動化を呼び、我々のリリースを異次元へと加速させる！⚡
-信頼性と情熱の結晶で、システムの未来を最強の安定感で守り抜くぜ！🔥
-
----
+## [v1.34.4] - 2026-03-17
+- quick update: 2026-03-17 00:41:25 (c1d168c)
+- quick update: 2026-03-17 00:30:46 (261465e)
+- chore: release v1.34.3 (22cefa6)
 - quick update: 2026-03-17 00:25:49 (203ef20)
 - chore: release v1.34.2 (74c2321)
 - quick update: 2026-03-17 00:22:45 (f4aeffe)

@@ -35,8 +35,9 @@ jobs:
           sed -i "s/version-[^)]*/version-v${VERSION}-blue/g" README.md
           
           echo "--- After Replace Debug ---"
-          grep "img.shields.io" README.md
-
+          # 見つからなくてもワークフローを止めないように || true を追加
+          grep "img.shields.io" README.md || echo "Badge not found but continuing..."
+      
       - name: Generate OGP Image
         run: |
           sudo apt-get install -y imagemagick

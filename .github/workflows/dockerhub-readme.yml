@@ -5,7 +5,7 @@ on:
     branches: [ main ]
     tags: [ "v*" ]
     paths: [ "README.md", "VERSION" ]
-  workflow_dispatch
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -19,14 +19,12 @@ jobs:
 
       - name: Rewrite asset paths for Docker Hub
         run: |
-          # 1. 置換前の状態を確認
           echo "--- Before Replace ---"
           grep "./assets/" README.md | head -n 3 || echo "Not found"
           
-          # 2. 置換実行 (./assets/ を絶対URLに)
+          # 🚀 パス置換
           sed -i 's|\./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g' README.md
           
-          # 3. 置換後の状態を確認
           echo "--- After Replace ---"
           grep "raw.githubusercontent.com" README.md | head -n 3 || echo "Replace failed"
 

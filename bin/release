@@ -52,6 +52,7 @@ fi
 # 5. README 同期 (ここを sed にして安全化！)
 echo "🐳 Syncing to README.md..."
 LATEST_NOTES=$(awk '/^## \[/ { count++; if (count > 1) exit; } { if (count == 1) print }' CHANGELOG.md)
+LATEST_NOTES=$(echo "$LATEST_NOTES" | sed "s|./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g")
 
 # マーカーを変数に入れておく
 START_MARKER="<!-- RELEASE_NOTES_START -->"

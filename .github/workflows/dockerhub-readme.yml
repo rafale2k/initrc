@@ -3,7 +3,8 @@ name: Update Docker Hub Description
 on:
   push:
     branches: [ main ]
-    paths: [ "README.md" ] # READMEが更新された時だけ動く
+    tags: [ "v*" ]      # 🚀 タグが打たれた時も動くように追加
+    paths: [ "README.md", "VERSION" ] # 🚀 VERSIONが変わった時（リリース時）も対象にする
 
 # 🚀 ここで Node.js 24 を使うように強制する
 env:
@@ -13,8 +14,21 @@ jobs:
   dockerhub:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
+
+      # 🚀 ここでパスを GitHub Raw URL に一括変換する
+      - name: Rewrite asset paths for Docker Hub
+         run: |
+           # 置換前の状態を1行だけ確認
+           grep "./assets/" README.md | head -n 1 || echo "Not found"
+           
+           # 置換実行
+           sed -i 's|./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g' README.md
+           
+           # 置換後の状態を確認（ここが Raw URL になってれば OK）
+           echo "--- After Replace ---"
+           grep "raw.githubusercontent.com" README.md | head -n 1 || echo "Replace failed"
 
       - name: Docker Hub Description
         uses: peter-evans/dockerhub-description@v4

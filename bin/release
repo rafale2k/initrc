@@ -1,37 +1,43 @@
 #!/bin/bash
 
-# 1. 今のバージョンをファイルから取得
+# 1. バージョン情報の取得と更新
 CURRENT_VERSION=$(cat VERSION)
-
-# 2. 次のバージョンをどうするか決める
 echo "Current version: $CURRENT_VERSION"
 read -p "Enter new version (Press Enter to auto-bump): " NEW_VERSION
 
-# もし何も入力せんかったら、末尾の数字を +1 する（簡易自動化）
+# 自動インクリメント
 if [ -z "$NEW_VERSION" ]; then
     NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
 fi
 
-echo "Releasing v$NEW_VERSION..."
-
-# 3. VERSION ファイルを更新
-echo "$NEW_VERSION" > VERSION
-
-# 4. 以降のスクリプトで使う変数をセット
-# v1.33.2 みたいなタグ用の形式
-TAG_VERSION="v$NEW_VERSION"
-# Docker 等で使う数字だけの形式
-DOCK_VER="$NEW_VERSION"
+# 以降で使用する変数を統一
+VERSION="v$NEW_VERSION"      # タグ用 (v1.33.2)
+DOCK_VER="$NEW_VERSION"      # Docker/ファイル書き込み用 (1.33.2)
 DOCKER_REPO="rafale2k/initrc"
-
-sed -i "s/version-v[0-9.]*-blue/version-v${NEW_VERSION}-blue/g" README.md
-
-PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
 
 echo "🚀 Preparing Release $VERSION..."
 
-# 2. Lint Check
-# 2. Lint Check (外部ライブラリを徹底除外)
+# 2. ファイルの更新
+echo "$DOCK_VER" > VERSION
+# READMEのバッジを更新
+sed -i "s/version-v[0-9.]*-blue/version-v${DOCK_VER}-blue/g" README.md
+
+# 3. 前回のタグからの差分（Changelog用データ）を取得
+PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
+
+if [ -z "$PREV_TAG" ]; then
+    CHANGELOG=$(git log --oneline)
+    DIFF_DATA=$(git log --oneline --stat | head -n 50)
+else
+    CHANGELOG=$(git log ${PREV_TAG}..HEAD --oneline)
+    DIFF_DATA=$(git log ${PREV_TAG}..HEAD --oneline --stat | head -n 50)
+fi
+
+# Gemini用の作業ファイル作成
+echo "Current Changes:" > Update.md
+echo "$CHANGELOG" >> Update.md
+
+# 4. Lint Check
 echo "🔍 Running lint..."
 find . -type f \( -name "*.sh" -o -name "*.zsh" \) \
     -not -path "*/.git/*" \
@@ -41,60 +47,58 @@ find . -type f \( -name "*.sh" -o -name "*.zsh" \) \
     -not -path "*/templates/*" \
     | xargs shellcheck
 
-# 3. AI Summary
-AI_SUMMARY=""
-if [ -n "$PREV_TAG" ]; then
-    DIFF_DATA=$(git log "$PREV_TAG"..HEAD --oneline --stat | head -n 50)
-    AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "SREとして、今回の変更を3行で情熱的に日本語で要約して。各行に絵文字を付けて。")
-fi
+# 5. AI Summary (変数名を PREV_TAG に統一して修正)
+echo "🤖 Generating AI summary..."
+AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "SREとして、今回の変更を3行で情熱的に日本語で要約して。各行に絵文字を付けて。")
 
-# 4. CHANGELOG 更新
+# 6. CHANGELOG.md 更新
 ~/dotfiles/bin/gen-changelog "$VERSION"
+
 if [ -n "$AI_SUMMARY" ]; then
     TEMP_FILE=$(mktemp)
+    # 最新の ## [バージョン] セクションの直下に AI 要約を差し込む
     awk -v summary="> ### 🤖 AI Release Summary\n> $AI_SUMMARY\n\n---" '
     BEGIN { done = 0 }
     /## \[/ && done == 0 { print; print "\n" summary; done = 1; next }
     { print }' CHANGELOG.md > "$TEMP_FILE" && mv "$TEMP_FILE" CHANGELOG.md
 fi
 
-# 5. README 同期 (ここを sed にして安全化！)
+# 7. README.md への最新ノート同期
 echo "🐳 Syncing to README.md..."
+# CHANGELOG.md から最新のセクションを抽出
 LATEST_NOTES=$(awk '/^## \[/ { count++; if (count > 1) exit; } { if (count == 1) print }' CHANGELOG.md)
-LATEST_NOTES=$(echo "$LATEST_NOTES" | sed "s|./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g")
+# 画像パスを GitHub の絶対 URL に置換（Docker Hub 表示用）
+LATEST_NOTES=$(echo "$LATEST_NOTES" | sed "s|\./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g")
 
-# マーカーを変数に入れておく
-START_MARKER="<!-- RELEASE_NOTES_START -->"
-END_MARKER="<!-- RELEASE_NOTES_END -->"
+START_MARKER=""
+END_MARKER=""
 
 if [ -f README.md ] && grep -q "$START_MARKER" README.md; then
-    echo "✅ Found tags. Updating README.md safely..."
     TMP_README=$(mktemp)
-    
-    # マーカーまでの内容、最新ノート、マーカー以降の内容を合体
     sed -n "1,/$START_MARKER/p" README.md > "$TMP_README"
     echo -e "\n$LATEST_NOTES\n" >> "$TMP_README"
     sed -n "/$END_MARKER/,\$p" README.md >> "$TMP_README"
-    
     mv "$TMP_README" README.md
+    echo "✅ README.md updated."
 else
     echo "⚠️  Skip: README.md marker not found."
 fi
 
-# 6. Git Commit & Tag
+# 8. Git Commit & Tag
 git add CHANGELOG.md README.md VERSION
 if ! git diff --staged --quiet; then
     git commit -m "chore: release $VERSION"
 fi
 git tag -af "$VERSION" -m "Release $VERSION"
 
-# 7. Docker
+# 9. Docker Build & Push
+echo "🐳 Building Docker image..."
 DOCKER_BUILDKIT=1 docker build -t "$DOCKER_REPO:$DOCK_VER" .
 docker tag "$DOCKER_REPO:$DOCK_VER" "$DOCKER_REPO:latest"
 docker push "$DOCKER_REPO:$DOCK_VER"
 docker push "$DOCKER_REPO:latest"
 
-# 8. Push
+# 10. Final Push
 git push origin main --force --tags
 
 echo "✨ Successfully released $VERSION!"

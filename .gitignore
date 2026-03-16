@@ -7,3 +7,4 @@ common/_local_*.sh
 # bin ディレクトリ内の生成されたバイナリ/リンクを無視
 bin/bat
 bin/fd
+Update.md

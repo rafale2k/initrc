@@ -1,4 +1,16 @@
 ## [v1.35.2] - 2026-03-17
+
+> ### 🤖 AI Release Summary
+> 開発者の魂が宿るコミット履歴を一つに！アイデンティティの完全統合を成し遂げました！🤝
+不要なノイズを徹底排除！.mailmapのクリーンアップで、コードの系譜をより美しく研ぎ澄ませます！🧹
+次なる飛躍、v1.35.2に向けて、データの整合性という盤石な基礎を完璧に整えました！🚀
+
+---
+- chore: unify identities and cleanup mailmap for v1.35.2 (3087a3c)
+- chore: release v1.35.2 (36e01b8)
+- chore(docker): Include Git and recursive directories (bd67542)
+
+## [v1.35.2] - 2026-03-17
 - chore(docker): Include Git and recursive directories (bd67542)
 - chore: release v1.35.1 (d6111f2)
 - chore: release v1.35.1 (9828302)

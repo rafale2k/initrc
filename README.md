@@ -99,11 +99,15 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 <!-- RELEASE_NOTES_START -->
 
 ## [v1.35.0] - 2026-03-17
-- chore: release v1.34.4 (bac967b)
-- quick update: 2026-03-17 00:41:25 (c1d168c)
-- quick update: 2026-03-17 00:30:46 (261465e)
-- chore: release v1.34.3 (22cefa6)
-- quick update: 2026-03-17 00:25:49 (203ef20)
+
+> ### 🤖 AI Release Summary
+> サブモジュールを最新へと昇華させ、我らが開発環境の安定性を極限まで高めたぞ！🔥
+リリーススクリプトの不備を完全粉砕、自動化の歯車を再び爆速で回転させる！🚀
+盤石な基盤こそが信頼の証、一点の曇りもないデプロイフローで未来を切り拓く！🛠️
+
+---
+- chore: update submodules and fix release scripts (ce865e6)
+- chore: release v1.35.0 (02e9612)
 
 <!-- RELEASE_NOTES_END -->
 

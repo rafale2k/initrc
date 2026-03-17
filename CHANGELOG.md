@@ -1,3 +1,10 @@
+## [v1.35.2] - 2026-03-17
+- chore(docker): Include Git and recursive directories (bd67542)
+- chore: release v1.35.1 (d6111f2)
+- chore: release v1.35.1 (9828302)
+- chore: major fix for container environment and unify contributors in v1.35.0 (01dc0bc)
+- chore: release v1.35.1 (348270f)
+
 ## [v1.35.1] - 2026-03-17
 
 > ### 🤖 AI Release Summary

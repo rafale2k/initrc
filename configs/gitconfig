@@ -43,8 +43,8 @@
 [include]
     path = ~/.gitconfig.local
 [user]
-	email = rafale2k@example.com
-	name = rafale2k
+	email = 23348359+rafale2k@users.noreply.github.com
+	name = Dassault Rafale
 [safe]
 	directory = *
 	directory = /home/rafale/dotfiles

@@ -99,13 +99,8 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 <!-- RELEASE_NOTES_START -->
 
 ## [v1.35.1] - 2026-03-17
-
-> ### 🤖 AI Release Summary
-> 不安定なサブモジュール同期を、鉄壁の条件分岐で完全に制覇しました！🔥
-インストール失敗のわずかな隙も与えない、極限まで洗練されたロジックを実装！🚀
-これでデプロイの信頼性は最高潮へ、我々のシステムに更なる平穏をもたらします！💪
-
----
+- chore: major fix for container environment and unify contributors in v1.35.0 (01dc0bc)
+- chore: release v1.35.1 (348270f)
 - fix(install): improve submodule sync conditions (54dd3d1)
 - chore: release v1.35.1 (99c4717)
 

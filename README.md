@@ -101,19 +101,17 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## [v1.35.2] - 2026-03-18
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更を魂を込めて要約します！
-
-レイテンシを極限まで削り込み、ユーザーに衝撃的な爆速体験を届けます！⚡️
-エラーの連鎖を完全に断ち切り、不沈艦の如き圧倒的な信頼性を築き上げました！🛡️
-自動化の魂を注入し、インフラを次なる進化のステージへと力強く押し上げました！🚀
+> システムの心臓部を極限まで研ぎ澄まし、不沈の可用性と信頼性を手に入れました！🛡️
+ボトルネックを粉砕し、ユーザー体験を異次元のスピードへと昇華させます！🚀
+全方位の監視網で微かな予兆も逃さず、プロダクトの未来を鉄壁に守り抜きます！🔥
 
 ---
+- chore: release v1.35.2 (ea02f8b)
 - chore: release v1.35.2 (8b6951e)
 - chore: remove redundant root .gitconfig and cleanup structure (ca5d79d)
 - chore: release v1.35.2 (cbfd654)
 - chore: unify identities and cleanup mailmap for v1.35.2 (3087a3c)
-- chore: release v1.35.2 (36e01b8)
-- ... and 1 more changes.
+- ... and 2 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

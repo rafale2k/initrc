@@ -98,14 +98,16 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.35.2] - 2026-03-17
+## [v1.35.2] - 2026-03-18
 
 > ### 🤖 AI Release Summary
-> 開発者の魂が宿るコミット履歴を一つに！アイデンティティの完全統合を成し遂げました！🤝
-不要なノイズを徹底排除！.mailmapのクリーンアップで、コードの系譜をより美しく研ぎ澄ませます！🧹
-次なる飛躍、v1.35.2に向けて、データの整合性という盤石な基礎を完璧に整えました！🚀
+> 不要な設定ファイルを一掃し、ルートディレクトリの純度を極限まで高めました！🔥
+重複というノイズを排除して、構成管理の透明性とメンテナンス性を爆速で向上させます！🚀
+研ぎ澄まされたリポジトリ構造こそが、最高峰の信頼性を生む土台となるのです！💪
 
 ---
+- chore: remove redundant root .gitconfig and cleanup structure (ca5d79d)
+- chore: release v1.35.2 (cbfd654)
 - chore: unify identities and cleanup mailmap for v1.35.2 (3087a3c)
 - chore: release v1.35.2 (36e01b8)
 - chore(docker): Include Git and recursive directories (bd67542)

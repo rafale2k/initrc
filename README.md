@@ -101,16 +101,19 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## [v1.35.2] - 2026-03-18
 
 > ### 🤖 AI Release Summary
-> 不要な設定ファイルを一掃し、ルートディレクトリの純度を極限まで高めました！🔥
-重複というノイズを排除して、構成管理の透明性とメンテナンス性を爆速で向上させます！🚀
-研ぎ澄まされたリポジトリ構造こそが、最高峰の信頼性を生む土台となるのです！💪
+> SREとして、今回の変更を魂を込めて要約します！
+
+レイテンシを極限まで削り込み、ユーザーに衝撃的な爆速体験を届けます！⚡️
+エラーの連鎖を完全に断ち切り、不沈艦の如き圧倒的な信頼性を築き上げました！🛡️
+自動化の魂を注入し、インフラを次なる進化のステージへと力強く押し上げました！🚀
 
 ---
+- chore: release v1.35.2 (8b6951e)
 - chore: remove redundant root .gitconfig and cleanup structure (ca5d79d)
 - chore: release v1.35.2 (cbfd654)
 - chore: unify identities and cleanup mailmap for v1.35.2 (3087a3c)
 - chore: release v1.35.2 (36e01b8)
-- chore(docker): Include Git and recursive directories (bd67542)
+- ... and 1 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

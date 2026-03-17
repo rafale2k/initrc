@@ -101,16 +101,13 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## [v1.35.1] - 2026-03-17
 
 > ### 🤖 AI Release Summary
-> 限界突破の爆速レスポンス！ミリ秒単位の遅延を焼き尽くし、ユーザー体験を異次元へ引き上げました！⚡
-鉄壁の自動復旧システム！障害の芽を事前に摘み取り、24時間365日揺るぎない安定稼働を誓います！🛡️
-進化し続ける最強の基盤！スケーラビリティを無限に解き放ち、ビジネスの爆発的成長を背負って立ちます！🔥
+> 不安定なサブモジュール同期を、鉄壁の条件分岐で完全に制覇しました！🔥
+インストール失敗のわずかな隙も与えない、極限まで洗練されたロジックを実装！🚀
+これでデプロイの信頼性は最高潮へ、我々のシステムに更なる平穏をもたらします！💪
 
 ---
-- chore: release v1.35.0 (d03c3f3)
-- chore: unify contributors with mailmap and update submodules (3cf87d0)
-- chore: update badge to 1.35.0 and regenerate OGP (1b25119)
-- chore: release v1.35.0 (7391698)
-- chore: update submodules and fix release scripts (ce865e6)
+- fix(install): improve submodule sync conditions (54dd3d1)
+- chore: release v1.35.1 (99c4717)
 
 <!-- RELEASE_NOTES_END -->
 

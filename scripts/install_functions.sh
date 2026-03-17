@@ -102,18 +102,29 @@ install_all_packages() {
 }
 
 setup_oh_my_zsh() {
+    # DOTPATH が未定義なら、このスクリプトがある場所を基準にする（一例）
+    : "${DOTPATH:=$HOME/dotfiles}"
+
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        echo "インストール中..."
         sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     fi
+
     local custom_dir="$HOME/.oh-my-zsh/custom"
     mkdir -p "$custom_dir/themes" "$custom_dir/plugins"
-    [ -d "$DOTPATH/zsh/themes/powerlevel10k" ] && ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$custom_dir/themes/powerlevel10k"
-    
+
+    # powerlevel10k のリンク
+    if [ -d "$DOTPATH/zsh/themes/powerlevel10k" ]; then
+        ln -sfn "$DOTPATH/zsh/themes/powerlevel10k" "$custom_dir/themes/powerlevel10k"
+    fi
+
     echo "🔗 Linking Zsh plugins..."
     for p in zsh-autosuggestions zsh-syntax-highlighting history-search-multi-word; do
         if [ -d "$DOTPATH/zsh/plugins/$p" ]; then
             ln -sfn "$DOTPATH/zsh/plugins/$p" "$custom_dir/plugins/$p"
             echo "✅ Linked $p"
+        else
+            echo "❌ Plugin not found in $DOTPATH/zsh/plugins/$p"
         fi
     done
 }

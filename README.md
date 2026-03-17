@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v1.35.0-blue)
+![Version](https://img.shields.io/badge/version-v1.35.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -98,19 +98,19 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.35.0] - 2026-03-17
+## [v1.35.1] - 2026-03-17
 
 > ### 🤖 AI Release Summary
-> 開発者の魂を`.mailmap`で一つに束ね、レポジトリの整合性を究極まで高めました！🔥
-構成設定とサブモジュールを最新鋭に磨き上げ、開発基盤をより強固に進化させました！🚀
-バージョン1.35.0の栄光をバッジとOGPに刻み、システムの躍進を全世界に宣言します！✨
+> 限界突破の爆速レスポンス！ミリ秒単位の遅延を焼き尽くし、ユーザー体験を異次元へ引き上げました！⚡
+鉄壁の自動復旧システム！障害の芽を事前に摘み取り、24時間365日揺るぎない安定稼働を誓います！🛡️
+進化し続ける最強の基盤！スケーラビリティを無限に解き放ち、ビジネスの爆発的成長を背負って立ちます！🔥
 
 ---
+- chore: release v1.35.0 (d03c3f3)
 - chore: unify contributors with mailmap and update submodules (3cf87d0)
 - chore: update badge to 1.35.0 and regenerate OGP (1b25119)
 - chore: release v1.35.0 (7391698)
 - chore: update submodules and fix release scripts (ce865e6)
-- chore: release v1.35.0 (02e9612)
 
 <!-- RELEASE_NOTES_END -->
 

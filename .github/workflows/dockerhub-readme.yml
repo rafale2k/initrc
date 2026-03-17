@@ -76,4 +76,6 @@ jobs:
           
           git add README.md assets/ogp.png
           git commit -m "chore: update badge to $VERSION and regenerate OGP" || echo "No changes to commit"
+          git pull --rebase origin main
           git push origin HEAD:main
+

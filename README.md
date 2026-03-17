@@ -101,11 +101,14 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## [v1.35.0] - 2026-03-17
 
 > ### 🤖 AI Release Summary
-> サブモジュールを最新へと昇華させ、我らが開発環境の安定性を極限まで高めたぞ！🔥
-リリーススクリプトの不備を完全粉砕、自動化の歯車を再び爆速で回転させる！🚀
-盤石な基盤こそが信頼の証、一点の曇りもないデプロイフローで未来を切り拓く！🛠️
+> 開発者の魂を`.mailmap`で一つに束ね、レポジトリの整合性を究極まで高めました！🔥
+構成設定とサブモジュールを最新鋭に磨き上げ、開発基盤をより強固に進化させました！🚀
+バージョン1.35.0の栄光をバッジとOGPに刻み、システムの躍進を全世界に宣言します！✨
 
 ---
+- chore: unify contributors with mailmap and update submodules (3cf87d0)
+- chore: update badge to 1.35.0 and regenerate OGP (1b25119)
+- chore: release v1.35.0 (7391698)
 - chore: update submodules and fix release scripts (ce865e6)
 - chore: release v1.35.0 (02e9612)
 

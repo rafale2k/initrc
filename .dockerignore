@@ -1,21 +1,36 @@
-# 1. デフォルトですべてを無視（ホワイトリスト方式）
+# 1. 一旦すべてを無視
 *
 
-# 2. 必要なディレクトリを「フォルダごと」許可
-!/scripts/
-!/common/
-!/bin/
-!/zsh/         # ← これ重要！ .zshrc の本体がここにあるなら必須
-!/oh-my-zsh/   # ← サブモジュールとして管理してるなら必須
+# 2. サブモジュールと Git 情報を「深く」許可
+!/.git/
+!/.git/**
+!/.gitmodules
 
-# 3. 必要なルートファイルを許可
+# 3. 各ディレクトリの中身を再帰的に許可 (/** をつけるのがコツ)
+!/zsh/
+!/zsh/**
+!/configs/
+!/configs/**
+!/oh-my-zsh/
+!/oh-my-zsh/**
+!/bin/
+!/bin/**
+!/scripts/
+!/scripts/**
+!/common/
+!/common/**
+!/bash/
+!/bash/**
+
+# 4. ルートにある必須ファイルを許可
 !/install.sh
 !/Dockerfile
-!/.git/
-# 4. 秘密情報や不要な重いデータは「絶対に」除外 (上書き)
+!/README.md
+!/.mailmap
+
+# 5. 最後に、機密情報や不要な重いデータだけをピンポイントで除外
 .env
 *.key
 *.local
-assets/
-README.md
-LICENSE
+node_modules/
+dist/

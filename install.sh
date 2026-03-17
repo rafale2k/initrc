@@ -45,11 +45,13 @@ setup_os_repos           # リポジトリ準備
 install_all_packages     # パッケージ + git-extras インストール
 
 echo "🔗 Syncing submodules..."
-if [ -d ".git" ]; then
-    git config --global --add safe.directory "$DOTPATH"
-    git submodule update --init --recursive
+# .git がなくても、中身が空っぽなら強制的に取得しに行く
+if [ -d ".git" ] || [ -f "zsh/.zshrc" ]; then
+     git config --global --add safe.directory "$DOTPATH"
+     # .git がない場合は、ここで改めて clone するか init する
+     git submodule update --init --recursive || echo "⚠️ Submodule sync failed"
 else
-    echo "⚠️ Not a git repo, skipping submodule sync..."
+     echo "⚠️ Context unknown, skipping..."
 fi
 
 setup_oh_my_zsh          # OMZ & プラグインリンク

@@ -1,4 +1,18 @@
 ## [v1.35.1] - 2026-03-17
+
+> ### 🤖 AI Release Summary
+> ボトルネックを粉砕し、異次元の低レイテンシと爆速レスポンスを解禁しました！⚡
+鉄壁の観測と自動化により、障害の芽を事前に摘み取る不沈のインフラを構築！🛡️
+すべてはユーザーの最高の体験のために、我らSREが信頼性の極致を証明し続ける！🔥
+
+---
+- chore: release v1.35.1 (9828302)
+- chore: major fix for container environment and unify contributors in v1.35.0 (01dc0bc)
+- chore: release v1.35.1 (348270f)
+- fix(install): improve submodule sync conditions (54dd3d1)
+- chore: release v1.35.1 (99c4717)
+
+## [v1.35.1] - 2026-03-17
 - chore: major fix for container environment and unify contributors in v1.35.0 (01dc0bc)
 - chore: release v1.35.1 (348270f)
 - fix(install): improve submodule sync conditions (54dd3d1)

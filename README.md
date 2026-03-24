@@ -99,6 +99,7 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 <!-- RELEASE_NOTES_START -->
 
 ## [v1.36.0] - 2026-03-25
+- chore: release v1.36.0 (47b92c3)
 - chore: release v1.36.0 (d0e1744)
 - chore: update badge to 1.35.2 and regenerate OGP (9a3b0ee)
 - chore: update badge to 1.35.2 and regenerate OGP (cf99579)

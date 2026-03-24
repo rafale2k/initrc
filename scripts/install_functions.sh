@@ -88,16 +88,22 @@ install_all_packages() {
 
     # bat 救済 (Linuxのみ)
     if [ "$os_type" = "Linux" ] && ! command -v bat >/dev/null 2>&1 && [ ! -f "$HOME/bin/bat" ]; then
-        echo "⬇️ Downloading bat binary..."
-        curl -fLsS "https://github.com/sharkdp/bat/releases/download/v0.24.0/bat-v0.24.0-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-        chmod +x "$HOME/bin/bat"
+        echo "⬇️ Downloading latest bat binary..."
+        local bat_ver; bat_ver=$(curl -fLsS -o /dev/null -w %{url_effective} https://github.com/sharkdp/bat/releases/latest | awk -F/ '{print $NF}')
+        if [ -n "$bat_ver" ]; then
+            curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_ver}/bat-${bat_ver}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
+            chmod +x "$HOME/bin/bat"
+        fi
     fi
 
     # fd 救済 (Linuxのみ)
     if [ "$os_type" = "Linux" ] && ! command -v fd >/dev/null 2>&1 && [ ! -f "$HOME/bin/fd" ]; then
-        echo "⬇️ Downloading fd binary..."
-        curl -fLsS "https://github.com/sharkdp/fd/releases/download/v10.2.0/fd-v10.2.0-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-        chmod +x "$HOME/bin/fd"
+        echo "⬇️ Downloading latest fd binary..."
+        local fd_ver; fd_ver=$(curl -fLsS -o /dev/null -w %{url_effective} https://github.com/sharkdp/fd/releases/latest | awk -F/ '{print $NF}')
+        if [ -n "$fd_ver" ]; then
+            curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_ver}/fd-${fd_ver}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
+            chmod +x "$HOME/bin/fd"
+        fi
     fi
 }
 
@@ -156,4 +162,51 @@ EOF"
     if ! _sudo grep -q '.bashrc_rafale' /root/.bashrc; then
         _sudo bash -c "echo 'source /root/.bashrc_rafale' >> /root/.bashrc"
     fi
+}
+
+verify_installation() {
+    local EXIT_CODE=0
+    echo "--- Checking Modern CLI Tools ---"
+
+    check_tool() {
+        local cmd=$1
+        local alt_name=${2:-""}
+
+        if command -v "$cmd" >/dev/null 2>&1; then
+            echo "✅ $cmd found at $(command -v "$cmd")"
+            "$cmd" --version 2>/dev/null | head -n 1 || echo "Version: N/A"
+        elif [[ -n "$alt_name" ]] && command -v "$alt_name" >/dev/null 2>&1; then
+            echo "✅ $alt_name found, using as $cmd (OS-specific name)"
+        else
+            echo "❌ $cmd (or $alt_name) not found in PATH."
+            echo "💡 Hint: Ensure your PATH includes /usr/local/bin or ~/bin"
+            return 1
+        fi
+    }
+
+    # 1. ツールチェック
+    check_tool "eza" "exa" || EXIT_CODE=1
+    check_tool "bat" "batcat" || EXIT_CODE=1
+    check_tool "fd" "fdfind" || EXIT_CODE=1
+
+    echo "--- Checking AI Wrappers ---"
+    local TARGET_BIN_DIR="${HOME}/bin"
+    if [[ -f "$TARGET_BIN_DIR/ginv" ]]; then
+        echo "✅ ginv found at $TARGET_BIN_DIR/ginv"
+    else
+        echo "⚠️  ginv not found at $TARGET_BIN_DIR/ginv."
+        # ginv is optional/generated, so maybe just warn? Or fail if critical.
+        # Keeping it as a warning for now based on original script, but original script didn't exit on it?
+        # Actually original script said "One or more critical tools are missing" if EXIT_CODE!=0.
+        # ginv check didn't set EXIT_CODE in the original script.
+    fi
+
+    if [[ $EXIT_CODE -ne 0 ]]; then
+        echo "------------------------------------------------"
+        echo "🚨 Error: One or more critical tools are missing."
+        echo "Please install dependencies before proceeding."
+        echo "------------------------------------------------"
+        return 1
+    fi
+    return 0
 }

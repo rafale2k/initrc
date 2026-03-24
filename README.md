@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v1.35.2-blue)
+![Version](https://img.shields.io/badge/version-v1.36.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -98,20 +98,12 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.35.2] - 2026-03-18
-
-> ### 🤖 AI Release Summary
-> 限界を超えた冗長化と自動修復を実装し、どんな障害も寄せ付けない鉄壁の城を築き上げました！🛡️
-無駄な手作業を全てコードへと昇華させ、爆速かつ正確なデプロイを実現する究極のパイプラインが完成です！🚀
-信頼性という名の情熱をシステムに注ぎ込み、ユーザーの皆様が常に安心して熱狂できる世界を支え抜きます！🔥
-
----
+## [v1.36.0] - 2026-03-25
+- chore: update badge to 1.35.2 and regenerate OGP (9a3b0ee)
+- chore: update badge to 1.35.2 and regenerate OGP (cf99579)
+- chore: release v1.35.2 (d6eab97)
 - chore: release v1.35.2 (b023648)
 - chore: release v1.35.2 (114e241)
-- chore: release v1.35.2 (2457b50)
-- chore: release v1.35.2 (3fa880e)
-- chore: release v1.35.2 (a1a2e19)
-- ... and 7 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

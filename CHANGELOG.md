@@ -1,3 +1,10 @@
+## [v1.36.0] - 2026-03-25
+- chore: update badge to 1.35.2 and regenerate OGP (9a3b0ee)
+- chore: update badge to 1.35.2 and regenerate OGP (cf99579)
+- chore: release v1.35.2 (d6eab97)
+- chore: release v1.35.2 (b023648)
+- chore: release v1.35.2 (114e241)
+
 ## [v1.35.2] - 2026-03-18
 
 > ### 🤖 AI Release Summary

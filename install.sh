@@ -74,5 +74,11 @@ if ! grep -q "export PATH=\"\$HOME/bin:\$PATH\"" "$HOME/.zshrc"; then
 fi
 
 export PATH="$HOME/bin:$PATH"
+
+# 6. Verification
+if ! verify_installation; then
+    echo "⚠️  Some tools failed to verify. Please check the logs above."
+fi
+
 echo "✨ All processes completed successfully! (v${VERSION})"
 echo "🚀 Run 'exec zsh -l' to start your new environment."

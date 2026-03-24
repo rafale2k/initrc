@@ -1,4 +1,9 @@
 ## [v1.36.0] - 2026-03-25
+- chore: release v1.36.0 (d0e1744)
+- chore: update badge to 1.35.2 and regenerate OGP (9a3b0ee)
+- chore: update badge to 1.35.2 and regenerate OGP (cf99579)
+
+## [v1.36.0] - 2026-03-25
 - chore: update badge to 1.35.2 and regenerate OGP (9a3b0ee)
 - chore: update badge to 1.35.2 and regenerate OGP (cf99579)
 - chore: release v1.35.2 (d6eab97)

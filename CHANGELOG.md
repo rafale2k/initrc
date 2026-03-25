@@ -1,3 +1,10 @@
+## [v1.36.1] - 2026-03-25
+- refactor(scripts): Quote curl format strings and add lint directive (440516a)
+- chore: update badge to 1.36.0 and regenerate OGP (46d87ce)
+- chore: update badge to 1.36.0 and regenerate OGP (c4b40ff)
+- chore: release v1.36.0 (caf4e7f)
+- chore: release v1.36.0 (2a23347)
+
 ## [v1.36.0] - 2026-03-25
 - chore: release v1.36.0 (2a23347)
 - chore: release v1.36.0 (47b92c3)

@@ -89,7 +89,7 @@ install_all_packages() {
     # bat 救済 (Linuxのみ)
     if [ "$os_type" = "Linux" ] && ! command -v bat >/dev/null 2>&1 && [ ! -f "$HOME/bin/bat" ]; then
         echo "⬇️ Downloading latest bat binary..."
-        local bat_ver; bat_ver=$(curl -fLsS -o /dev/null -w %{url_effective} https://github.com/sharkdp/bat/releases/latest | awk -F/ '{print $NF}')
+        local bat_ver; bat_ver=$(curl -fLsS -o /dev/null -w "%{url_effective}" https://github.com/sharkdp/bat/releases/latest | awk -F/ '{print $NF}')
         if [ -n "$bat_ver" ]; then
             curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_ver}/bat-${bat_ver}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
             chmod +x "$HOME/bin/bat"
@@ -99,7 +99,7 @@ install_all_packages() {
     # fd 救済 (Linuxのみ)
     if [ "$os_type" = "Linux" ] && ! command -v fd >/dev/null 2>&1 && [ ! -f "$HOME/bin/fd" ]; then
         echo "⬇️ Downloading latest fd binary..."
-        local fd_ver; fd_ver=$(curl -fLsS -o /dev/null -w %{url_effective} https://github.com/sharkdp/fd/releases/latest | awk -F/ '{print $NF}')
+        local fd_ver; fd_ver=$(curl -fLsS -o /dev/null -w "%{url_effective}" https://github.com/sharkdp/fd/releases/latest | awk -F/ '{print $NF}')
         if [ -n "$fd_ver" ]; then
             curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_ver}/fd-${fd_ver}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
             chmod +x "$HOME/bin/fd"

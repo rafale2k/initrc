@@ -2,11 +2,11 @@
 set -u
 
 # --- 🏷️ Version Definition ---
-INSTALL_DIR=$(cd "$(dirname "$0")" && pwd)
-VERSION=$(cat "$INSTALL_DIR/VERSION")
+INSTALL_DIR=$(cd "$(dirname "$0")" || exit 1; pwd)
+VERSION=$(<"$INSTALL_DIR/VERSION")
 
 # パス確定
-DOTPATH=$(cd "$(dirname "$0")" && pwd)
+DOTPATH=$(cd "$(dirname "$0")" || exit 1; pwd)
 export DOTPATH
 
 # --- 🚀 Start Message ---
@@ -23,7 +23,7 @@ fi
 
 # 1. OS判定
 OS="unknown"; PM="unknown"; SUDO_CMD="sudo"
-if [ "$(uname)" == "Darwin" ]; then
+if [ "$(uname)" = "Darwin" ]; then
     OS="mac"; PM="brew"; SUDO_CMD=""
 elif [ -f /etc/debian_version ]; then
     OS="debian"; PM="apt"

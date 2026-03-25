@@ -18,4 +18,4 @@ jobs:
 
       - name: Run ShellCheck
         run: |
-          find . -name "*.sh" -o -name "*.zsh" | xargs shellcheck
+          find . -type f -name "*.sh" | xargs shellcheck

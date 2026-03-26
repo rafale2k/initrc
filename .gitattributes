@@ -1,0 +1,15 @@
+* text=auto
+*.sh text eol=lf
+*.zsh text eol=lf
+*.plugin.zsh text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+.gitignore text eol=lf
+.gitmodules text eol=lf
+.editorconfig text eol=lf
+.mailmap text eol=lf
+VERSION text eol=lf

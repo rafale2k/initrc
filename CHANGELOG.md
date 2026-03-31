@@ -1,4 +1,13 @@
 ## [v1.36.2] - 2026-04-01
+- quick update: 2026-04-01 00:57:42 (c5ca477)
+- chore: release v1.36.2 (73260bd)
+- feat(bash): Introduce system administration utility aliases (9708cca)
+- quick update: 2026-03-30 01:39:20 (8228632)
+- chore: update badge to 1.36.1 and regenerate OGP (6ecb39e)
+- ... and 6 more changes.
+
+
+## [v1.36.2] - 2026-04-01
 
 > ### 🤖 AI Release Summary
 > 最強のBashエイリアス群を電撃導入し、システム管理のオペレーション速度を極限まで加速させました！🚀

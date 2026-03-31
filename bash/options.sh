@@ -45,3 +45,39 @@ shopt -s autocd 2>/dev/null
 # 5. エイリアス
 alias bashconfig='nano ~/.bashrc'
 alias reload='exec bash'
+
+dassault rafale
+3月31日(火) 1:39 (23 時間前)
+To 自分
+
+# ==============================================================================
+# root ユーザー専用：防御型エイリアス設定
+# ==============================================================================
+
+# --- 1. 破壊的コマンドの「確認」を強制する ---
+# 誤操作で / を消したり上書きしたりするのを防ぐ
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+# --- 2. 視認性を上げる（rootであることを自覚する） ---
+# ディレクトリを分かりやすく、かつ隠しファイルも見えるように
+alias ls='ls --color=auto'
+alias ll='ls -alF --color=auto'
+alias la='ls -A --color=auto'
+alias l='ls -CF --color=auto'
+
+# --- 3. ログやプロセスをサクッと確認 ---
+# サーバー管理でよく使うやつ
+alias df='df -h'         # ディスク使用量を読みやすく
+alias free='free -m'     # メモリをMB単位で表示
+alias psg='ps aux | grep -v grep | grep -i'  # プロセスをキーワード検索
+
+# --- 4. ネットワーク周りの確認 ---
+# ポートの空き状況とかを確認（netstatが入ってない最近のOS向け）
+alias ports='ss -tulpn'
+
+# --- 5. 編集ミスを防ぐ ---
+# 普段使いのエディタに飛ばす（nanoやvimなど、使い慣れた方へ）
+alias vi='vim'
+alias edit='vim'

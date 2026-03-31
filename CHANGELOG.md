@@ -1,3 +1,17 @@
+## [v1.36.2] - 2026-04-01
+
+> ### 🤖 AI Release Summary
+> 最強のBashエイリアス群を電撃導入し、システム管理のオペレーション速度を極限まで加速させました！🚀
+Git設定の徹底的なリファクタリングを断行し、より堅牢で洗練された開発基盤へと進化させました！🛡️
+最新バージョンへのバッジ更新とOGP再生成を完了し、プロジェクトの鮮度と信頼性を完璧に同期しました！🔥
+
+---
+- feat(bash): Introduce system administration utility aliases (9708cca)
+- quick update: 2026-03-30 01:39:20 (8228632)
+- chore: update badge to 1.36.1 and regenerate OGP (6ecb39e)
+- add (13e8070)
+- mod (df4f4b0)
+
 ## [v1.36.1] - 2026-03-25
 - refactor(scripts): Quote curl format strings and add lint directive (440516a)
 - chore: update badge to 1.36.0 and regenerate OGP (46d87ce)

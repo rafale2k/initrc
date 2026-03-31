@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v1.36.1-blue)
+![Version](https://img.shields.io/badge/version-v1.36.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -98,12 +98,19 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.36.1] - 2026-03-25
-- refactor(scripts): Quote curl format strings and add lint directive (440516a)
-- chore: update badge to 1.36.0 and regenerate OGP (46d87ce)
-- chore: update badge to 1.36.0 and regenerate OGP (c4b40ff)
-- chore: release v1.36.0 (caf4e7f)
-- chore: release v1.36.0 (2a23347)
+## [v1.36.2] - 2026-04-01
+
+> ### 🤖 AI Release Summary
+> 最強のBashエイリアス群を電撃導入し、システム管理のオペレーション速度を極限まで加速させました！🚀
+Git設定の徹底的なリファクタリングを断行し、より堅牢で洗練された開発基盤へと進化させました！🛡️
+最新バージョンへのバッジ更新とOGP再生成を完了し、プロジェクトの鮮度と信頼性を完璧に同期しました！🔥
+
+---
+- feat(bash): Introduce system administration utility aliases (9708cca)
+- quick update: 2026-03-30 01:39:20 (8228632)
+- chore: update badge to 1.36.1 and regenerate OGP (6ecb39e)
+- add (13e8070)
+- mod (df4f4b0)
 
 <!-- RELEASE_NOTES_END -->
 

@@ -44,7 +44,7 @@ install_all_packages() {
         brew install "${common_pkgs[@]}" fd eza bat || true
     elif command -v apt-get >/dev/null 2>&1; then
         _sudo apt-get update -qq || true
-        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat || true
+        _sudo apt-get install -y -qq "${common_pkgs[@]}" fd-find bat python3-venv || true
     elif command -v dnf >/dev/null 2>&1; then
         _sudo dnf install -y -q epel-release || true
         _sudo dnf install -y -q --allowerasing "${common_pkgs[@]}" fd-find bat || true

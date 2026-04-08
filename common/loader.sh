@@ -60,10 +60,8 @@ if [ -f "$DOTPATH/scripts/self_heal.sh" ]; then
     # shellcheck source=/dev/null
     source "$DOTPATH/scripts/self_heal.sh"
     
-    # バックグラウンドで実行
-    # & は標準的なバックグラウンド実行
-    # { ... } &> /dev/null で出力を完全に消す
-    { dcheck > /dev/null 2>&1 || true ; } & 
+    # バックグラウンドで遅延実行 (シェルの起動を妨げない)
+    (sleep 5 && dcheck > /dev/null 2>&1) &
     
     # zsh の場合は disown でシェル終了時の道連れを防ぐ
     if [ -n "${ZSH_VERSION:-}" ]; then
@@ -87,16 +85,22 @@ elif [ -n "${BASH_VERSION:-}" ]; then
 fi
 
 if command -v zoxide >/dev/null 2>&1; then
-    # zsh の場合
-    if [ -n "${ZSH_VERSION:-}" ]; then
-        eval "$(zoxide init zsh)"
-    # bash の場合
-    elif [ -n "${BASH_VERSION:-}" ]; then
-        eval "$(zoxide init bash)"
+    _zoxide_shell=""
+    [ -n "${ZSH_VERSION:-}" ] && _zoxide_shell="zsh"
+    [ -n "${BASH_VERSION:-}" ] && _zoxide_shell="bash"
+    
+    if [ -n "$_zoxide_shell" ]; then
+        _zoxide_cache="$HOME/.cache/zoxide-init-$_zoxide_shell.sh"
+        if [ ! -s "$_zoxide_cache" ] || [ "$(command -v zoxide)" -nt "$_zoxide_cache" ]; then
+            mkdir -p "$HOME/.cache"
+            zoxide init "$_zoxide_shell" > "$_zoxide_cache"
+        fi
+        source "$_zoxide_cache"
     fi
     
     # 共通のエイリアス (cd を z に置き換える)
     alias j='zi'  # インタラクティブ検索 (fzf連携)
+    unset _zoxide_shell _zoxide_cache
 fi
 
 unset _ld_f _ld_common_dir _ld_zsh_dir _ld_current_script _ld_script_dir

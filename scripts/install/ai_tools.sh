@@ -2,8 +2,12 @@
 # shellcheck disable=SC2148,SC1090,SC1091
 
 setup_ai_tools() {
+    # Ensure .local/bin is in PATH so command -v llm works properly
+    export PATH="$HOME/.local/bin:$PATH"
+
     if ! command -v llm >/dev/null 2>&1; then
-        pipx install llm && pipx inject llm llm-gemini
+        log_info "Installing llm..."
+        pipx install llm && pipx inject llm llm-gemini || log_warn "Failed to install llm or inject gemini plugin"
     fi
     cat << 'EOF' > "$HOME/bin/ginv"
 #!/bin/bash

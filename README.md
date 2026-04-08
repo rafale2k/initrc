@@ -99,11 +99,12 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 <!-- RELEASE_NOTES_START -->
 
 ## [v1.37.0] - 2026-04-09
+- quick update: 2026-04-09 01:07:46 (cb5c6f8)
+- chore: release v1.37.0 (530e0ca)
 - quick update: 2026-04-09 01:01:35 (230f04f)
 - (refactor)Install steps (573c2e3)
 - add (13e8070)
-- mod (df4f4b0)
-- refactor(git): consolidate safe.directory entries (6576c52)
+- ... and 5 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

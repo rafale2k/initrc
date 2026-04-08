@@ -1,4 +1,13 @@
 ## [v1.37.0] - 2026-04-09
+- quick update: 2026-04-09 01:07:46 (cb5c6f8)
+- chore: release v1.37.0 (530e0ca)
+- quick update: 2026-04-09 01:01:35 (230f04f)
+- (refactor)Install steps (573c2e3)
+- add (13e8070)
+- ... and 5 more changes.
+
+
+## [v1.37.0] - 2026-04-09
 - quick update: 2026-04-09 01:01:35 (230f04f)
 - (refactor)Install steps (573c2e3)
 - add (13e8070)

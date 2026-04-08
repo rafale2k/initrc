@@ -34,7 +34,11 @@ dcheck() {
             done
 
             # インストール実行
-            source "$DOTPATH/scripts/install_functions.sh"
+            for f in "$DOTPATH/scripts/core/"*.sh "$DOTPATH/scripts/install/packages.sh"; do
+                # shellcheck source=/dev/null
+                [ -f "$f" ] && source "$f"
+            done
+            detect_os_and_pm
             # 念のため install_all_packages が tool 名を引数に取れれば効率的やけど、
             # 今は既存の関数をそのまま呼ぶ形でいくで
             install_all_packages > /dev/null 2>&1

@@ -7,7 +7,9 @@ setup_ai_tools() {
 
     if ! command -v llm >/dev/null 2>&1; then
         log_info "Installing llm..."
-        pipx install llm && pipx inject llm llm-gemini || log_warn "Failed to install llm or inject gemini plugin"
+        if ! ( pipx install llm && pipx inject llm llm-gemini ); then
+            log_warn "Failed to install llm or inject gemini plugin"
+        fi
     fi
     cat << 'EOF' > "$HOME/bin/ginv"
 #!/bin/bash

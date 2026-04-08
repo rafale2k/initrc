@@ -1,3 +1,10 @@
+## [v1.37.0] - 2026-04-09
+- quick update: 2026-04-09 01:01:35 (230f04f)
+- (refactor)Install steps (573c2e3)
+- add (13e8070)
+- mod (df4f4b0)
+- refactor(git): consolidate safe.directory entries (6576c52)
+
 ## [v1.36.1] - 2026-03-25
 - refactor(scripts): Quote curl format strings and add lint directive (440516a)
 - chore: update badge to 1.36.0 and regenerate OGP (46d87ce)

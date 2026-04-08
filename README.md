@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v1.36.1-blue)
+![Version](https://img.shields.io/badge/version-v1.37.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -98,12 +98,12 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.36.1] - 2026-03-25
-- refactor(scripts): Quote curl format strings and add lint directive (440516a)
-- chore: update badge to 1.36.0 and regenerate OGP (46d87ce)
-- chore: update badge to 1.36.0 and regenerate OGP (c4b40ff)
-- chore: release v1.36.0 (caf4e7f)
-- chore: release v1.36.0 (2a23347)
+## [v1.37.0] - 2026-04-09
+- quick update: 2026-04-09 01:01:35 (230f04f)
+- (refactor)Install steps (573c2e3)
+- add (13e8070)
+- mod (df4f4b0)
+- refactor(git): consolidate safe.directory entries (6576c52)
 
 <!-- RELEASE_NOTES_END -->
 

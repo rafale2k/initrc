@@ -10,48 +10,41 @@ DOTPATH=$(cd "$(dirname "$0")" || exit 1; pwd)
 export DOTPATH
 
 # --- 🚀 Start Message ---
-echo "🎯 Starting installation v${VERSION} from ${DOTPATH}..."
+# 1. 共通関数の読み込み (モジュール分割後)
+for f in "$DOTPATH/scripts/core/"*.sh "$DOTPATH/scripts/install/"*.sh "$DOTPATH/scripts/check/"*.sh; do
+    if [ -f "$f" ]; then
+        # shellcheck source=/dev/null
+        source "$f"
+    fi
+done
 
-# 共通関数の読み込み
-if [ -f "$DOTPATH/scripts/install_functions.sh" ]; then
-    # shellcheck source=scripts/install_functions.sh
-    source "$DOTPATH/scripts/install_functions.sh"
-else
-    echo "❌ Error: scripts/install_functions.sh not found."
-    exit 1
-fi
+log_info "🎯 Starting installation v${VERSION} from ${DOTPATH}..."
 
 # 1. OS判定
-OS="unknown"; PM="unknown"; SUDO_CMD="sudo"
-if [ "$(uname)" = "Darwin" ]; then
-    OS="mac"; PM="brew"; SUDO_CMD=""
-elif [ -f /etc/debian_version ]; then
-    OS="debian"; PM="apt"
-elif [ -f /etc/redhat-release ]; then
-    OS="rhel"; PM="dnf"
-fi
-echo "🌍 Detected OS: $OS (using $PM)"
-export PM OS SUDO_CMD
+detect_os_and_pm
 
 # 2. SSH鍵の生成
-echo "🔐 Checking SSH keys..."
+log_info "🔐 Checking SSH keys..."
 mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
 if [ ! -f "$HOME/.ssh/id_ed25519" ]; then
     ssh-keygen -t ed25519 -C "$(hostname)" -f "$HOME/.ssh/id_ed25519" -N ""
+    log_success "SSH key generated."
+else
+    log_info "SSH key already exists."
 fi
 
 # 3. 実行シークエンス
 setup_os_repos           # リポジトリ準備
 install_all_packages     # パッケージ + git-extras インストール
 
-echo "🔗 Syncing submodules..."
+log_info "🔗 Syncing submodules..."
 # .git がなくても、中身が空っぽなら強制的に取得しに行く
 if [ -d ".git" ] || [ -f "zsh/.zshrc" ]; then
      git config --global --add safe.directory "$DOTPATH"
      # .git がない場合は、ここで改めて clone するか init する
-     git submodule update --init --recursive || echo "⚠️ Submodule sync failed"
+     git submodule update --init --recursive || log_warn "Submodule sync failed"
 else
-     echo "⚠️ Context unknown, skipping..."
+     log_warn "Context unknown, skipping..."
 fi
 
 setup_oh_my_zsh          # OMZ & プラグインリンク
@@ -62,23 +55,25 @@ deploy_configs "$HOME"   # 設定ファイル展開
 if [ -z "$(git config --global user.name)" ]; then
     git config --global user.name "rafale2k"
     git config --global user.email "rafale2k@example.com"
+    log_success "Git Identity configured."
 fi
 
 # 5. Root対応 & PATH設定
 setup_root_loader "$HOME"
 
-echo "⚙️  Verifying PATH in .zshrc..."
+log_info "⚙️  Verifying PATH in .zshrc..."
 if ! grep -q "export PATH=\"\$HOME/bin:\$PATH\"" "$HOME/.zshrc"; then
     # SC2016 対策: ダブルクォートを使って変数を適切にエスケープ
     sed -i "1i export PATH=\"\$HOME/bin:\$PATH\"" "$HOME/.zshrc"
+    log_success "PATH added to .zshrc."
 fi
 
 export PATH="$HOME/bin:$PATH"
 
 # 6. Verification
 if ! verify_installation; then
-    echo "⚠️  Some tools failed to verify. Please check the logs above."
+    log_warn "Some tools failed to verify. Please check the logs above."
 fi
 
-echo "✨ All processes completed successfully! (v${VERSION})"
-echo "🚀 Run 'exec zsh -l' to start your new environment."
+log_success "All processes completed successfully! (v${VERSION})"
+log_info "🚀 Run 'exec zsh -l' to start your new environment."

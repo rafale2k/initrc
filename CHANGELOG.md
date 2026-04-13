@@ -1,3 +1,10 @@
+## [v1.37.2] - 2026-04-14
+- chore: update badge to 1.37.1 and regenerate OGP (7b81920)
+- quick update: 2026-04-14 05:55:35 (63cffaf)
+- quick update: 2026-04-14 05:52:26 (0bfffdd)
+- chore: release v1.37.1 (afadb63)
+- refactor(docker): Enhance Dockerfile readability with splits (54311e4)
+
 ## [v1.37.1] - 2026-04-14
 
 > ### 🤖 AI Release Summary

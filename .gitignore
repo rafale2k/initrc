@@ -8,3 +8,4 @@ common/_local_*.sh
 bin/bat
 bin/fd
 Update.md
+.vscode

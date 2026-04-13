@@ -14,87 +14,79 @@
 
 ---
 
-![AI](https://img.shields.io/badge/AI-Gemini%203%20Flash-vibrantblue?logo=google-gemini&logoColor=white)
-![LLM](https://img.shields.io/badge/LLM-llm%20integrated-6f42c1?logo=python&logoColor=white)
-![Linting](https://img.shields.io/badge/shellcheck-100%25%20passing-brightgreen)
-![IaC](https://img.shields.io/badge/concept-IaC%20Ready-lightgrey?logo=terraform&logoColor=623CE4)
-![Installer](https://img.shields.io/badge/installer-idempotent-blueviolet)
-![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
-[![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
-
 > **"Hope is not a strategy."（希望は戦略やない）**
 > SREとしての「堅牢性」と「自己修復」を追求した、AI駆動型の開発・運用環境。
 > v1.31.0 より、Docker Hub を通じた **「ポータブルな城」** としての配布を開始しました。
 
 ---
 
-## 🖼️ Showcase
-
-![initrc Showcase Banner](./assets/54.png)
-
----
-
-## 📸 Visual Gallery & Demos
-
-`initrc` の主要な機能と、洗練された開発環境のインターフェースを紹介します。
-
-### 🤖 AI-Driven Release Workflow
-`bin/release` コマンドを実行すると、Gemini AI が前回のタグからの差分を自動解析。情熱的なリリースノートを生成し、GitHub と CHANGELOG を一瞬で同期します。
-![AI Release Workflow](./assets/55.jpg)
-
-
-### 📋 Universal Clipboard (OSC52 + Native)
-SSH 越しでも、ローカル環境でも。`copyfile` や `osc_copy` を使えば、常に「手元のクリップボード」にデータが届きます。OSC52 エスケープシーケンスと OS 標準ツール（pbcopy/clip.exe/xclip）のハイブリッド仕様です。
-![Clipboard-Demo](./assets/56.jpg)
-
-
-### 🎨 Deep Blue "Professional" Prompt
-Powerlevel10k をカスタマイズし、カレントディレクトリの背景を視認性の高い **Deep Navy (Color 18)** に刷新。ノイズを削ぎ落とし、長時間のコーディングでも集中力を切らさない配色を実現しました。root時には背景色をTokyoNightに、プロンプトに赤背景にROOTと明記しました。
-![root-Demo](./assets/57.jpg)
+## 📖 目次
+- [🖼️ Visual Gallery & Demos](#️-visual-gallery--demos)
+- [✨ Key Features](#-key-features)
+- [🚀 Quick Start (Usage)](#-quick-start)
+- [⚙️ Requirements & Colors](#️-requirements--colors)
+- [🚀 Latest Updates (Changelog)](#-latest-updates)
 
 ---
 
-## 🛠️ Key Features
+## 🖼️ Visual Gallery & Demos
 
-### 1. Autonomous Maintenance
-- **dcheck**: 1時間おきに裏で環境の整合性をチェック。作業の手を止めずに環境の「腐敗」を防ぎます。
+| 🤖 AI Release Workflow | 📋 Universal Clipboard | 🎨 Deep Blue Prompt |
+| :--- | :--- | :--- |
+| ![AI Release Workflow](./assets/55.jpg) | ![Clipboard-Demo](./assets/56.jpg) | ![root-Demo](./assets/57.jpg) |
+| `bin/release` でAIが差分を解析。情熱的なリリースノートをGitHubと同期。 | SSH越しでもOSC52対応で「手元のクリップボード」に瞬時に届く。 | Navy背景で集中力を。Root時はTokyoNightへの変化で視覚的に警告。 |
+
+---
+
+## ✨ Key Features
+
+### 🛡️ Autonomous Maintenance (自律保守)
+- **`dcheck`**: 1時間おきに裏で環境の整合性をチェック。作業の手を止めずに環境の「腐敗」を自動で防ぎます。
 - **Idempotent Installer**: どの環境で何度実行しても、常に最適な状態に収束。
+- **Safety Net**: `bu [file]` で瞬時にバックアップ。`~/.dotfiles_backup` で一元管理。
 
-### 2. SRE & Productivity Tools
-- **zoxide (j/zi)**: 過去の履歴からディレクトリをインタラクティブに瞬間移動。
-- **eza/bat/fd**: 次世代の標準ツールを統合し、視認性と検索速度を極限まで向上。
-- **Git Aliases**: `gquick` (一括Push)、`gs` (Status) など、手数を減らすエイリアス群。
+### 🤖 SRE AI Copilot (AI 連携)
+自然言語でシェルを操作する、SRE専用のAI関数群。
+- **`ask`**: コマンドの生成・実行支援。
+- **`wtf`**: 直前のエラーメッセージの原因と対策をAIが即座に提示。
+- **`dask`**: Dockerコンテナのログ解析・トラブルシューティング。
 
-### 3. Safety Net
-- **bu [file]**: ファイルをいじる前に実行。`~/.dotfiles_backup/manual` にタイムスタンプ付きで保存。
-- **bulist**: バックアップ履歴を古い順に一覧表示（eza ソート最適化済み）。
-
----
-
-## 🤖 AI Assistant (SRE Copilot)
-自然言語でシェルを操作する、SRE 専用の AI 関数群。
-
-- **`ask`**: シェルコマンドの生成・実行支援。
-- **`dask`**: Docker コンテナのログ解析・トラブルシューティング。
-- **`wtf`**: 直前のエラーメッセージの原因と対策を提示。
+### ⚡ Next-Gen Tooling (次世代ツール群)
+`zoxide`, `eza`, `bat`, `fd`, `fzf` を高度にカスタマイズして統合。視認性と検索速度を極限まで向上させています。
 
 ---
 
-## 📦 Requirements
-- `zsh` / `bash`
-- `fzf`, `eza`, `bat`, `zoxide`, `fd`, `shellcheck`
-- `python3` & `llm` (AI 機能用)
+## 🚀 Quick Start
+
+### 🐳 Docker (Recommended)
+インストール不要。Docker さえあれば、一瞬で「城」を召喚できます。
+
+```bash
+docker run -it --rm \
+  --group-add $(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo 0) \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -e LLM_GEMINI_KEY="あなたのGEMINI_API_KEY" \
+  rafale2k/initrc:latest
+```
+
+### 🏎️ Traditional Installation
+```bash
+git clone https://github.com/rafale2k/initrc.git ~/dotfiles
+cd ~/dotfiles && ./install.sh
+```
 
 ---
 
-## 🎨 Terminal Colors
+## ⚙️ Requirements & Colors
 
-| User | Theme | Background | Highlights |
-| :--- | :--- | :--- | :--- |
-| **General** | Monokai Dark | `#272822` | Pink / Green / Cyan |
-| **Root** | Tokyo Night | `#1a1b26` | Blue / Red / Purple |
+- **OS**: macOS / Ubuntu / Debian / Fedora / AlmaLinux
+- **Tools**: `zsh`, `python3`, `fzf`, `eza`, `bat`, `zoxide`
+- **Themes**:
+    - **General**: Monokai Dark (`#272822`)
+    - **Root**: Tokyo Night (`#1a1b26`)
 
 ---
+
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
@@ -113,56 +105,6 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 - chore: release v1.36.2 (73260bd)
 
 <!-- RELEASE_NOTES_END -->
-
----
-## 🛠️ Usage
-
-## 🐳 Quick Start with Docker (Recommended)
-
-インストール不要。Docker さえあれば、一瞬で君の「城」を召喚できます。
-
-```bash
-docker run -it --rm \
-  --group-add $(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo 0) \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -e LLM_GEMINI_KEY="あなたのGEMINI_API_KEY" \
-  rafale2k/initrc:latest
-```
-💡 Tips for Docker Users
-ホスト側の .zshrc にエイリアスを貼っておくと、次から一瞬で起動できます。
-
-```bash
-alias rfi='docker run -it --rm --group-add $(stat -c "%g" /var/run/docker.sock 2>/dev/null || echo 0) -v /var/run/docker.sock:/var/run/docker.sock -e LLM_GEMINI_KEY="YOUR_KEY" rafale2k/initrc:latest'
-```
-
----
-
-## 🏎️ Traditional Installation
-
-**新規インストール:**
-```bash
-git clone [https://github.com/rafale2k/initrc.git](https://github.com/rafale2k/initrc.git) ~/dotfiles
-cd ~/dotfiles
-./install.sh
-```
-
-**既存環境の更新:**
-```bash
-git pull origin main
-reload
-```
-
-**環境の削除 (Uninstaller):**
-```bash
-./uninstall.sh  
-```
-
----
-
-## 🔑 API Key Setup
-- ~/.dotfiles_env に export GEMINI_API_KEY="your_key" を追記。
-
-- エンジンにキーを登録: llm keys set gemini # プロンプトに従い API Key を入力
 
 ---
 

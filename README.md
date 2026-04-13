@@ -10,9 +10,17 @@
 ![Debian](https://img.shields.io/badge/Debian-D70A53?style=for-the-badge&logo=debian&logoColor=white)
 ![Fedora](https://img.shields.io/badge/Fedora-51A2DA?style=for-the-badge&logo=fedora&logoColor=white)
 ![AlmaLinux](https://img.shields.io/badge/AlmaLinux-D4243D?style=for-the-badge&logo=almalinux&logoColor=white)
-![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-the-badge&logo=apple&logoColor=white)
+![macOS](https://img.shields.io/badge/mac%20os-000000?style=for-for-the-badge&logo=apple&logoColor=white)
 
 ---
+
+![AI](https://img.shields.io/badge/AI-Gemini%203%20Flash-vibrantblue?logo=google-gemini&logoColor=white)
+![LLM](https://img.shields.io/badge/LLM-llm%20integrated-6f42c1?logo=python&logoColor=white)
+![Linting](https://img.shields.io/badge/shellcheck-100%25%20passing-brightgreen)
+![IaC](https://img.shields.io/badge/concept-IaC%20Ready-lightgrey?logo=terraform&logoColor=623CE4)
+![Installer](https://img.shields.io/badge/installer-idempotent-blueviolet)
+![Uninstaller](https://img.shields.io/badge/uninstaller-supported-brightgreen)
+[![X](https://img.shields.io/badge/X-@rafale-1DA1F2?style=flat&logo=x&logoColor=white)](https://x.com/rafale)
 
 > **"Hope is not a strategy."（希望は戦略やない）**
 > SREとしての「堅牢性」と「自己修復」を追求した、AI駆動型の開発・運用環境。

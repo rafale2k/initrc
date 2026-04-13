@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v1.36.2-blue)
+![Version](https://img.shields.io/badge/version-v1.37.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -98,13 +98,19 @@ Powerlevel10k をカスタマイズし、カレントディレクトリの背景
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.36.2] - 2026-04-01
+## [v1.37.1] - 2026-04-14
+
+> ### 🤖 AI Release Summary
+> Dockerfileを徹底解体・再構築！可読性を極限まで高め、運用の安定性を次元上昇させました！🐳
+サブモジュールと開発環境を最新へ！微細な改善の積み重ねが、鉄壁の信頼性を生みます！🚀
+磨き上げられたコードこそがSREの魂！この洗練された基盤で、システムの未来を熱く切り拓きます！🔥
+
+---
+- refactor(docker): Enhance Dockerfile readability with splits (54311e4)
+- Update submodules (0954fa7)
+- chore: release v1.36.2 (9519a15)
 - quick update: 2026-04-01 00:57:42 (c5ca477)
 - chore: release v1.36.2 (73260bd)
-- feat(bash): Introduce system administration utility aliases (9708cca)
-- quick update: 2026-03-30 01:39:20 (8228632)
-- chore: update badge to 1.36.1 and regenerate OGP (6ecb39e)
-- ... and 6 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

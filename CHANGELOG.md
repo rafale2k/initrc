@@ -1,3 +1,17 @@
+## [v1.37.1] - 2026-04-14
+
+> ### 🤖 AI Release Summary
+> Dockerfileを徹底解体・再構築！可読性を極限まで高め、運用の安定性を次元上昇させました！🐳
+サブモジュールと開発環境を最新へ！微細な改善の積み重ねが、鉄壁の信頼性を生みます！🚀
+磨き上げられたコードこそがSREの魂！この洗練された基盤で、システムの未来を熱く切り拓きます！🔥
+
+---
+- refactor(docker): Enhance Dockerfile readability with splits (54311e4)
+- Update submodules (0954fa7)
+- chore: release v1.36.2 (9519a15)
+- quick update: 2026-04-01 00:57:42 (c5ca477)
+- chore: release v1.36.2 (73260bd)
+
 ## [v1.36.2] - 2026-04-01
 - quick update: 2026-04-01 00:57:42 (c5ca477)
 - chore: release v1.36.2 (73260bd)

@@ -42,7 +42,7 @@ plugins=(
 
 # Oh My Zsh の読み込み
 source $ZSH/oh-my-zsh.sh
-
+unalias _ 2>/dev/null
 # 4. Powerlevel10k 設定読み込み
 if [[ -f "$DOTPATH/zsh/.p10k.zsh" ]]; then
   source "$DOTPATH/zsh/.p10k.zsh"

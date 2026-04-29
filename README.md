@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v1.37.2-blue)
+![Version](https://img.shields.io/badge/version-v1.38.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -98,12 +98,12 @@ cd ~/dotfiles && ./install.sh
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.37.2] - 2026-04-14
+## [v1.38.0] - 2026-04-30
+- fix(bash): Unalias underscore to prevent conflicts (f652b40)
+- quick update: 2026-04-14 06:07:05 (4d70d5c)
+- quick update: 2026-04-14 06:05:44 (ac4beb5)
+- chore: release v1.37.2 (f4f37fe)
 - chore: update badge to 1.37.1 and regenerate OGP (7b81920)
-- quick update: 2026-04-14 05:55:35 (63cffaf)
-- quick update: 2026-04-14 05:52:26 (0bfffdd)
-- chore: release v1.37.1 (afadb63)
-- refactor(docker): Enhance Dockerfile readability with splits (54311e4)
 
 <!-- RELEASE_NOTES_END -->
 

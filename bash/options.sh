@@ -30,7 +30,6 @@ fi
 if command -v zoxide >/dev/null 2>&1; then
     eval "$(zoxide init bash --no-aliases)"
     PROMPT_COMMAND="${PROMPT_COMMAND//__zoxide_hook;/}"
-    PROMPT_COMMAND="${PROMPT_COMMAND//__zoxide_hook/}"
     alias z='__zoxide_z'
     alias zi='zi'
 fi

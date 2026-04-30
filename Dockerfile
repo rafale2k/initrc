@@ -14,7 +14,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     # Pythonのキャッシュ、テスト、不要なコンパイル済みファイルを削除
     find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + && \
     find /opt/venv -type d -name "tests" -exec rm -rf {} + && \
-    find /opt/venv -libpath -name "*.pyc" -delete
+    find /opt/venv -name "*.pyc" -delete
 
 WORKDIR /build
 COPY .git .git
@@ -36,8 +36,7 @@ FROM alpine:3.20
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk add sudo bash zsh git curl python3 tree openssh fzf zoxide && \
-    adduser -D -s /bin/zsh rafale && \
-    addgroup rafale wheel && \
+    adduser -D -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 COPY --from=builder /opt/venv /opt/venv

@@ -26,6 +26,7 @@
 !/install.sh
 !/Dockerfile
 !/README.md
+!/requirements.txt
 !/.mailmap
 
 # 5. 最後に、機密情報や不要な重いデータだけをピンポイントで除外

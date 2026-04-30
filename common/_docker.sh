@@ -27,6 +27,9 @@ alias dip="docker ps -q | xargs -n 1 docker inspect --format '{{ .Name }}: {{ran
 # [dim] イメージをサイズ順に並べて表示（肥大化チェック）
 alias dim='docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | (read -r; printf "%s\n" "$REPLY"; sort -hr -k3)'
 
+# [dhist] 特定のイメージのレイヤーごとのサイズと作成コマンドを表示
+alias dhist='docker history --human --format "table {{.ID}}\t{{.CreatedBy}}\t{{.Size}}"'
+
 # --- 3. メンテナンス (掃除) ---
 # 停止中のコンテナ、未使用ネットワーク、ダングリングイメージを削除
 alias dclean='docker system prune -f'
@@ -42,7 +45,7 @@ de() {
         container=$(docker ps --format "{{.Names}}" | fzf --prompt="🐳 Select Container (Exec) > " --height 40% --reverse)
     fi
     [ -z "$container" ] && return
-    
+
     # ユーザー指定がなければ root を試みるが、環境に合わせて調整
     docker exec -it "$container" /bin/bash || docker exec -it "$container" /bin/sh
 }
@@ -54,7 +57,7 @@ dl() {
         container=$(docker ps -a --format "{{.Names}}" | fzf --prompt="📜 Select Container (Logs) > " --height 40% --reverse)
     fi
     [ -z "$container" ] && return
-    
+
     docker logs -f --tail 100 "$container"
 }
 
@@ -91,9 +94,9 @@ dce() {
         echo "⚠️ fzf is not installed."
         return 1
     fi
-    
+
     service=$(docker compose ps --services | fzf --prompt="🚀 Select Service (Compose Exec) > " --height 40% --reverse)
     [ -z "$service" ] && return
-    
+
     docker compose exec "$service" /bin/bash || docker compose exec "$service" /bin/sh
 }

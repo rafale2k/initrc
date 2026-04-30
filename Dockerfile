@@ -1,47 +1,52 @@
-FROM alpine:latest AS builder
+# 1. ビルドステージ
+FROM alpine:3.20 AS builder
 
-RUN apk add --no-cache git python3 py3-pip
-RUN pip install --no-cache-dir llm llm-gemini --break-system-packages
+# パッケージキャッシュを利用してインストール
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add git python3 py3-pip
+
+# 仮想環境を作成し、LLMツールをインストール
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install llm llm-gemini
 
 WORKDIR /build
+# ソースの変更とサブモジュールの更新を分離してキャッシュ効率を最大化
+COPY .git .git
+COPY .gitmodules .gitmodules
+RUN git submodule update --init --recursive
 COPY . .
+RUN find . -name ".git" -exec rm -rf {} +
 
-RUN git submodule update --init --recursive && find . -name ".git" -exec rm -rf {} +
+# 2. 実行ステージ
+FROM alpine:3.20
 
-FROM alpine:latest
-
-# 必要なパッケージのインストール
-RUN apk add --no-cache sudo bash zsh git curl python3 tree openssh docker-cli fzf zoxide
-
-# ユーザーの作成を先に実行
-RUN adduser -D -s /bin/zsh rafale && \
+# 最小限のランタイムパッケージをインストールし、ユーザー作成と設定を一括実行
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add sudo bash zsh git curl python3 tree openssh docker-cli fzf zoxide && \
+    adduser -D -s /bin/zsh rafale && \
     addgroup rafale wheel && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# builderステージからファイルをコピー
-# Pythonのsite-packagesをワイルドカードでコピーし、OSのバージョン変化に追従しやすくする
-COPY --from=builder /usr/lib/python3* /usr/lib/
-COPY --from=builder /usr/bin/llm* /usr/bin/
+# ビルド済み資産のコピー
+COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder --chown=rafale:rafale /build /home/rafale/dotfiles
 
 WORKDIR /home/rafale
 
-# シンボリックリンクの作成（可読性向上のため分割）
+# 設定ファイルとプラグインのシンボリックリンクを一括作成
 RUN ln -sfn /home/rafale/dotfiles/zsh/.zshrc /home/rafale/.zshrc && \
     ln -sfn /home/rafale/dotfiles/zsh/.p10k.zsh /home/rafale/.p10k.zsh && \
     ln -sfn /home/rafale/dotfiles/oh-my-zsh /home/rafale/.oh-my-zsh && \
-    ln -sfn /home/rafale/dotfiles/configs/gitconfig /home/rafale/.gitconfig
-
-RUN mkdir -p /home/rafale/.oh-my-zsh/custom/plugins /home/rafale/.oh-my-zsh/custom/themes && \
+    ln -sfn /home/rafale/dotfiles/configs/gitconfig /home/rafale/.gitconfig && \
+    mkdir -p /home/rafale/.oh-my-zsh/custom/plugins /home/rafale/.oh-my-zsh/custom/themes && \
     ln -sfn /home/rafale/dotfiles/zsh/plugins/zsh-autosuggestions /home/rafale/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
     ln -sfn /home/rafale/dotfiles/zsh/plugins/zsh-syntax-highlighting /home/rafale/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
     ln -sfn /home/rafale/dotfiles/zsh/plugins/history-search-multi-word /home/rafale/.oh-my-zsh/custom/plugins/history-search-multi-word && \
-    ln -sfn /home/rafale/dotfiles/zsh/themes/powerlevel10k /home/rafale/.oh-my-zsh/custom/themes/powerlevel10k
-
-# 権限の整理
-RUN chown -h rafale:rafale /home/rafale/.zshrc /home/rafale/.p10k.zsh /home/rafale/.oh-my-zsh /home/rafale/.gitconfig && \
-    chown -R rafale:rafale /home/rafale/dotfiles /home/rafale/.oh-my-zsh
+    ln -sfn /home/rafale/dotfiles/zsh/themes/powerlevel10k /home/rafale/.oh-my-zsh/custom/themes/powerlevel10k && \
+    chown -h rafale:rafale /home/rafale/.zshrc /home/rafale/.p10k.zsh /home/rafale/.oh-my-zsh /home/rafale/.gitconfig
 
 USER rafale
-ENV PATH="/home/rafale/dotfiles/bin:/home/rafale/dotfiles/scripts:${PATH}"
+ENV PATH="/opt/venv/bin:/home/rafale/dotfiles/bin:/home/rafale/dotfiles/scripts:${PATH}"
 ENV TERM=xterm-256color

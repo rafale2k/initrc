@@ -1,3 +1,10 @@
+## [v2.0.1] - 2026-04-30
+- quick update: 2026-04-30 21:55:33 (a1f4921)
+- chore: update badge to 2.0.0 and regenerate OGP (6682447)
+- chore: update badge to 1.38.1 and regenerate OGP (5c5f083)
+- chore: release v2.0.0 (34d7f72)
+- quick update: 2026-04-30 21:41:36 (61da0a1)
+
 ## [v2.0.0] - 2026-04-30
 - quick update: 2026-04-30 21:41:36 (61da0a1)
 - refactor: DRY・重複定義・変数乱立の整理 (15件) (cfc0505)

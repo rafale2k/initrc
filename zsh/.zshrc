@@ -11,7 +11,7 @@ export PATH="$HOME/dotfiles/bin:$HOME/dotfiles/scripts:$PATH"
 # 2. パス・基本環境変数定義
 typeset -U path
 export DOTPATH="${DOTPATH:-$HOME/dotfiles}"
-export DOTFILES="$DOTPATH"
+# DOTFILES は DOTPATH に統一
 export ZSH="$HOME/.oh-my-zsh"
 export EDITOR=nano
 export TERM=xterm-256color

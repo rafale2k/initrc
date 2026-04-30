@@ -12,8 +12,7 @@ fi
 _ld_script_dir="$(cd "$(dirname "$_ld_current_script")" && pwd)"
 DOTPATH="$(cd "$_ld_script_dir/.." && pwd)"
 export DOTPATH
-export DOTFILES_PATH="$DOTPATH"
-export DOTFILES_ROOT="$DOTPATH"
+# DOTFILES_PATH / DOTFILES_ROOT は DOTPATH に統一。後方互換が必要な場合のみ追加すること。
 
 # 2. PATH の設定 ($HOME/bin を最優先)
 export PATH="$HOME/bin:$HOME/.local/bin:$PATH"
@@ -43,28 +42,18 @@ fi
 export DOCKER_CONFIG="$HOME/.docker_temp"
 [ ! -d "$DOCKER_CONFIG" ] && mkdir -p "$DOCKER_CONFIG"
 
-# OS判定
-OS_TYPE=$(uname -s)
-
-if [ "$OS_TYPE" = "Darwin" ]; then
-    # Mac: Brewの標準パスを静的に追加
-    export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-else
-    # Linux: エイリアス設定
-    if command -v batcat >/dev/null 2>&1; then alias bat='batcat'; fi
-    if command -v fdfind >/dev/null 2>&1; then alias fd='fdfind'; fi
-fi
+# OS 判定・環境識別は _env_detector.sh (上の glob ループで source 済み) に一元化
 
 # 自作の self_heal を読み込み
 if [ -f "$DOTPATH/scripts/self_heal.sh" ]; then
     # shellcheck source=/dev/null
     source "$DOTPATH/scripts/self_heal.sh"
-    
+
     # バックグラウンドで実行
     # & は標準的なバックグラウンド実行
     # { ... } &> /dev/null で出力を完全に消す
-    { dcheck > /dev/null 2>&1 || true ; } & 
-    
+    { dcheck > /dev/null 2>&1 || true ; } &
+
     # zsh の場合は disown でシェル終了時の道連れを防ぐ
     if [ -n "${ZSH_VERSION:-}" ]; then
         disown %1 >/dev/null 2>&1 || true
@@ -72,31 +61,18 @@ if [ -f "$DOTPATH/scripts/self_heal.sh" ]; then
 fi
 
 # 5. シェル別の設定
+# reload エイリアス・zoxide 初期化は各シェル固有の設定ファイルに委譲
+# (zsh: zsh/options.zsh, bash: bash/options.sh, ナビゲーション: common/_navigation.sh)
 if [ -n "${ZSH_VERSION:-}" ]; then
     _ld_zsh_dir="$DOTPATH/zsh"
     [ -r "$_ld_zsh_dir/hooks.zsh" ]   && source "$_ld_zsh_dir/hooks.zsh"
     [ -r "$_ld_zsh_dir/options.zsh" ] && source "$_ld_zsh_dir/options.zsh"
     [ -r "$_ld_zsh_dir/aliases.zsh" ] && source "$_ld_zsh_dir/aliases.zsh"
     [ -r "$_ld_zsh_dir/_p10k.zsh" ]   && source "$_ld_zsh_dir/_p10k.zsh"
-    alias reload='exec zsh -l'
 elif [ -n "${BASH_VERSION:-}" ]; then
     if [ "${EUID:-}" -eq 0 ]; then
         export PS1='\[\e[1;37;41m\] ROOT \[\e[0m\] \[\e[01;31m\]@\h\[\e[0m\]:\[\e[01;34m\]\w\[\e[00m\]# '
     fi
-    alias reload='source ~/.bashrc'
-fi
-
-if command -v zoxide >/dev/null 2>&1; then
-    # zsh の場合
-    if [ -n "${ZSH_VERSION:-}" ]; then
-        eval "$(zoxide init zsh)"
-    # bash の場合
-    elif [ -n "${BASH_VERSION:-}" ]; then
-        eval "$(zoxide init bash)"
-    fi
-    
-    # 共通のエイリアス (cd を z に置き換える)
-    alias j='zi'  # インタラクティブ検索 (fzf連携)
 fi
 
 unset _ld_f _ld_common_dir _ld_zsh_dir _ld_current_script _ld_script_dir

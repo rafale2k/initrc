@@ -15,7 +15,12 @@ ha() {
 
     # 選択したコマンドを表示して実行
     echo -e "\033[32m🚀 Executing:\033[0m $cmd"
-    print -s "$cmd" # Zshの履歴に追加（矢印上で戻れるように）
+    # 履歴に追加: zsh では print -s、bash では history -s を使用
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        print -s "$cmd"
+    else
+        history -s "$cmd" 2>/dev/null || true
+    fi
     eval "$cmd"
 }
 

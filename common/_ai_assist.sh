@@ -27,6 +27,16 @@ _is_safe_command() {
     return 0
 }
 
+# AI レスポンス (1行目=説明, 2行目以降=コマンド) を解析して実行
+_parse_and_execute_ai_response() {
+    local response="$1"
+    local explanation cmd
+    explanation=$(echo "$response" | head -n 1)
+    cmd=$(echo "$response" | tail -n +2 | xargs)
+    echo -e "\n💡 \033[1;34m$explanation\033[0m"
+    _execute_ai_cmd "$cmd"
+}
+
 # AI提案のコマンドを実行するか確認して実行
 _execute_ai_cmd() {
     local cmd="$1"
@@ -69,16 +79,16 @@ ask() {
     # SC2155 対策: 宣言と代入を分ける
     local system_prompt
     system_prompt="You are a pragmatic Shell Expert. Output ONLY the executable shell command for $(uname). No markdown, no explanation, no code blocks."
-    
+
     echo "🤖 Thinking..."
-    
+
     local raw_cmd
     raw_cmd=$(llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query") || return 1
-    
+
     local cmd
     # shellcheck disable=SC2016
     cmd=$(echo "$raw_cmd" | sed -E 's/^`{1,3}([a-z]*)?//g; s/`{1,3}$//g' | xargs)
-    
+
     _execute_ai_cmd "$cmd"
 }
 
@@ -96,13 +106,7 @@ dask() {
     local system_prompt="You are a Docker expert. 1. Brief explanation (1 line). 2. Command in new line. No markdown."
     local response
     response=$(echo -e "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
-
-    local explanation cmd
-    explanation=$(echo "$response" | head -n 1)
-    cmd=$(echo "$response" | tail -n +2 | xargs)
-
-    echo -e "\n💡 \033[1;34m$explanation\033[0m"
-    _execute_ai_cmd "$cmd"
+    _parse_and_execute_ai_response "$response"
 }
 
 # [K8s特化] クラスターの状態を読み取って提案
@@ -114,7 +118,7 @@ kask() {
     echo "☸️  Gathering Cluster Context..."
     local ns
     ns=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || echo "default")
-    
+
     local context="[K8s Context]\nNamespace: $ns\n"
     context+="Events (Errors):\n$(kubectl get events --sort-by='.lastTimestamp' | grep -iE "error|fail|warn" | tail -n 5)\n"
     context+="Pod Status:\n$(kubectl get pods --field-selector status.phase!=Running)\n"
@@ -122,13 +126,7 @@ kask() {
     local system_prompt="You are a Kubernetes/SRE expert. 1. Brief explanation. 2. Command in new line. No markdown."
     local response
     response=$(echo -e "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
-    
-    local explanation cmd
-    explanation=$(echo "$response" | head -n 1)
-    cmd=$(echo "$response" | tail -n +2 | xargs)
-
-    echo -e "\n💡 \033[1;34m$explanation\033[0m"
-    _execute_ai_cmd "$cmd"
+    _parse_and_execute_ai_response "$response"
 }
 
 # [解析] ログやエラーメッセージの解決策
@@ -138,7 +136,7 @@ wtf() {
         context=$(clipcopy --paste 2>/dev/null || pbpaste 2>/dev/null)
         [[ -z "$context" ]] && context="Last command context: $(fc -ln -1)"
     fi
-    
+
     echo "🔍 Analyzing error..."
     local system_prompt="You are a senior DevOps engineer. Analyze this error and provide a concise fix in markdown."
     echo -e "--- 🤖 Error Analysis ---\n"
@@ -163,7 +161,7 @@ dinv() {
     echo "🔍 Reading $file_path from $container..."
     local content
     content=$(docker exec "$container" cat "$file_path" 2>/dev/null)
-    
+
     [[ -z "$content" ]] && { echo "❌ File not found or empty."; return 1; }
 
     local system_prompt="You are a Senior SRE. Analyze the provided file content based on the query."

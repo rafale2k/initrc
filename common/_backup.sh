@@ -7,8 +7,15 @@ bu() {
     local cmd="$1"
     local target="$2"
     local backup_dir="$HOME/.dotfiles_backup/manual"
-    
+
     [ ! -d "$backup_dir" ] && mkdir -p "$backup_dir"
+
+    # 指定ファイルの最新バックアップパスを返す内部関数
+    _get_latest_backup() {
+        local _fname; _fname=$(basename "$1")
+        find "$backup_dir" -name "${_fname}_*.bak" -type f \
+            -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-
+    }
 
     case "$cmd" in
         "add" | "" | */*)
@@ -38,9 +45,7 @@ bu() {
                 echo "❌ Usage: bu diff <file_path>"
                 return 1
             fi
-            local filename; filename=$(basename "$target")
-            local latest; latest=$(find "$backup_dir" -name "${filename}_*.bak" -type f -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)
-
+            local latest; latest=$(_get_latest_backup "$target")
             if [ -z "$latest" ]; then
                 echo "❌ No backup found for $target"
             else
@@ -58,9 +63,7 @@ bu() {
                 echo "❌ Usage: bu restore <file_path>"
                 return 1
             fi
-            local filename; filename=$(basename "$target")
-            local latest; latest=$(find "$backup_dir" -name "${filename}_*.bak" -type f -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)
-
+            local latest; latest=$(_get_latest_backup "$target")
             if [ -z "$latest" ]; then
                 echo "❌ No backup found for $target"
             else

@@ -28,19 +28,19 @@ dcheck() {
         done
 
         if [ ${#missing_tools[@]} -gt 0 ]; then
-            # 報告用ファイルに不足していたツールを書き込む
+            # 不足ツールを通知レポートへ追記
             for t in "${missing_tools[@]}"; do
                 echo "$t" >> "$report_file"
             done
 
-            # インストール実行
+            # install_all_packages で一括インストール (出力は捨てる)
             source "$DOTPATH/scripts/install_functions.sh"
-            # 念のため install_all_packages が tool 名を引数に取れれば効率的やけど、
-            # 今は既存の関数をそのまま呼ぶ形でいくで
             install_all_packages > /dev/null 2>&1
         fi
 
         echo "$now" > "$cache_file"
     ) &
-    disown # バックグラウンドプロセスをシェル管理から切り離して静かにさせる
+    # サブシェル全体をバックグラウンドジョブとして切り離す
+    # disown はこの関数を呼んだシェルのジョブ #1 を対象にする
+    disown
 }

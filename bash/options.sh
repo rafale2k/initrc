@@ -26,12 +26,10 @@ if [ -f "$OSH/oh-my-bash.sh" ]; then
     unset -f __zoxide_hook 2>/dev/null
 fi
 
-# 3. Zoxide の安全な初期化
-if command -v zoxide >/dev/null 2>&1; then
-    eval "$(zoxide init bash --no-aliases)"
+# 3. zoxide 初期化は common/_navigation.sh に一元化済み
+# OMB が PROMPT_COMMAND に __zoxide_hook を注入した場合のみ除去する
+if [ -n "${PROMPT_COMMAND:-}" ]; then
     PROMPT_COMMAND="${PROMPT_COMMAND//__zoxide_hook;/}"
-    alias z='__zoxide_z'
-    alias zi='zi'
 fi
 
 # 4. 履歴設定
@@ -47,32 +45,25 @@ alias reload='exec bash'
 
 # ==============================================================================
 # root ユーザー専用：防御型エイリアス設定
+# rm/cp/mv は common/_system.sh で全ユーザー向けに定義済みのため重複定義しない
 # ==============================================================================
+if [ "${EUID:-1}" -eq 0 ]; then
+    # --- 1. 視認性を上げる（root であることを自覚する） ---
+    # eza が ~/bin にない root 環境でも最低限の表示を確保
+    alias ls='ls --color=auto'
+    alias ll='ls -alF --color=auto'
+    alias la='ls -A --color=auto'
+    alias l='ls -CF --color=auto'
 
-# --- 1. 破壊的コマンドの「確認」を強制する ---
-# 誤操作で / を消したり上書きしたりするのを防ぐ
-alias rm='rm -i'
-alias cp='cp -i'
-alias mv='mv -i'
+    # --- 2. ログやプロセスをサクッと確認 ---
+    alias df='df -h'
+    alias free='free -m'
+    alias psg='ps aux | grep -v grep | grep -i'
 
-# --- 2. 視認性を上げる（rootであることを自覚する） ---
-# ディレクトリを分かりやすく、かつ隠しファイルも見えるように
-alias ls='ls --color=auto'
-alias ll='ls -alF --color=auto'
-alias la='ls -A --color=auto'
-alias l='ls -CF --color=auto'
+    # --- 3. ネットワーク ---
+    alias ports='ss -tulpn'
 
-# --- 3. ログやプロセスをサクッと確認 ---
-# サーバー管理でよく使うやつ
-alias df='df -h'         # ディスク使用量を読みやすく
-alias free='free -m'     # メモリをMB単位で表示
-alias psg='ps aux | grep -v grep | grep -i'  # プロセスをキーワード検索
-
-# --- 4. ネットワーク周りの確認 ---
-# ポートの空き状況とかを確認（netstatが入ってない最近のOS向け）
-alias ports='ss -tulpn'
-
-# --- 5. 編集ミスを防ぐ ---
-# 普段使いのエディタに飛ばす（nanoやvimなど、使い慣れた方へ）
-alias vi='vim'
-alias edit='vim'
+    # --- 4. エディタ ---
+    alias vi='vim'
+    alias edit='vim'
+fi

@@ -11,7 +11,7 @@ setup_os_repos() {
         if _sudo apt-get update -qq; then
             _sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release xz-utils || true
         fi
-        
+
         # shellcheck source=/dev/null
         local os_id; os_id=$(. /etc/os-release; echo "$ID")
         local codename; codename=$(lsb_release -cs 2>/dev/null || grep "VERSION_CODENAME" /etc/os-release | cut -d= -f2 | tr -d '"')
@@ -20,7 +20,7 @@ setup_os_repos() {
         if wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg 2>/dev/null; then
             echo "deb [signed-by=/etc/apt/keyrings/gierens.gpg] http://deb.gierens.de stable main" | _sudo tee /etc/apt/sources.list.d/gierens.list > /dev/null
         fi
-        
+
         if _sudo wget -qO- "https://download.docker.com/linux/${os_id}/gpg" | _sudo gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg 2>/dev/null; then
             echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/${os_id} ${codename} stable" | _sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
         fi
@@ -37,7 +37,7 @@ setup_os_repos() {
 install_all_packages() {
     local common_pkgs=(tree git curl vim nano fzf zsh zoxide jq wget pipx git-extras)
     mkdir -p "$HOME/bin"
-    
+
     echo "📦 Starting Package Installation..."
 
     # 1. パッケージマネージャーでのインストール
@@ -64,7 +64,7 @@ install_all_packages() {
         elif command -v bat >/dev/null 2>&1; then
             ln -sf "$(command -v bat)" "$HOME/bin/bat"
         fi
-        
+
         # fd の解決
         if command -v fdfind >/dev/null 2>&1; then
             ln -sf "$(command -v fdfind)" "$HOME/bin/fd"
@@ -73,37 +73,52 @@ install_all_packages() {
         fi
     fi
 
-    # 3. 最終救済: それでも bat/fd が無いならバイナリを落とす
+    # 3. 最終救済: それでも bat/fd/eza が無いならバイナリを落とす
     local arch; arch=$(uname -m)
     local os_type; os_type=$(uname -s)
 
-    # eza (これは今のままでOK)
+    # 汎用 GitHub リリースダウンロード関数
+    # 使い方: _download_github_release <tool> <org/repo> <filename_tmpl> [strip]
+    #   filename_tmpl 内の __VER__ と __ARCH__ を自動展開する
+    _download_github_release() {
+        local tool="$1" repo="$2" filename_tmpl="$3" strip="${4:-1}"
+        echo "⬇️ Downloading latest $tool binary..."
+        local _arch; _arch=$(uname -m)
+        local ver; ver=$(curl -fLsS -o /dev/null -w "%{url_effective}" \
+            "https://github.com/${repo}/releases/latest" | awk -F/ '{print $NF}')
+        [ -z "$ver" ] && { echo "❌ Could not determine latest $tool version."; return 1; }
+        local filename="${filename_tmpl//__VER__/$ver}"
+        filename="${filename//__ARCH__/$_arch}"
+        curl -fLsS "https://github.com/${repo}/releases/download/${ver}/${filename}" \
+            | tar xz -C "$HOME/bin" --strip-components="$strip" 2>/dev/null || return 1
+        chmod +x "$HOME/bin/$tool"
+        echo "✅ $tool installed to $HOME/bin/$tool"
+    }
+
+    # eza 救済 (OS 別のターゲット名が必要なため独自処理)
     if ! command -v eza >/dev/null 2>&1 && [ ! -f "$HOME/bin/eza" ]; then
         local e_os="unknown-linux-gnu"
         [ "$os_type" = "Darwin" ] && e_os="apple-darwin"
-        curl -fLsS "https://github.com/eza-community/eza/releases/latest/download/eza_${arch}-${e_os}.tar.gz" | tar xz -C "$HOME/bin" 2>/dev/null || true
-        find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \; 2>/dev/null || true
-        chmod +x "$HOME/bin/eza"
+        local eza_ver; eza_ver=$(curl -fLsS -o /dev/null -w "%{url_effective}" \
+            https://github.com/eza-community/eza/releases/latest | awk -F/ '{print $NF}')
+        if [ -n "$eza_ver" ]; then
+            curl -fLsS "https://github.com/eza-community/eza/releases/download/${eza_ver}/eza_${arch}-${e_os}.tar.gz" \
+                | tar xz -C "$HOME/bin" 2>/dev/null || true
+            find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \; 2>/dev/null || true
+            chmod +x "$HOME/bin/eza"
+        fi
     fi
 
-    # bat 救済 (Linuxのみ)
+    # bat 救済 (Linux のみ)
     if [ "$os_type" = "Linux" ] && ! command -v bat >/dev/null 2>&1 && [ ! -f "$HOME/bin/bat" ]; then
-        echo "⬇️ Downloading latest bat binary..."
-        local bat_ver; bat_ver=$(curl -fLsS -o /dev/null -w "%{url_effective}" https://github.com/sharkdp/bat/releases/latest | awk -F/ '{print $NF}')
-        if [ -n "$bat_ver" ]; then
-            curl -fLsS "https://github.com/sharkdp/bat/releases/download/${bat_ver}/bat-${bat_ver}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-            chmod +x "$HOME/bin/bat"
-        fi
+        _download_github_release "bat" "sharkdp/bat" \
+            "bat-__VER__-__ARCH__-unknown-linux-musl.tar.gz" || true
     fi
 
-    # fd 救済 (Linuxのみ)
+    # fd 救済 (Linux のみ)
     if [ "$os_type" = "Linux" ] && ! command -v fd >/dev/null 2>&1 && [ ! -f "$HOME/bin/fd" ]; then
-        echo "⬇️ Downloading latest fd binary..."
-        local fd_ver; fd_ver=$(curl -fLsS -o /dev/null -w "%{url_effective}" https://github.com/sharkdp/fd/releases/latest | awk -F/ '{print $NF}')
-        if [ -n "$fd_ver" ]; then
-            curl -fLsS "https://github.com/sharkdp/fd/releases/download/${fd_ver}/fd-${fd_ver}-${arch}-unknown-linux-musl.tar.gz" | tar xz -C "$HOME/bin" --strip-components=1 2>/dev/null || true
-            chmod +x "$HOME/bin/fd"
-        fi
+        _download_github_release "fd" "sharkdp/fd" \
+            "fd-__VER__-__ARCH__-unknown-linux-musl.tar.gz" || true
     fi
 }
 

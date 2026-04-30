@@ -2,12 +2,10 @@
 set -u
 
 # --- 🏷️ Version Definition ---
-INSTALL_DIR=$(cd "$(dirname "$0")" || exit 1; pwd)
-VERSION=$(<"$INSTALL_DIR/VERSION")
-
-# パス確定
+# DOTPATH をスクリプトの場所から確定 (INSTALL_DIR は DOTPATH と同一のため統合)
 DOTPATH=$(cd "$(dirname "$0")" || exit 1; pwd)
 export DOTPATH
+VERSION=$(<"$DOTPATH/VERSION")
 
 # --- 🚀 Start Message ---
 echo "🎯 Starting installation v${VERSION} from ${DOTPATH}..."

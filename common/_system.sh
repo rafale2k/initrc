@@ -41,10 +41,8 @@ else
     set_monokai_colors
 fi
 
-# --- 3. 環境変数 (eza / LS_COLORS) ---
+# --- 3. 環境変数 (eza カラー設定) ---
 _MY_EZA_COLORS="ur=32:gu=32:gr=33:gw=33:tr=38;5;244:sn=35:nb=35:nm=35:da=38;5;248:di=36:fi=0:ln=35:pi=33:so=35:bd=33;46:cd=33;43:or=31;40:mi=31;40:ex=32:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44"
-#export EZA_COLORS="ur=32:gu=32:gr=33:gw=33:tr=38;5;244:sn=35:nb=35:nm=35:da=38;5;248:di=36:fi=0:ln=35:pi=33:so=35:bd=33;46:cd=33;43:or=31;40:mi=31;40:ex=32:su=37;41:sg=30;43:tw=30;42:ow=34;42:st=37;44"
-#export LS_COLORS=$EZA_COLORS
 
 # --- 4. 関数定義 (エイリアスより先に定義) ---
 
@@ -67,7 +65,7 @@ n() {
     local file bat_cmd fd_cmd bg_orig
     bat_cmd=$(command -v batcat || command -v bat || echo "cat")
     fd_cmd=$(command -v fdfind || command -v fd || echo "find")
-    
+
     if [ "$EUID" -eq 0 ]; then
         bg_orig="#1a1b26"
     else

@@ -58,7 +58,7 @@ fe() {
     file=$(find . -maxdepth 4 -not -path '*/.*' -o -path './.*' -not -name '.' 2> /dev/null | fzf \
         --preview "$bat_cmd --color=always --line-range :500 {}" \
         --preview-window=right:60% --height 80% --layout=reverse --border)
-    
+
     if [[ -n "$file" ]]; then
         # SC2015対策: if-else を使って確実に分岐させる
         if [[ -d "$file" ]]; then
@@ -85,18 +85,16 @@ fcd() {
 }
 
 # --- 4. 外部ツール連携 (zoxide etc) ---
+# zoxide の初期化はここに一元化 (bash/options.sh での二重 init は不要)
 if command -v zoxide > /dev/null; then
-    # 関数の外なので local は使わず、一時的な変数として扱う
     _shell_type="bash"
     if [ -n "${ZSH_VERSION:-}" ]; then
         _shell_type="zsh"
     fi
-    
-    # eval に渡す（クォートを忘れずに！）
+
     eval "$(zoxide init "$_shell_type")"
-    alias j='z'
+    alias j='zi'  # j = インタラクティブ検索 (fzf 連携)
     export _ZO_FZF_OPTS="--preview 'eza -T -L 2 --icons --color=always {2..}' --preview-window=right:50%"
-    
-    # 使い終わった一時変数は unset しておくと、環境を汚さず SRE っぽい
+
     unset _shell_type
 fi

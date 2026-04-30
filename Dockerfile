@@ -33,7 +33,7 @@ RUN find . -name ".git" -exec rm -rf {} + && \
 # 2. 実行ステージ
 FROM alpine:3.20
 
-RUN apk add --no-cache sudo bash zsh git curl python3 tree openssh fzf zoxide && \
+RUN apk add --no-cache sudo bash zsh git curl python3 tree openssh fzf zoxide coreutils && \
     adduser -D -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 

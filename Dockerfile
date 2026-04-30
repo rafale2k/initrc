@@ -9,33 +9,41 @@ RUN --mount=type=cache,target=/var/cache/apk \
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
-    /opt/venv/bin/pip install llm llm-gemini
+    /opt/venv/bin/pip install llm llm-gemini && \
+    # Pythonのキャッシュ、テスト、不要なコンパイル済みファイルを削除
+    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + && \
+    find /opt/venv -type d -name "tests" -exec rm -rf {} + && \
+    find /opt/venv -libpath -name "*.pyc" -delete
 
 WORKDIR /build
-# ソースの変更とサブモジュールの更新を分離してキャッシュ効率を最大化
 COPY .git .git
 COPY .gitmodules .gitmodules
 RUN git submodule update --init --recursive
 COPY . .
-RUN find . -name ".git" -exec rm -rf {} +
+
+# 徹底的な不要ファイルの削除 (サブモジュールのドキュメントやGit履歴)
+RUN find . -name ".git" -exec rm -rf {} + && \
+    find . -name "docs" -type d -exec rm -rf {} + && \
+    find . -name "examples" -type d -exec rm -rf {} + && \
+    # oh-my-zshの未使用プラグインとテーマを削除 (サイズ削減の要)
+    cd oh-my-zsh && \
+    find plugins -mindepth 1 -maxdepth 1 -type d | grep -vE "^plugins/(git|z)$" | xargs rm -rf && \
+    find themes -mindepth 1 -maxdepth 1 -type d | grep -vE "^themes/robbyrussell.zsh-theme$" | xargs rm -rf
 
 # 2. 実行ステージ
 FROM alpine:3.20
 
-# 最小限のランタイムパッケージをインストールし、ユーザー作成と設定を一括実行
 RUN --mount=type=cache,target=/var/cache/apk \
-    apk add sudo bash zsh git curl python3 tree openssh docker-cli fzf zoxide && \
+    apk add sudo bash zsh git curl python3 tree openssh fzf zoxide && \
     adduser -D -s /bin/zsh rafale && \
     addgroup rafale wheel && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# ビルド済み資産のコピー
 COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder --chown=rafale:rafale /build /home/rafale/dotfiles
 
 WORKDIR /home/rafale
 
-# 設定ファイルとプラグインのシンボリックリンクを一括作成
 RUN ln -sfn /home/rafale/dotfiles/zsh/.zshrc /home/rafale/.zshrc && \
     ln -sfn /home/rafale/dotfiles/zsh/.p10k.zsh /home/rafale/.p10k.zsh && \
     ln -sfn /home/rafale/dotfiles/oh-my-zsh /home/rafale/.oh-my-zsh && \

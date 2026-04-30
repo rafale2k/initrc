@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v1.38.1-blue)
+![Version](https://img.shields.io/badge/version-v2.0.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,21 +256,12 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v1.38.1] - 2026-04-30
-
-> ### 🤖 AI Release Summary
-> バージョン1.38.0到達！OGPとバッジを鮮烈に刷新し、我々の進化の足跡を完璧に刻み込んだぜ！✨
-
-シェルの微細なバグを断罪し、bashオプションの最適化で盤石のシステム安定性を手に入れた！🛠️
-
-Zsh環境とサブモジュールを強制同期！一切の妥協を許さない、最強にクリーンな開発基盤がここに爆誕だ！🔥
-
----
-- quick update: 2026-04-30 20:56:09 (d8fbb31)
-- chore: update badge to 1.38.0 and regenerate OGP (c0f5a09)
-- quick update: 2026-04-30 20:12:00 (75842a5)
-- --force (629593b)
-- chore: update badge to 1.38.0 and regenerate OGP (fb1fdf8)
+## [v2.0.0] - 2026-04-30
+- quick update: 2026-04-30 21:41:36 (61da0a1)
+- refactor: DRY・重複定義・変数乱立の整理 (15件) (cfc0505)
+- chore: update badge to 1.38.1 and regenerate OGP (972cfb3)
+- chore: update badge to 1.38.1 and regenerate OGP (a30cb08)
+- chore: release v1.38.1 (86b09d4)
 
 <!-- RELEASE_NOTES_END -->
 

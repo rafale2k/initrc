@@ -1,3 +1,10 @@
+## [v2.0.0] - 2026-04-30
+- quick update: 2026-04-30 21:41:36 (61da0a1)
+- refactor: DRY・重複定義・変数乱立の整理 (15件) (cfc0505)
+- chore: update badge to 1.38.1 and regenerate OGP (972cfb3)
+- chore: update badge to 1.38.1 and regenerate OGP (a30cb08)
+- chore: release v1.38.1 (86b09d4)
+
 ## [v1.38.1] - 2026-04-30
 
 > ### 🤖 AI Release Summary

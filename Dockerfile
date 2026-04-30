@@ -2,8 +2,7 @@
 FROM alpine:3.20 AS builder
 
 # パッケージキャッシュを利用してインストール
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk update && apk add git python3 py3-pip
+RUN apk add --no-cache git python3 py3-pip
 
 # 仮想環境を作成し、LLMツールをインストール
 COPY requirements.txt .
@@ -34,8 +33,7 @@ RUN find . -name ".git" -exec rm -rf {} + && \
 # 2. 実行ステージ
 FROM alpine:3.20
 
-RUN --mount=type=cache,target=/var/cache/apk \
-    apk update && apk add sudo bash zsh git curl python3 tree openssh fzf zoxide && \
+RUN apk add --no-cache sudo bash zsh git curl python3 tree openssh fzf zoxide && \
     adduser -D -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 

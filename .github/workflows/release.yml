@@ -44,7 +44,7 @@ jobs:
           cat RELEASE_NOTE.md
 
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           # 全体ではなく、切り出した RELEASE_NOTE.md を使う
           body_path: RELEASE_NOTE.md 

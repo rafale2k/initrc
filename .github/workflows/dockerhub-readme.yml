@@ -55,7 +55,7 @@ jobs:
           sed -i 's|\./assets/|https://raw.githubusercontent.com/rafale2k/initrc/main/assets/|g' README.md
 
       - name: Update Docker Hub Description
-        uses: peter-evans/dockerhub-description@v4
+        uses: peter-evans/dockerhub-description@v5
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}

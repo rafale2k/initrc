@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.0.2-blue)
+![Version](https://img.shields.io/badge/version-v2.0.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,12 +256,12 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.0.2] - 2026-05-01
-- quick update: 2026-05-01 01:38:12 (4e1d8ec)
-- chore: update badge to 2.0.1 and regenerate OGP (b331252)
-- quick update: 2026-05-01 01:20:29 (a1506af)
-- chore: update badge to 2.0.1 and regenerate OGP (987d91f)
-- quick update: 2026-05-01 00:43:41 (4c96f01)
+## [v2.0.3] - 2026-05-03
+- quick update: 2026-05-03 01:33:45 (6185833)
+- chore: update badge to 2.0.2 and regenerate OGP (1784cc0)
+- chore: update badge to 2.0.2 and regenerate OGP (c7a7669)
+- chore: update badge to 2.0.2 and regenerate OGP (5dd907a)
+- chore: update badge to 2.0.2 and regenerate OGP (ffb6213)
 
 <!-- RELEASE_NOTES_END -->
 

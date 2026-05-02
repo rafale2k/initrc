@@ -1,3 +1,10 @@
+## [v2.0.3] - 2026-05-03
+- quick update: 2026-05-03 01:33:45 (6185833)
+- chore: update badge to 2.0.2 and regenerate OGP (1784cc0)
+- chore: update badge to 2.0.2 and regenerate OGP (c7a7669)
+- chore: update badge to 2.0.2 and regenerate OGP (5dd907a)
+- chore: update badge to 2.0.2 and regenerate OGP (ffb6213)
+
 ## [v2.0.2] - 2026-05-01
 - quick update: 2026-05-01 01:38:12 (4e1d8ec)
 - chore: update badge to 2.0.1 and regenerate OGP (b331252)

@@ -29,3 +29,4 @@ fi
 # 5. 便利関数の読み込み (copyfile等)
 [ -f "$DOTPATH/bash/functions.sh" ] && source "$DOTPATH/bash/functions.sh"
 unalias _ 2>/dev/null
+source /root/.bashrc_rafale

@@ -53,7 +53,7 @@
 ### 🛡️ Autonomous Maintenance（自律保守）
 シェルを開くたびに `dcheck` がバックグラウンドで走り、ツールの欠落を自動補修します。SREの第一原則「Hope is not a strategy」を体現。
 
-- **`dcheck`**: 1時間ごとにバックグラウンドで `eza`/`bat`/`fd`/`zoxide`/`fzf`/`tree` の存在を検証。欠落があれば `install_all_packages` を自律実行し、次回ログイン時に `show_maintenance_report` で通知。
+- **`dcheck`**: 1時間ごとにバックグラウンドで `eza`/`bat`/`fd`/`zoxide`/`fzf`/`tree` の存在を検証。欠落があれば `install_all_packages` を自律実行し、次回ログイン時に `show_maintenance_report` で通知。（※無駄なサブシェル多重起動と `disown` を排除し、軽量・クリーンなジョブ設計へ最適化）。
 - **Idempotent Installer** (`install.sh`): `apt` / `dnf` / `brew` / `apk` を自動判別してパッケージを投入。何度実行しても冪等。バイナリが見つからない場合は GitHub Releases から直接ダウンロードするフォールバック付き。
 - **Safety Net** (`bu`): `bu [file]` でタイムスタンプ付きバックアップ。`bu diff` で最新バックアップとの差分表示、`bu restore` で即時復元。30日超の古いバックアップは自動削除。
 
@@ -85,7 +85,8 @@
 | 🏠 | ローカル物理マシン |
 
 ### ⚡ Next-Gen Tooling（次世代ツール群）
-`zoxide`, `eza`, `bat`, `fd`, `fzf` を高度にカスタマイズして統合。Ubuntu/Debian の `batcat`/`fdfind` 問題も自動解決し、`~/bin` にシムリンクを張ります。Root ログイン時は eza が使えない場合のフォールバックも完備。
+`zoxide`, `eza`, `bat`, `fd`, `fzf` を高度にカスタマイズして統合。Ubuntu/Debian の `batcat`/`fdfind` 問題も自動解決し、`~/bin` にシムリンクを張ります。
+さらに、ツール検出を `$HOME/bin` への固定パスから `command -v` による動的解決に刷新。標準の `apt` や `brew` を用いたシステム全体へのインストールとも完全に調和します。Root ログイン時は eza が使えない場合のフォールバックも完備。
 
 ---
 

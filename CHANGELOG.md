@@ -1,3 +1,17 @@
+## [v2.0.5] - 2026-05-18
+
+> ### 🤖 AI Release Summary
+> CLIツールの動的検知とself-healの最適化により、システムの自己修復能力が極限まで高まったぜ！🚀
+冗長な処理を徹底的に排除するリファクタリングを完遂し、無駄のない洗練された実行基盤を手に入れたぞ！🔥
+バージョン2.0.4への昇格と最新のCI/CD環境への刷新で、我々の信頼性はさらなる高みへ到達したぜ！✨
+
+---
+- docs(readme): document dynamic CLI tool detection and optimized self_heal backgrounding (7df8395)
+- chore: update badge to 2.0.4 and regenerate OGP (a766024)
+- refactor(system/self_heal): make CLI tools detection dynamic and remove redundant backgrounding in dcheck (092c161)
+- chore: update badge to 2.0.4 and regenerate OGP (169f82c)
+- chore: update badge to 2.0.4 and regenerate OGP (42c75db)
+
 ## [v2.0.4] - 2026-05-12
 
 > ### 🤖 AI Release Summary

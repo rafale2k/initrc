@@ -53,8 +53,8 @@ lt() {
         depth="--level=$1"
         shift
     fi
-    if [ -x "$HOME/bin/eza" ]; then
-        "$HOME/bin/eza" --tree -a --icons --git --ignore-glob=".git" ${depth:+"$depth"} "$@"
+    if command -v eza >/dev/null 2>&1; then
+        eza --tree -a --icons --git --ignore-glob=".git" ${depth:+"$depth"} "$@"
     else
         command ls -R "$@"
     fi
@@ -151,11 +151,11 @@ alias mem='ps auxf | sort -nr -k 4 | head -n 10'
 # モダンコマンド置換
 command -v fdfind &> /dev/null && alias fd='fdfind'
 
-if [ -x "$HOME/bin/eza" ]; then
+if command -v eza >/dev/null 2>&1; then
     export EZA_COLORS="$_MY_EZA_COLORS"
-    alias ls='$HOME/bin/eza --icons --group-directories-first'
-    alias ll='$HOME/bin/eza -alF --icons --git'
-    alias la='$HOME/bin/eza -a --icons --group-directories-first'
+    alias ls='eza --icons --group-directories-first'
+    alias ll='eza -alF --icons --git'
+    alias la='eza -a --icons --group-directories-first'
 else
     unset LS_COLORS
     alias ls='ls --color=auto'
@@ -163,10 +163,9 @@ else
     alias la='ls -a'
 fi
 
-if [ -x "$HOME/bin/bat" ]; then
-    alias cat='$HOME/bin/bat --paging=never --theme="Monokai Extended"'
-    alias bat='$HOME/bin/bat'
-elif command -v batcat &> /dev/null; then
+if command -v bat >/dev/null 2>&1; then
+    alias cat='bat --paging=never --theme="Monokai Extended"'
+elif command -v batcat >/dev/null 2>&1; then
     alias cat='batcat --paging=never'
     alias bat='batcat'
 fi

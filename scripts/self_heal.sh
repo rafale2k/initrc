@@ -19,28 +19,24 @@ dcheck() {
         fi
     fi
 
-    (
-        local missing_tools=()
-        for tool in eza bat fd zoxide fzf tree; do
-            if ! command -v "$tool" >/dev/null 2>&1; then
-                missing_tools+=("$tool")
-            fi
+    local missing_tools=()
+    for tool in eza bat fd zoxide fzf tree; do
+        if ! command -v "$tool" >/dev/null 2>&1; then
+            missing_tools+=("$tool")
+        fi
+    done
+
+    if [ ${#missing_tools[@]} -gt 0 ]; then
+        # 不足ツールを通知レポートへ追記
+        for t in "${missing_tools[@]}"; do
+            echo "$t" >> "$report_file"
         done
 
-        if [ ${#missing_tools[@]} -gt 0 ]; then
-            # 不足ツールを通知レポートへ追記
-            for t in "${missing_tools[@]}"; do
-                echo "$t" >> "$report_file"
-            done
+        # install_all_packages で一括インストール (出力は捨てる)
+        # shellcheck disable=SC1091
+        source "$DOTPATH/scripts/install_functions.sh"
+        install_all_packages > /dev/null 2>&1
+    fi
 
-            # install_all_packages で一括インストール (出力は捨てる)
-            source "$DOTPATH/scripts/install_functions.sh"
-            install_all_packages > /dev/null 2>&1
-        fi
-
-        echo "$now" > "$cache_file"
-    ) &
-    # サブシェル全体をバックグラウンドジョブとして切り離す
-    # disown はこの関数を呼んだシェルのジョブ #1 を対象にする
-    disown
+    echo "$now" > "$cache_file"
 }

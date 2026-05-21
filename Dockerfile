@@ -9,7 +9,8 @@ COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
-    /opt/venv/bin/pip install -r requirements.txt && \
+    /opt/venv/bin/pip install --no-compile -r requirements.txt && \
+    /opt/venv/bin/pip uninstall -y pip setuptools wheel && \
     # Pythonのキャッシュ、テスト、不要なコンパイル済みファイルを削除
     find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + && \
     find /opt/venv -type d -name "tests" -exec rm -rf {} + && \

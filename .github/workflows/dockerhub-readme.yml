@@ -46,6 +46,7 @@ jobs:
         run: |
           sudo apt-get install -y imagemagick
           VERSION=${{ steps.get_version.outputs.VERSION }}
+
           # 最新のサマリだけを確実に取るために -m 1 を追加
           SUMMARY=$(grep -m 1 -A 1 "### 🤖 AI Release Summary" README.md | tail -n 1 | sed 's/^[[:space:]>]*//' | python3 -c "import sys; print(sys.stdin.read().strip()[:50])")
           [ -z "$SUMMARY" ] && SUMMARY="Next-gen development environment configuration."
@@ -88,3 +89,4 @@ jobs:
           git fetch origin main
           git merge -s recursive -X ours origin/main || true
           git push origin HEAD:main --force
+

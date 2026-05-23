@@ -46,13 +46,16 @@ jobs:
         run: |
           sudo apt-get install -y imagemagick
           VERSION=${{ steps.get_version.outputs.VERSION }}
-          SUMMARY=$(grep -A 1 "### 🤖 AI Release Summary" README.md | tail -n 1 | sed 's/^[[:space:]>]*//' | python3 -c "import sys; print(sys.stdin.read().strip()[:50])")
+
+          # 最新のサマリだけを確実に取るために -m 1 を追加
+          SUMMARY=$(grep -m 1 -A 1 "### 🤖 AI Release Summary" README.md | tail -n 1 | sed 's/^[[:space:]>]*//' | python3 -c "import sys; print(sys.stdin.read().strip()[:50])")
           [ -z "$SUMMARY" ] && SUMMARY="Next-gen development environment configuration."
 
+          # +set date:create +set date:modify で画像生成時のメタデータを固定し、内容が変わらない限りバイナリ差分が出ないようにする
           convert -size 1200x630 xc:#1a1b26 -gravity center \
             -fill "#7aa2f7" -pointsize 80 -annotate +0-100 "initrc $VERSION" \
             -fill "#cfc9c2" -pointsize 40 -annotate +0+50 "$SUMMARY..." \
-            assets/ogp.png
+            +set date:create +set date:modify assets/ogp.png
 
       - name: Rewrite asset paths for Docker Hub
         run: |
@@ -79,6 +82,11 @@ jobs:
           sed -i "s/version-[^)]*/version-v${VERSION}-blue/g" README.md
           
           git add README.md assets/ogp.png
-          git commit -m "chore: update badge to $VERSION and regenerate OGP [skip ci]" || echo "No changes to commit"
-          git pull --rebase origin main
-          git push origin HEAD:main
+          # [skip ci] を外すことで、このプッシュによって Docker Build CI 等が連動するようにする
+          git commit -m "chore: update badge to $VERSION and regenerate OGP" || echo "No changes to commit"
+
+          # 競合回避のため、一度 fetch して ours マージしてから force push する元の戦略に復帰
+          git fetch origin main
+          git merge -s recursive -X ours origin/main || true
+          git push origin HEAD:main --force
+

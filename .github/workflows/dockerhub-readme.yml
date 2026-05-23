@@ -6,6 +6,10 @@ on:
     tags: [ "v*" ]
   workflow_dispatch:
 
+concurrency:
+  group: update-hub-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -42,7 +46,7 @@ jobs:
         run: |
           sudo apt-get install -y imagemagick
           VERSION=${{ steps.get_version.outputs.VERSION }}
-          SUMMARY=$(grep -A 1 "### 🤖 AI-Driven Release Workflow" README.md | tail -n 1 | sed 's/^[[:space:]]*//' | cut -c 1-50)
+          SUMMARY=$(grep -A 1 "### 🤖 AI Release Summary" README.md | tail -n 1 | sed 's/^[[:space:]>]*//' | python3 -c "import sys; print(sys.stdin.read().strip()[:50])")
           [ -z "$SUMMARY" ] && SUMMARY="Next-gen development environment configuration."
 
           convert -size 1200x630 xc:#1a1b26 -gravity center \
@@ -75,7 +79,6 @@ jobs:
           sed -i "s/version-[^)]*/version-v${VERSION}-blue/g" README.md
           
           git add README.md assets/ogp.png
-          git commit -m "chore: update badge to $VERSION and regenerate OGP" || echo "No changes to commit"
-          git fetch origin main
-          git merge -s recursive -X ours origin/main || true
-          git push origin HEAD:main --force
+          git commit -m "chore: update badge to $VERSION and regenerate OGP [skip ci]" || echo "No changes to commit"
+          git pull --rebase origin main
+          git push origin HEAD:main

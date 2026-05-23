@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.0.4-blue)
+![Version](https://img.shields.io/badge/version-v2.1.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,21 +256,12 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.0.4] - 2026-05-12
-
-> ### 🤖 AI Release Summary
-> 祝、v2.0.3リリース！最新のOGPとバッジに魂を込め、我々のプロダクトがさらなる高みへ到達したぜ！🚀
-
-oh-my-zshや各種設定の徹底アップデートを完遂し、開発環境の極限までの洗練と圧倒的な快適さを手に入れたぞ！🔥
-
-DependabotによるCI基盤の鉄壁なる自動更新で、信頼性の牙城を守り抜く準備はすべて整った！💪
-
----
-- chore(deps): update oh-my-zsh submodule (8f1f1ac)
-- chore: update badge to 2.0.3 and regenerate OGP (391bb7d)
-- chore: update badge to 2.0.3 and regenerate OGP (84683c2)
-- chore: release v2.0.3 (246cb22)
-- quick update: 2026-05-03 01:33:45 (6185833)
+## [v2.1.1] - 2026-05-24
+- chore: update badge to 2.1.0 and regenerate OGP (af8f74b)
+- I’ve resolved the CI flakiness and updated the push strategy as requested. Here is a summary of the changes I've made: (ce7bdd1)
+- chore: update badge to 2.1.0 and regenerate OGP [skip ci] (e82cb1a)
+- chore: release v2.1.0 (92c8dc6)
+- chore: update badge to 2.0.4 and regenerate OGP [skip ci] (157c94a)
 
 <!-- RELEASE_NOTES_END -->
 

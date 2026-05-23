@@ -1,3 +1,19 @@
+## [v2.1.1] - 2026-05-24
+- chore: update badge to 2.1.0 and regenerate OGP (af8f74b)
+- I’ve resolved the CI flakiness and updated the push strategy as requested. Here is a summary of the changes I've made: (ce7bdd1)
+- chore: update badge to 2.1.0 and regenerate OGP [skip ci] (e82cb1a)
+- chore: release v2.1.0 (92c8dc6)
+- chore: update badge to 2.0.4 and regenerate OGP [skip ci] (157c94a)
+
+## [v2.1.0] - 2026-05-24
+- chore: update badge to 2.0.4 and regenerate OGP [skip ci] (157c94a)
+- I've improved the reliability of the Docker Hub and Assets CI. I added a concurrency group to prevent race conditions, corrected the search logic for the AI Release Summary in the README, and used Python for safer UTF-8 truncation in OGP generation. I also added [skip ci] to automated commits to prevent infinite loops and transitioned to a safer push strategy to avoid risks associated with force pushing. (06785dc)
+- chore: update badge to 2.0.4 and regenerate OGP (206f0b1)
+- chore: update badge to 2.0.4 and regenerate OGP (b55f399)
+- chore: update badge to 2.0.4 and regenerate OGP (2bdf840)
+- ... and 7 more changes.
+
+
 ## [v2.0.4] - 2026-05-12
 
 > ### 🤖 AI Release Summary

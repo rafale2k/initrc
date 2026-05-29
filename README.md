@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.1.1-blue)
+![Version](https://img.shields.io/badge/version-v2.1.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,12 +256,19 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.1.1] - 2026-05-24
-- chore: update badge to 2.1.0 and regenerate OGP (af8f74b)
-- I’ve resolved the CI flakiness and updated the push strategy as requested. Here is a summary of the changes I've made: (ce7bdd1)
-- chore: update badge to 2.1.0 and regenerate OGP [skip ci] (e82cb1a)
-- chore: release v2.1.0 (92c8dc6)
-- chore: update badge to 2.0.4 and regenerate OGP [skip ci] (157c94a)
+## [v2.1.2] - 2026-05-30
+
+> ### 🤖 AI Release Summary
+> 💥 CIの不安定性（Flakiness）を粉砕し、DockerHub連携の自動化パイプラインに絶対的な信頼性を取り戻しました！
+🧹 環境設定と依存関係サブモジュールを徹底的にクリーンアップし、開発からデプロイまで揺るぎない極限の安定性を確保！
+🚀 輝く新バージョン「2.1.1」のリリースに伴い、看板となるバッジとOGPアセットも最新鋭の美しい姿へと完全同期完了です！
+
+---
+- chore(deps): Update oh-my-zsh submodule reference (19f018e)
+- I have resolved the CI flakiness and restored the requested push strategy. (94e44d8)
+- chore: update badge to 2.1.1 and regenerate OGP (ea71f4e)
+- chore: update badge to 2.1.1 and regenerate OGP (04e18a9)
+- chore: release v2.1.1 (d35f923)
 
 <!-- RELEASE_NOTES_END -->
 

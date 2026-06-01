@@ -1,3 +1,10 @@
+## [v2.1.2] - 2026-06-02
+- chore(deps): update ZSH submodules (5c8f857)
+- chore(deps): bump oh-my-zsh from `bec3f22` to `b26b500` (941bfd2)
+- chore(deps): bump docker/login-action from 3 to 4 (448964d)
+- chore(deps): bump zsh/plugins/history-search-multi-word (5d60462)
+- I have resolved the CI flakiness and restored the requested push strategy. (94e44d8)
+
 ## [v2.1.1] - 2026-05-24
 - chore: update badge to 2.1.0 and regenerate OGP (af8f74b)
 - I’ve resolved the CI flakiness and updated the push strategy as requested. Here is a summary of the changes I've made: (ce7bdd1)

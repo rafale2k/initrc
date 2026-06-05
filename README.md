@@ -257,11 +257,10 @@ ha            # 使えるコマンドを fzf で探す
 <!-- RELEASE_NOTES_START -->
 
 ## [v2.2.1] - 2026-06-06
+- chore: release v2.2.1 (a60bc8c)
 - quick update: 2026-06-06 04:18:52 (5924429)
 - chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
 - chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
-- chore: release v2.2.0 (cfb331c)
-- chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
 
 <!-- RELEASE_NOTES_END -->
 

@@ -1,4 +1,13 @@
 ## [v2.2.1] - 2026-06-06
+- chore: release v2.2.1 (facdfac)
+- chore: release v2.2.1 (a60bc8c)
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+- ... and 1 more changes.
+
+
+## [v2.2.1] - 2026-06-06
 - chore: release v2.2.1 (a60bc8c)
 - quick update: 2026-06-06 04:18:52 (5924429)
 - chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)

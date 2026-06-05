@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.1.2-blue)
+![Version](https://img.shields.io/badge/version-v2.2.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,12 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.1.2] - 2026-06-02
-- chore(deps): update ZSH submodules (5c8f857)
-- chore(deps): bump oh-my-zsh from `bec3f22` to `b26b500` (941bfd2)
-- chore(deps): bump docker/login-action from 3 to 4 (448964d)
-- chore(deps): bump zsh/plugins/history-search-multi-word (5d60462)
-- I have resolved the CI flakiness and restored the requested push strategy. (94e44d8)
+## [v2.2.2] - 2026-06-06
+
+> ### 🤖 AI Release Summary
+> SREの皆さん、胸を張って言おう！今回のアップデートで、私たちのシステムはさらに熱く、強くなった！🔥
+
+1.  **AIサマリーをGeminiへ大胆移行！🚀 性能とコストを最適化し、SREの新たな地平を切り拓くぜ！**
+2.  **Dockerfileを徹底最適化＆リリース堅牢化！💨 デプロイ速度と信頼性を究極まで高めたぞ！**
+3.  **CI/CDも賢く磨き上げ、開発体験とシステム安定性が爆速進化！✨ 未来へ向かうぞ、SRE魂！**
+
+---
+- fix: use Gemini (gemini-2.5-flash) instead of OpenAI for AI summary (c606446)
+- fix: shellcheck severity=error to ignore info/warning level (b8e562a)
+- fix: exclude .zsh from shellcheck and allow lint warnings (c18e1b7)
+- perf: optimize Dockerfile layers and image size, harden release script (f8599c0)
+- chore: update badge to 2.1.2 and regenerate OGP (770e203)
 
 <!-- RELEASE_NOTES_END -->
 

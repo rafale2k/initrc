@@ -1,12 +1,10 @@
 # 1. ビルドステージ
 FROM alpine:3.23 AS builder
 
-# パッケージキャッシュを利用してインストール
-RUN apk add --no-cache git python3 py3-pip
-
-# 仮想環境を作成し、LLMツールをインストール
 COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
+    apk add --no-cache git python3 py3-pip && \
+    # 仮想環境を作成し、LLMツールをインストール
     python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
     /opt/venv/bin/pip install -r requirements.txt && \
@@ -25,6 +23,9 @@ COPY . .
 RUN find . -name ".git" -exec rm -rf {} + && \
     find . -name "docs" -type d -exec rm -rf {} + && \
     find . -name "examples" -type d -exec rm -rf {} + && \
+    find . -name "*.md" -not -name "README.md" -delete && \
+    find . -name "LICENSE*" -delete && \
+    find . -name "CHANGELOG*" -delete && \
     # oh-my-zshの未使用プラグインとテーマを削除 (サイズ削減の要)
     cd oh-my-zsh && \
     find plugins -mindepth 1 -maxdepth 1 -type d | grep -vE "^plugins/(git|z)$" | xargs rm -rf && \

@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.0-blue)
+![Version](https://img.shields.io/badge/version-v2.2.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,12 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.0] - 2026-06-06
+## [v2.2.1] - 2026-06-06
+
+> ### 🤖 AI Release Summary
+> ⚡️ **シェルインフラの超強化！** Dependabotを駆使して`oh-my-zsh`やテーマ等の依存関係を最新版へアップデートし、開発環境の堅牢性と爆速の操作性を完全確保しました！
+
+🚀 **魂のリリースv2.2.0、ここに完遂！** 緻密なバージョン管理と完璧なCHANGELOG更新により、プロダクションの信頼性とデプロイの安定性を極限まで高めてリリースを完了しました！
+
+🎨 **ビジュアルも最高峰へアップデート！** 新たな2.2.0バッジと再生成されたOGP画像が、我々のたゆまぬ進化と最高のエンジニアリング品質を視覚的にも世界へ強烈にアピールします！
+
+---
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+- chore: release v2.2.0 (cfb331c)
 - chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
-- chore(deps): bump oh-my-zsh from `bec3f22` to `70ad5e3` (d4fc864)
-- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `a0c9dbe` (efce20c)
-- chore: update badge to 2.1.2 and regenerate OGP (46f4c36)
-- chore: update badge to 2.1.2 and regenerate OGP (1159a47)
 
 <!-- RELEASE_NOTES_END -->
 

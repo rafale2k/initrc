@@ -1,3 +1,19 @@
+## [v2.2.1] - 2026-06-06
+
+> ### 🤖 AI Release Summary
+> ⚡️ **シェルインフラの超強化！** Dependabotを駆使して`oh-my-zsh`やテーマ等の依存関係を最新版へアップデートし、開発環境の堅牢性と爆速の操作性を完全確保しました！
+
+🚀 **魂のリリースv2.2.0、ここに完遂！** 緻密なバージョン管理と完璧なCHANGELOG更新により、プロダクションの信頼性とデプロイの安定性を極限まで高めてリリースを完了しました！
+
+🎨 **ビジュアルも最高峰へアップデート！** 新たな2.2.0バッジと再生成されたOGP画像が、我々のたゆまぬ進化と最高のエンジニアリング品質を視覚的にも世界へ強烈にアピールします！
+
+---
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+- chore: release v2.2.0 (cfb331c)
+- chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
+
 ## [v2.2.0] - 2026-06-06
 - chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
 - chore(deps): bump oh-my-zsh from `bec3f22` to `70ad5e3` (d4fc864)

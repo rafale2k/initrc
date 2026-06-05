@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # 1. バージョン情報の取得と更新
 CURRENT_VERSION=$(cat VERSION)
@@ -101,8 +102,9 @@ git tag -af "$VERSION" -m "Release $VERSION"
 echo "🐳 Building Docker image..."
 DOCKER_BUILDKIT=1 docker build -t "$DOCKER_REPO:$DOCK_VER" .
 docker tag "$DOCKER_REPO:$DOCK_VER" "$DOCKER_REPO:latest"
-docker push "$DOCKER_REPO:$DOCK_VER"
-docker push "$DOCKER_REPO:latest"
+docker push "$DOCKER_REPO:$DOCK_VER" &
+docker push "$DOCKER_REPO:latest" &
+wait
 
 # 10. Final Push（強制プッシュで Actions との歴史のズレを解消）
 git push origin main --force --tags

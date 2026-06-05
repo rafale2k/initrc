@@ -1,4 +1,31 @@
-## [v2.2.2] - 2026-06-06
+## [v2.2.1] - 2026-06-06
+- chore: release v2.2.1 (facdfac)
+- chore: release v2.2.1 (a60bc8c)
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+- ... and 1 more changes.
+
+
+## [v2.2.1] - 2026-06-06
+- chore: release v2.2.1 (a60bc8c)
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+
+## [v2.2.1] - 2026-06-06
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+- chore: release v2.2.0 (cfb331c)
+- chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
+
+## [v2.2.0] - 2026-06-06
+- chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
+- chore(deps): bump oh-my-zsh from `bec3f22` to `70ad5e3` (d4fc864)
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `a0c9dbe` (efce20c)
+- chore: update badge to 2.1.2 and regenerate OGP (46f4c36)
+- chore: update badge to 2.1.2 and regenerate OGP (1159a47)
 
 > ### 🤖 AI Release Summary
 > SREの皆さん、胸を張って言おう！今回のアップデートで、私たちのシステムはさらに熱く、強くなった！🔥

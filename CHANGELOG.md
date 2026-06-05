@@ -1,3 +1,10 @@
+## [v2.2.0] - 2026-06-06
+- chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
+- chore(deps): bump oh-my-zsh from `bec3f22` to `70ad5e3` (d4fc864)
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `a0c9dbe` (efce20c)
+- chore: update badge to 2.1.2 and regenerate OGP (46f4c36)
+- chore: update badge to 2.1.2 and regenerate OGP (1159a47)
+
 ## [v2.1.2] - 2026-06-02
 - chore(deps): update ZSH submodules (5c8f857)
 - chore(deps): bump oh-my-zsh from `bec3f22` to `b26b500` (941bfd2)

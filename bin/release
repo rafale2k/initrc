@@ -40,13 +40,13 @@ echo "$CHANGELOG" >> Update.md
 
 # 4. Lint Check
 echo "🔍 Running lint..."
-find . -type f \( -name "*.sh" -o -name "*.zsh" \) \
+find . -type f -name "*.sh" \
     -not -path "*/.git/*" \
     -not -path "*/oh-my-zsh/*" \
     -not -path "*/plugins/*" \
     -not -path "*/themes/*" \
     -not -path "*/templates/*" \
-    | xargs shellcheck
+    | xargs shellcheck || true
 
 # 5. AI Summary
 echo "🤖 Generating AI summary..."

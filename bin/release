@@ -46,7 +46,7 @@ find . -type f -name "*.sh" \
     -not -path "*/plugins/*" \
     -not -path "*/themes/*" \
     -not -path "*/templates/*" \
-    | xargs shellcheck || true
+    | xargs shellcheck --severity=error
 
 # 5. AI Summary
 echo "🤖 Generating AI summary..."

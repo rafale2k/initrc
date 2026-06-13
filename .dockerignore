@@ -24,8 +24,6 @@
 
 # 4. ルートにある必須ファイルを許可
 !/install.sh
-!/Dockerfile
-!/README.md
 !/requirements.txt
 !/.mailmap
 

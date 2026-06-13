@@ -10,6 +10,7 @@ editors/nano-syntax-highlighting/
 .env.local
 *.local
 .dotfiles_env
+.env
 
 # Temporary files
 *.swp

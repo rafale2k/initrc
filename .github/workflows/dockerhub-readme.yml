@@ -2,7 +2,6 @@ name: Update Docker Hub and Assets
 
 on:
   push:
-    branches: [ main ]
     tags: [ "v*" ]
   workflow_dispatch:
 
@@ -26,22 +25,6 @@ jobs:
         id: get_version
         run: echo "VERSION=$(cat VERSION)" >> $GITHUB_OUTPUT
 
-      # 🚀 ここで README の中身をチェックする
-      - name: Debug README Content
-        run: |
-          echo "--- Current README Badge Line ---"
-          grep "img.shields.io" README.md || echo "Shields.io badge NOT FOUND in README.md"
-
-      - name: Update Badge in README
-        run: |
-          VERSION=${{ steps.get_version.outputs.VERSION }}
-          # パターンをさらにルーズに： 'badge/' から ')' までの間にある 'version-...' を狙い撃ち
-          sed -i "s/version-[^)]*/version-v${VERSION}-blue/g" README.md
-          
-          echo "--- After Replace Debug ---"
-          # 見つからなくてもワークフローを止めないように || true を追加
-          grep "img.shields.io" README.md || echo "Badge not found but continuing..."
-      
       - name: Generate OGP Image
         run: |
           sudo apt-get install -y imagemagick
@@ -69,24 +52,14 @@ jobs:
           repository: rafale2k/initrc
           readme-filepath: ./README.md
 
-      - name: Commit and Push changes
+      - name: Commit OGP image if changed
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
-          # Docker Hub用の置換を戻す
+
+          # README の Docker Hub 用パス置換を元に戻す
           git checkout README.md
-          
-          # バッジだけ再度置換
-          VERSION=${{ steps.get_version.outputs.VERSION }}
-          sed -i "s/version-[^)]*/version-v${VERSION}-blue/g" README.md
-          
-          git add README.md assets/ogp.png
-          # [skip ci] を外すことで、このプッシュによって Docker Build CI 等が連動するようにする
-          git commit -m "chore: update badge to $VERSION and regenerate OGP" || echo "No changes to commit"
 
-          # 競合回避のため、一度 fetch して ours マージしてから force push する元の戦略に復帰
-          git fetch origin main
-          git merge -s recursive -X ours origin/main || true
-          git push origin HEAD:main --force
-
+          git add assets/ogp.png
+          git diff --staged --quiet || git commit -m "chore: regenerate OGP image [skip ci]"
+          git push origin HEAD:main || echo "⚠️ Push skipped (no changes or conflict)"

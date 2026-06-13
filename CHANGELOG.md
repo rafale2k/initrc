@@ -1,13 +1,35 @@
-## [v2.2.1] - 2026-06-06
+## [v2.2.2] - 2026-06-14
 
 > ### 🤖 AI Release Summary
-> ⚡️ **シェルインフラの超強化！** Dependabotを駆使して`oh-my-zsh`やテーマ等の依存関係を最新版へアップデートし、開発環境の堅牢性と爆速の操作性を完全確保しました！
+> はい、SREとしてこの変更を情熱的に要約します！
 
-🚀 **魂のリリースv2.2.0、ここに完遂！** 緻密なバージョン管理と完璧なCHANGELOG更新により、プロダクションの信頼性とデプロイの安定性を極限まで高めてリリースを完了しました！
-
-🎨 **ビジュアルも最高峰へアップデート！** 新たな2.2.0バッジと再生成されたOGP画像が、我々のたゆまぬ進化と最高のエンジニアリング品質を視覚的にも世界へ強烈にアピールします！
+1.  CI/CDの無駄を徹底排除！ワークフローを劇的にシンプル化し、俊敏性を爆上げ！🚀
+2.  Dockerデプロイもトリガーを研ぎ澄まし、運用効率と安定性を極限まで追求！💡
+3.  これぞSREの理想！堅牢でシンプルな未来へ加速する、最高の改善です！🎉
 
 ---
+- ci: remove redundant ci.yml, trim docker-publish trigger, simplify dockerhub-readme workflow (077427c)
+- chore: update badge to 2.2.2 and regenerate OGP (c47121a)
+- chore: update badge to 2.2.1 and regenerate OGP (9e34c9e)
+- chore: update badge to 2.2.2 and regenerate OGP (5246e1c)
+- chore: update badge to 2.1.2 and regenerate OGP (e81013b)
+
+## [v2.2.1] - 2026-06-06
+- chore: release v2.2.1 (facdfac)
+- chore: release v2.2.1 (a60bc8c)
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+- ... and 1 more changes.
+
+
+## [v2.2.1] - 2026-06-06
+- chore: release v2.2.1 (a60bc8c)
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+
+## [v2.2.1] - 2026-06-06
 - quick update: 2026-06-06 04:18:52 (5924429)
 - chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
 - chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
@@ -21,12 +43,33 @@
 - chore: update badge to 2.1.2 and regenerate OGP (46f4c36)
 - chore: update badge to 2.1.2 and regenerate OGP (1159a47)
 
-## [v2.1.2] - 2026-06-02
-- chore(deps): update ZSH submodules (5c8f857)
-- chore(deps): bump oh-my-zsh from `bec3f22` to `b26b500` (941bfd2)
-- chore(deps): bump docker/login-action from 3 to 4 (448964d)
-- chore(deps): bump zsh/plugins/history-search-multi-word (5d60462)
+> ### 🤖 AI Release Summary
+> SREの皆さん、胸を張って言おう！今回のアップデートで、私たちのシステムはさらに熱く、強くなった！🔥
+
+1.  **AIサマリーをGeminiへ大胆移行！🚀 性能とコストを最適化し、SREの新たな地平を切り拓くぜ！**
+2.  **Dockerfileを徹底最適化＆リリース堅牢化！💨 デプロイ速度と信頼性を究極まで高めたぞ！**
+3.  **CI/CDも賢く磨き上げ、開発体験とシステム安定性が爆速進化！✨ 未来へ向かうぞ、SRE魂！**
+
+---
+- fix: use Gemini (gemini-2.5-flash) instead of OpenAI for AI summary (c606446)
+- fix: shellcheck severity=error to ignore info/warning level (b8e562a)
+- fix: exclude .zsh from shellcheck and allow lint warnings (c18e1b7)
+- perf: optimize Dockerfile layers and image size, harden release script (f8599c0)
+- chore: update badge to 2.1.2 and regenerate OGP (770e203)
+
+## [v2.1.2] - 2026-05-30
+
+> ### 🤖 AI Release Summary
+> 💥 CIの不安定性（Flakiness）を粉砕し、DockerHub連携の自動化パイプラインに絶対的な信頼性を取り戻しました！
+🧹 環境設定と依存関係サブモジュールを徹底的にクリーンアップし、開発からデプロイまで揺るぎない極限の安定性を確保！
+🚀 輝く新バージョン「2.1.1」のリリースに伴い、看板となるバッジとOGPアセットも最新鋭の美しい姿へと完全同期完了です！
+
+---
+- chore(deps): Update oh-my-zsh submodule reference (19f018e)
 - I have resolved the CI flakiness and restored the requested push strategy. (94e44d8)
+- chore: update badge to 2.1.1 and regenerate OGP (ea71f4e)
+- chore: update badge to 2.1.1 and regenerate OGP (04e18a9)
+- chore: release v2.1.1 (d35f923)
 
 ## [v2.1.1] - 2026-05-24
 - chore: update badge to 2.1.0 and regenerate OGP (af8f74b)

@@ -1,3 +1,62 @@
+## [v2.2.2] - 2026-06-14
+
+> ### 🤖 AI Release Summary
+> はい、SREとしてこの変更を情熱的に要約します！
+
+1.  CI/CDの無駄を徹底排除！ワークフローを劇的にシンプル化し、俊敏性を爆上げ！🚀
+2.  Dockerデプロイもトリガーを研ぎ澄まし、運用効率と安定性を極限まで追求！💡
+3.  これぞSREの理想！堅牢でシンプルな未来へ加速する、最高の改善です！🎉
+
+---
+- ci: remove redundant ci.yml, trim docker-publish trigger, simplify dockerhub-readme workflow (077427c)
+- chore: update badge to 2.2.2 and regenerate OGP (c47121a)
+- chore: update badge to 2.2.1 and regenerate OGP (9e34c9e)
+- chore: update badge to 2.2.2 and regenerate OGP (5246e1c)
+- chore: update badge to 2.1.2 and regenerate OGP (e81013b)
+
+## [v2.2.1] - 2026-06-06
+- chore: release v2.2.1 (facdfac)
+- chore: release v2.2.1 (a60bc8c)
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+- ... and 1 more changes.
+
+
+## [v2.2.1] - 2026-06-06
+- chore: release v2.2.1 (a60bc8c)
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+
+## [v2.2.1] - 2026-06-06
+- quick update: 2026-06-06 04:18:52 (5924429)
+- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
+- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
+- chore: release v2.2.0 (cfb331c)
+- chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
+
+## [v2.2.0] - 2026-06-06
+- chore(deps): bump zsh/plugins/history-search-multi-word (ce739f7)
+- chore(deps): bump oh-my-zsh from `bec3f22` to `70ad5e3` (d4fc864)
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `a0c9dbe` (efce20c)
+- chore: update badge to 2.1.2 and regenerate OGP (46f4c36)
+- chore: update badge to 2.1.2 and regenerate OGP (1159a47)
+
+> ### 🤖 AI Release Summary
+> SREの皆さん、胸を張って言おう！今回のアップデートで、私たちのシステムはさらに熱く、強くなった！🔥
+
+1.  **AIサマリーをGeminiへ大胆移行！🚀 性能とコストを最適化し、SREの新たな地平を切り拓くぜ！**
+2.  **Dockerfileを徹底最適化＆リリース堅牢化！💨 デプロイ速度と信頼性を究極まで高めたぞ！**
+3.  **CI/CDも賢く磨き上げ、開発体験とシステム安定性が爆速進化！✨ 未来へ向かうぞ、SRE魂！**
+
+---
+- fix: use Gemini (gemini-2.5-flash) instead of OpenAI for AI summary (c606446)
+- fix: shellcheck severity=error to ignore info/warning level (b8e562a)
+- fix: exclude .zsh from shellcheck and allow lint warnings (c18e1b7)
+- perf: optimize Dockerfile layers and image size, harden release script (f8599c0)
+- chore: update badge to 2.1.2 and regenerate OGP (770e203)
+
 ## [v2.1.2] - 2026-05-30
 
 > ### 🤖 AI Release Summary

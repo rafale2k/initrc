@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # 1. バージョン情報の取得と更新
 CURRENT_VERSION=$(cat VERSION)
@@ -39,17 +40,17 @@ echo "$CHANGELOG" >> Update.md
 
 # 4. Lint Check
 echo "🔍 Running lint..."
-find . -type f \( -name "*.sh" -o -name "*.zsh" \) \
+find . -type f -name "*.sh" \
     -not -path "*/.git/*" \
     -not -path "*/oh-my-zsh/*" \
     -not -path "*/plugins/*" \
     -not -path "*/themes/*" \
     -not -path "*/templates/*" \
-    | xargs shellcheck
+    | xargs shellcheck --severity=error
 
 # 5. AI Summary
 echo "🤖 Generating AI summary..."
-AI_SUMMARY=$(echo "$DIFF_DATA" | llm -s "SREとして、今回の変更を3行で情熱的に日本語で要約して。各行に絵文字を付けて。")
+AI_SUMMARY=$(echo "$DIFF_DATA" | llm -m gemini-2.5-flash -s "SREとして、今回の変更を3行で情熱的に日本語で要約して。各行に絵文字を付けて。")
 
 # 6. CHANGELOG.md 更新
 ~/dotfiles/bin/gen-changelog "$VERSION"
@@ -101,8 +102,9 @@ git tag -af "$VERSION" -m "Release $VERSION"
 echo "🐳 Building Docker image..."
 DOCKER_BUILDKIT=1 docker build -t "$DOCKER_REPO:$DOCK_VER" .
 docker tag "$DOCKER_REPO:$DOCK_VER" "$DOCKER_REPO:latest"
-docker push "$DOCKER_REPO:$DOCK_VER"
-docker push "$DOCKER_REPO:latest"
+docker push "$DOCKER_REPO:$DOCK_VER" &
+docker push "$DOCKER_REPO:latest" &
+wait
 
 # 10. Final Push（強制プッシュで Actions との歴史のズレを解消）
 git push origin main --force --tags

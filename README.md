@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.1-blue)
+![Version](https://img.shields.io/badge/version-v2.2.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,13 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.1] - 2026-06-06
-- chore: release v2.2.1 (facdfac)
-- chore: release v2.2.1 (a60bc8c)
-- quick update: 2026-06-06 04:18:52 (5924429)
-- chore: update badge to 2.2.0 and regenerate OGP (d5c63ed)
-- chore: update badge to 2.2.0 and regenerate OGP (0c3a45c)
-- ... and 1 more changes.
+## [v2.2.2] - 2026-06-14
+
+> ### 🤖 AI Release Summary
+> はい、SREとしてこの変更を情熱的に要約します！
+
+1.  CI/CDの無駄を徹底排除！ワークフローを劇的にシンプル化し、俊敏性を爆上げ！🚀
+2.  Dockerデプロイもトリガーを研ぎ澄まし、運用効率と安定性を極限まで追求！💡
+3.  これぞSREの理想！堅牢でシンプルな未来へ加速する、最高の改善です！🎉
+
+---
+- ci: remove redundant ci.yml, trim docker-publish trigger, simplify dockerhub-readme workflow (077427c)
+- chore: update badge to 2.2.2 and regenerate OGP (c47121a)
+- chore: update badge to 2.2.1 and regenerate OGP (9e34c9e)
+- chore: update badge to 2.2.2 and regenerate OGP (5246e1c)
+- chore: update badge to 2.1.2 and regenerate OGP (e81013b)
 
 <!-- RELEASE_NOTES_END -->
 

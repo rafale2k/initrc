@@ -1,3 +1,19 @@
+## [v2.2.2] - 2026-06-14
+
+> ### 🤖 AI Release Summary
+> はい、SREとしてこの変更を情熱的に要約します！
+
+1.  CI/CDの無駄を徹底排除！ワークフローを劇的にシンプル化し、俊敏性を爆上げ！🚀
+2.  Dockerデプロイもトリガーを研ぎ澄まし、運用効率と安定性を極限まで追求！💡
+3.  これぞSREの理想！堅牢でシンプルな未来へ加速する、最高の改善です！🎉
+
+---
+- ci: remove redundant ci.yml, trim docker-publish trigger, simplify dockerhub-readme workflow (077427c)
+- chore: update badge to 2.2.2 and regenerate OGP (c47121a)
+- chore: update badge to 2.2.1 and regenerate OGP (9e34c9e)
+- chore: update badge to 2.2.2 and regenerate OGP (5246e1c)
+- chore: update badge to 2.1.2 and regenerate OGP (e81013b)
+
 ## [v2.2.1] - 2026-06-06
 - chore: release v2.2.1 (facdfac)
 - chore: release v2.2.1 (a60bc8c)

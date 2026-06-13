@@ -259,18 +259,17 @@ ha            # 使えるコマンドを fzf で探す
 ## [v2.2.2] - 2026-06-14
 
 > ### 🤖 AI Release Summary
-> はい、SREとしてこの変更を情熱的に要約します！
-
-1.  CI/CDの無駄を徹底排除！ワークフローを劇的にシンプル化し、俊敏性を爆上げ！🚀
-2.  Dockerデプロイもトリガーを研ぎ澄まし、運用効率と安定性を極限まで追求！💡
-3.  これぞSREの理想！堅牢でシンプルな未来へ加速する、最高の改善です！🎉
+> 1. Zshサブモジュールを最新化！🔥 `oh-my-zsh`と`powerlevel10k`が進化しました！
+2. これで開発環境は常に最前線！安定性、セキュリティ、最高のUXを実現します！✨
+3. SREとして、揺るぎない基盤と最速の体験を追求し、未来を拓きます！🚀
 
 ---
-- ci: remove redundant ci.yml, trim docker-publish trigger, simplify dockerhub-readme workflow (077427c)
-- chore: update badge to 2.2.2 and regenerate OGP (c47121a)
-- chore: update badge to 2.2.1 and regenerate OGP (9e34c9e)
-- chore: update badge to 2.2.2 and regenerate OGP (5246e1c)
-- chore: update badge to 2.1.2 and regenerate OGP (e81013b)
+- chore(deps): update git submodules to latest (b794952)
+- chore: update badge to 2.1.2 and regenerate OGP (acb647f)
+- chore: update badge to 2.2.1 and regenerate OGP (6be3aee)
+- chore: release v2.2.2 (14fee6c)
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `a0c9dbe` (4175426)
+- ... and 31 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

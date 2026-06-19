@@ -1,3 +1,19 @@
+## [v2.2.3] - 2026-06-20
+
+> ### 🤖 AI Release Summary
+> SREとして、今回の変更を情熱的に要約すると以下のようになります！
+
+1.  サブモジュールを一斉更新！最新の依存関係でシステムの健全性を爆上げだ！🚀
+2.  潜在的なセキュリティリスクを排除し、運用は盤石！チームの安心を最優先！🛡️
+3.  v2.2.2をリリース！この安定性で、次の高みへ情熱的に挑み続けるぞ！✨
+
+---
+- chore(deps): bump oh-my-zsh from `a071263` to `df34d2b` (ed28459)
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `9253fb1` (ee26667)
+- chore: regenerate OGP image [skip ci] (436d0d7)
+- chore: release v2.2.2 (a8a58cc)
+- chore(deps): update git submodules to latest (b794952)
+
 ## [v2.2.2] - 2026-06-14
 
 > ### 🤖 AI Release Summary

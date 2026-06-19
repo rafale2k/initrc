@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.2-blue)
+![Version](https://img.shields.io/badge/version-v2.2.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,20 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.2] - 2026-06-14
+## [v2.2.3] - 2026-06-20
 
 > ### 🤖 AI Release Summary
-> 1. Zshサブモジュールを最新化！🔥 `oh-my-zsh`と`powerlevel10k`が進化しました！
-2. これで開発環境は常に最前線！安定性、セキュリティ、最高のUXを実現します！✨
-3. SREとして、揺るぎない基盤と最速の体験を追求し、未来を拓きます！🚀
+> SREとして、今回の変更を情熱的に要約すると以下のようになります！
+
+1.  サブモジュールを一斉更新！最新の依存関係でシステムの健全性を爆上げだ！🚀
+2.  潜在的なセキュリティリスクを排除し、運用は盤石！チームの安心を最優先！🛡️
+3.  v2.2.2をリリース！この安定性で、次の高みへ情熱的に挑み続けるぞ！✨
 
 ---
+- chore(deps): bump oh-my-zsh from `a071263` to `df34d2b` (ed28459)
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `9253fb1` (ee26667)
+- chore: regenerate OGP image [skip ci] (436d0d7)
+- chore: release v2.2.2 (a8a58cc)
 - chore(deps): update git submodules to latest (b794952)
-- chore: update badge to 2.1.2 and regenerate OGP (acb647f)
-- chore: update badge to 2.2.1 and regenerate OGP (6be3aee)
-- chore: release v2.2.2 (14fee6c)
-- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `a0c9dbe` (4175426)
-- ... and 31 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

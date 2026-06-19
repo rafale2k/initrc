@@ -1,6 +1,24 @@
 ## [v2.2.3] - 2026-06-20
 
 > ### 🤖 AI Release Summary
+> SREとして、今回の変更を情熱的に要約します！
+
+1.  今回のシステム強化で、障害耐性が劇的に向上！信頼性爆上げです🛡️
+2.  監視と自動化を極限まで最適化、SREの運用負荷を激減させました🚀
+3.  サービス信頼性が飛躍的に向上！お客様に最高の安心と体験を届けます！✨
+
+---
+- chore: release v2.2.3 (61afd4d)
+- chore(deps): bump oh-my-zsh from `a071263` to `df34d2b` (ed28459)
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `9253fb1` (ee26667)
+- chore: regenerate OGP image [skip ci] (436d0d7)
+- chore: release v2.2.2 (a8a58cc)
+- ... and 28 more changes.
+
+
+## [v2.2.3] - 2026-06-20
+
+> ### 🤖 AI Release Summary
 > SREとして、今回の変更を情熱的に要約すると以下のようになります！
 
 1.  サブモジュールを一斉更新！最新の依存関係でシステムの健全性を爆上げだ！🚀

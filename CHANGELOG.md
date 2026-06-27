@@ -1,3 +1,17 @@
+## [v2.2.4] - 2026-06-28
+
+> ### 🤖 AI Release Summary
+> SREとして、今回の変更はまさにシステムの心臓を強化するアップデート！🚀
+重要サブモジュールからCI/CDアクションまで一斉刷新し、セキュリティと安定性が爆上がりです！🛡️
+さらにリリースプロセスも徹底的に堅牢化！✨ これで未来へのデプロイは、よりスムーズで確実なものになりました！💯
+
+---
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `9253fb1` (9ecf5db)
+- chore(deps): bump oh-my-zsh from `bec3f22` to `df34d2b` (8339d41)
+- chore(deps): bump actions/checkout from 6 to 7 (d39fa65)
+- chore(deps): bump zsh/plugins/history-search-multi-word (b9e8964)
+- fix(release): harden release script against LLM failures and clean up duplicate changelog entries (32eddf9)
+
 ## [v2.2.3] - 2026-06-20
 
 > ### 🤖 AI Release Summary

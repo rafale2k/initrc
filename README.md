@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.4-blue)
+![Version](https://img.shields.io/badge/version-v2.2.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,19 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.4] - 2026-06-28
+## [v2.2.5] - 2026-07-09
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更はまさにシステムの心臓を強化するアップデート！🚀
-重要サブモジュールからCI/CDアクションまで一斉刷新し、セキュリティと安定性が爆上がりです！🛡️
-さらにリリースプロセスも徹底的に堅牢化！✨ これで未来へのデプロイは、よりスムーズで確実なものになりました！💯
+> SRE魂が震える今回の更新！🚀
+
+1.  重要なサブモジュール `oh-my-zsh` を最新版へ即座に更新！システムの安定性とセキュリティを盤石にするぞ！🛡️
+2.  Dependabotが依存関係を自動で健全化！運用効率を圧倒的に高め、SREの負荷軽減にも貢献だ！🤖
+3.  さらにOGP画像も最新化し、視覚的な一貫性と魅力を向上！細部に宿る品質こそがSREの証だ！✨
 
 ---
+- chore(deps): bump oh-my-zsh from `df34d2b` to `ff2f16e` (aa5707a)
+- chore: regenerate OGP image [skip ci] (e57d72d)
+- chore: release v2.2.4 (5278be7)
 - chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `9253fb1` (9ecf5db)
 - chore(deps): bump oh-my-zsh from `bec3f22` to `df34d2b` (8339d41)
-- chore(deps): bump actions/checkout from 6 to 7 (d39fa65)
-- chore(deps): bump zsh/plugins/history-search-multi-word (b9e8964)
-- fix(release): harden release script against LLM failures and clean up duplicate changelog entries (32eddf9)
 
 <!-- RELEASE_NOTES_END -->
 

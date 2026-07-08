@@ -1,3 +1,19 @@
+## [v2.2.5] - 2026-07-09
+
+> ### 🤖 AI Release Summary
+> SRE魂が震える今回の更新！🚀
+
+1.  重要なサブモジュール `oh-my-zsh` を最新版へ即座に更新！システムの安定性とセキュリティを盤石にするぞ！🛡️
+2.  Dependabotが依存関係を自動で健全化！運用効率を圧倒的に高め、SREの負荷軽減にも貢献だ！🤖
+3.  さらにOGP画像も最新化し、視覚的な一貫性と魅力を向上！細部に宿る品質こそがSREの証だ！✨
+
+---
+- chore(deps): bump oh-my-zsh from `df34d2b` to `ff2f16e` (aa5707a)
+- chore: regenerate OGP image [skip ci] (e57d72d)
+- chore: release v2.2.4 (5278be7)
+- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `9253fb1` (9ecf5db)
+- chore(deps): bump oh-my-zsh from `bec3f22` to `df34d2b` (8339d41)
+
 ## [v2.2.4] - 2026-06-28
 
 > ### 🤖 AI Release Summary

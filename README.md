@@ -259,17 +259,17 @@ ha            # 使えるコマンドを fzf で探す
 ## [v2.2.6] - 2026-07-13
 
 > ### 🤖 AI Release Summary
-> 素晴らしい変更ですね！SREとして、この進化を情熱的にお伝えします！
-
-システムの根幹を強化し、盤石な未来を築き上げました！🚀
-監視と自動化を極め、障害検知から復旧までを圧倒的に高速化！⚡
-ユーザーへ最高の体験を、ビジネスへ絶え間ない価値を届け続けます！❤️
+> Goを最新1.26.5へ更新！🚀 爆速＆堅牢な基盤でサービスを強化！
+セキュリティ脆弱性を排除し、安定稼働を徹底的に追求する！🛡️
+この一手で、SREの魂を込めて最高のパフォーマンスを提供します！🔥
 
 ---
+- Update Golang to 1.26.5 (45978e6)
+- chore: release v2.2.6 (dd74072)
 - chore: release v2.2.6 (5964cbd)
 - Update Golang to 1.26.4 (5f73d79)
 - fix: update alpine image version to latest in Dockerfile (7d0e873)
-- chore: regenerate OGP image [skip ci] (f068f18)
+- ... and 1 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

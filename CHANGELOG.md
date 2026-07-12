@@ -1,6 +1,26 @@
 ## [v2.2.7] - 2026-07-13
 
 > ### 🤖 AI Release Summary
+> はい、承知いたしました！SREとして、今回の変更を3行で情熱的に要約します！
+
+---
+
+Dockerfileでのfzfインストール元を厳選し、ビルドの信頼性を向上させました！🚀
+依存関係の健全化で、イメージ構築の安定性とセキュリティが飛躍的に向上！🛡️
+この小さな調整が、サービスの基盤を盤石にし、安定稼働を約束します！✨
+
+---
+- build(docker): Adjust fzf installation source (ac8e8ee)
+- chore: release v2.2.7 (8b2cea5)
+- Update Golang to 1.26.5 (185a903)
+- chore: release v2.2.7 (2d99669)
+- chore: regenerate OGP image [skip ci] (8b08f29)
+- ... and 3 more changes.
+
+
+## [v2.2.7] - 2026-07-13
+
+> ### 🤖 AI Release Summary
 > SREとして、今回の変更を3行で情熱的に要約します！
 
 🚀 Golang 1.26.5へのバージョンアップ完了！これで基盤はさらに堅牢に進化！

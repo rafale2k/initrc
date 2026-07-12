@@ -1,5 +1,5 @@
 # 1. ビルドステージ
-FROM golang:1.26.4-alpine AS builder
+FROM golang:1.26.5-alpine AS builder
 
 COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -32,7 +32,7 @@ RUN find . -name ".git" -exec rm -rf {} + && \
     find themes -mindepth 1 -maxdepth 1 -type d | grep -vE "^themes/robbyrussell.zsh-theme$" | xargs rm -rf
 
 # 2. 実行ステージ
-FROM golang:1.26.4-alpine
+FROM alpine:3.22
 
 RUN apk add --no-cache sudo bash zsh git curl python3 tree openssh fzf zoxide coreutils && \
     adduser -D -G wheel -s /bin/zsh rafale && \

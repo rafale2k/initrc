@@ -1,3 +1,17 @@
+## [v2.2.6] - 2026-07-13
+
+> ### 🤖 AI Release Summary
+> 🔥 Golangを最新版にアップデート！アプリケーションは爆速進化、ユーザー体験を限界まで高めます！🚀
+🛡️ 基盤のAlpineも最新化！セキュリティと安定性を鉄壁に強化し、盤石なシステム運用を実現します！✨
+💪 これでシステムはさらに堅牢に、そしてパワフルに！SREは最高のパフォーマンスと信頼を届けます！💖
+
+---
+- Update Golang to 1.26.4 (5f73d79)
+- fix: update alpine image version to latest in Dockerfile (7d0e873)
+- chore: regenerate OGP image [skip ci] (f068f18)
+- chore: release v2.2.5 (a70476d)
+- chore(deps): bump oh-my-zsh from `df34d2b` to `ff2f16e` (aa5707a)
+
 ## [v2.2.5] - 2026-07-09
 
 > ### 🤖 AI Release Summary

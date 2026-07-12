@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.5-blue)
+![Version](https://img.shields.io/badge/version-v2.2.6-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,21 +256,19 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.5] - 2026-07-09
+## [v2.2.6] - 2026-07-13
 
 > ### 🤖 AI Release Summary
-> SRE魂が震える今回の更新！🚀
-
-1.  重要なサブモジュール `oh-my-zsh` を最新版へ即座に更新！システムの安定性とセキュリティを盤石にするぞ！🛡️
-2.  Dependabotが依存関係を自動で健全化！運用効率を圧倒的に高め、SREの負荷軽減にも貢献だ！🤖
-3.  さらにOGP画像も最新化し、視覚的な一貫性と魅力を向上！細部に宿る品質こそがSREの証だ！✨
+> 🔥 Golangを最新版にアップデート！アプリケーションは爆速進化、ユーザー体験を限界まで高めます！🚀
+🛡️ 基盤のAlpineも最新化！セキュリティと安定性を鉄壁に強化し、盤石なシステム運用を実現します！✨
+💪 これでシステムはさらに堅牢に、そしてパワフルに！SREは最高のパフォーマンスと信頼を届けます！💖
 
 ---
+- Update Golang to 1.26.4 (5f73d79)
+- fix: update alpine image version to latest in Dockerfile (7d0e873)
+- chore: regenerate OGP image [skip ci] (f068f18)
+- chore: release v2.2.5 (a70476d)
 - chore(deps): bump oh-my-zsh from `df34d2b` to `ff2f16e` (aa5707a)
-- chore: regenerate OGP image [skip ci] (e57d72d)
-- chore: release v2.2.4 (5278be7)
-- chore(deps): bump zsh/themes/powerlevel10k from `604f19a` to `9253fb1` (9ecf5db)
-- chore(deps): bump oh-my-zsh from `bec3f22` to `df34d2b` (8339d41)
 
 <!-- RELEASE_NOTES_END -->
 

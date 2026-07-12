@@ -1,3 +1,19 @@
+## [v2.2.7] - 2026-07-13
+
+> ### 🤖 AI Release Summary
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+1.  **Dockerビルド戦略を抜本的に改善！** 無駄を徹底排除し、コンテナイメージを軽量化、運用効率が劇的に向上！🚀
+2.  **OGP画像も最新版へ更新完了！** 視覚的魅力UPで、サービスの一貫性と品質を盤石に保ちます！✨
+3.  **信頼性と美しさを両立！** この変更で、我々の提供するサービスはさらに安定し、ユーザー体験を最高峰へ押し上げます！🛡️
+
+---
+- refactor(docker): Improve build stage cleanup strategy (f72488a)
+- chore: regenerate OGP image [skip ci] (0a2de94)
+- chore: release v2.2.6 (485257f)
+- Update Golang to 1.26.5 (45978e6)
+- chore: release v2.2.6 (dd74072)
+
 ## [v2.2.6] - 2026-07-13
 
 > ### 🤖 AI Release Summary

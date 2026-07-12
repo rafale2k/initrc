@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.6-blue)
+![Version](https://img.shields.io/badge/version-v2.2.7-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,20 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.6] - 2026-07-13
+## [v2.2.7] - 2026-07-13
 
 > ### 🤖 AI Release Summary
-> Goを最新1.26.5へ更新！🚀 爆速＆堅牢な基盤でサービスを強化！
-セキュリティ脆弱性を排除し、安定稼働を徹底的に追求する！🛡️
-この一手で、SREの魂を込めて最高のパフォーマンスを提供します！🔥
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+1.  **Dockerビルド戦略を抜本的に改善！** 無駄を徹底排除し、コンテナイメージを軽量化、運用効率が劇的に向上！🚀
+2.  **OGP画像も最新版へ更新完了！** 視覚的魅力UPで、サービスの一貫性と品質を盤石に保ちます！✨
+3.  **信頼性と美しさを両立！** この変更で、我々の提供するサービスはさらに安定し、ユーザー体験を最高峰へ押し上げます！🛡️
 
 ---
+- refactor(docker): Improve build stage cleanup strategy (f72488a)
+- chore: regenerate OGP image [skip ci] (0a2de94)
+- chore: release v2.2.6 (485257f)
 - Update Golang to 1.26.5 (45978e6)
 - chore: release v2.2.6 (dd74072)
-- chore: release v2.2.6 (5964cbd)
-- Update Golang to 1.26.4 (5f73d79)
-- fix: update alpine image version to latest in Dockerfile (7d0e873)
-- ... and 1 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

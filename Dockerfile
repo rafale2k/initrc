@@ -8,9 +8,8 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
     /opt/venv/bin/pip install -r requirements.txt && \
-    # Pythonのキャッシュ、テスト、不要なコンパイル済みファイルを削除
+    # Pythonのキャッシュ・不要なコンパイル済みファイルを削除 (testsは削除しない: モジュール破損の原因)
     find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + && \
-    find /opt/venv -type d -name "tests" -exec rm -rf {} + && \
     find /opt/venv -name "*.pyc" -delete
 
 WORKDIR /build
@@ -28,7 +27,7 @@ RUN find . -name ".git" -exec rm -rf {} + && \
     find . -name "CHANGELOG*" -delete && \
     # oh-my-zshの未使用プラグインとテーマを削除 (サイズ削減の要)
     cd oh-my-zsh && \
-    find plugins -mindepth 1 -maxdepth 1 -type d | grep -vE "^plugins/(git|z)$" | xargs rm -rf && \
+    find plugins -mindepth 1 -maxdepth 1 -type d | grep -vE "^plugins/(git|git-extras|docker|docker-compose|copyfile|copypath|z)$" | xargs rm -rf && \
     find themes -mindepth 1 -maxdepth 1 -type d | grep -vE "^themes/robbyrussell.zsh-theme$" | xargs rm -rf
 
 # 2. 実行ステージ

@@ -29,7 +29,7 @@ FROM alpine:3.22
 
 # py3-pip を含めてインストール (venvをこのステージで作成するため)
 # fzf は apk ではなく builder の Go 1.26.5 製バイナリを使用
-COPY --from=builder /root/go/bin/fzf /usr/local/bin/fzf
+COPY --from=builder /go/bin/fzf /usr/local/bin/fzf
 
 RUN apk add --no-cache sudo bash zsh git curl python3 py3-pip tree openssh zoxide coreutils && \
     adduser -D -G wheel -s /bin/zsh rafale && \

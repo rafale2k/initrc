@@ -3,6 +3,9 @@ FROM golang:1.26.5-alpine AS builder
 
 RUN apk add --no-cache git
 
+# fzf を Go 1.26.5 でソースビルド (alpine:3.22 の apk 版は Go 1.24.12 製のため)
+RUN go install github.com/junegunn/fzf@latest
+
 WORKDIR /build
 COPY .git .git
 COPY .gitmodules .gitmodules
@@ -25,7 +28,10 @@ RUN find . -name ".git" -exec rm -rf {} + && \
 FROM alpine:3.22
 
 # py3-pip を含めてインストール (venvをこのステージで作成するため)
-RUN apk add --no-cache sudo bash zsh git curl python3 py3-pip tree openssh fzf zoxide coreutils && \
+# fzf は apk ではなく builder の Go 1.26.5 製バイナリを使用
+COPY --from=builder /root/go/bin/fzf /usr/local/bin/fzf
+
+RUN apk add --no-cache sudo bash zsh git curl python3 py3-pip tree openssh zoxide coreutils && \
     adduser -D -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 

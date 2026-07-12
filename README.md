@@ -259,16 +259,17 @@ ha            # 使えるコマンドを fzf で探す
 ## [v2.2.6] - 2026-07-13
 
 > ### 🤖 AI Release Summary
-> 🔥 Golangを最新版にアップデート！アプリケーションは爆速進化、ユーザー体験を限界まで高めます！🚀
-🛡️ 基盤のAlpineも最新化！セキュリティと安定性を鉄壁に強化し、盤石なシステム運用を実現します！✨
-💪 これでシステムはさらに堅牢に、そしてパワフルに！SREは最高のパフォーマンスと信頼を届けます！💖
+> 素晴らしい変更ですね！SREとして、この進化を情熱的にお伝えします！
+
+システムの根幹を強化し、盤石な未来を築き上げました！🚀
+監視と自動化を極め、障害検知から復旧までを圧倒的に高速化！⚡
+ユーザーへ最高の体験を、ビジネスへ絶え間ない価値を届け続けます！❤️
 
 ---
+- chore: release v2.2.6 (5964cbd)
 - Update Golang to 1.26.4 (5f73d79)
 - fix: update alpine image version to latest in Dockerfile (7d0e873)
 - chore: regenerate OGP image [skip ci] (f068f18)
-- chore: release v2.2.5 (a70476d)
-- chore(deps): bump oh-my-zsh from `df34d2b` to `ff2f16e` (aa5707a)
 
 <!-- RELEASE_NOTES_END -->
 

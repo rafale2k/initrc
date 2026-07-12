@@ -32,7 +32,7 @@ RUN find . -name ".git" -exec rm -rf {} + && \
     find themes -mindepth 1 -maxdepth 1 -type d | grep -vE "^themes/robbyrussell.zsh-theme$" | xargs rm -rf
 
 # 2. 実行ステージ
-FROM alpine:latest
+FROM golang:1.26.4-alpine
 
 RUN apk add --no-cache sudo bash zsh git curl python3 tree openssh fzf zoxide coreutils && \
     adduser -D -G wheel -s /bin/zsh rafale && \

@@ -1,5 +1,5 @@
 # 1. ビルドステージ
-FROM alpine:latest AS builder
+FROM golang:1.26.4-alpine AS builder
 
 COPY requirements.txt .
 RUN --mount=type=cache,target=/root/.cache/pip \

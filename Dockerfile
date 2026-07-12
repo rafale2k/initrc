@@ -1,16 +1,7 @@
-# 1. ビルドステージ
+# 1. ビルドステージ (dotfilesの整理のみ; Pythonは使わない)
 FROM golang:1.26.5-alpine AS builder
 
-COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    apk add --no-cache git python3 py3-pip && \
-    # 仮想環境を作成し、LLMツールをインストール
-    python3 -m venv /opt/venv && \
-    /opt/venv/bin/pip install --upgrade pip && \
-    /opt/venv/bin/pip install -r requirements.txt && \
-    # Pythonのキャッシュ・不要なコンパイル済みファイルを削除 (testsは削除しない: モジュール破損の原因)
-    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + && \
-    find /opt/venv -name "*.pyc" -delete
+RUN apk add --no-cache git
 
 WORKDIR /build
 COPY .git .git
@@ -33,11 +24,22 @@ RUN find . -name ".git" -exec rm -rf {} + && \
 # 2. 実行ステージ
 FROM alpine:3.22
 
-RUN apk add --no-cache sudo bash zsh git curl python3 tree openssh fzf zoxide coreutils && \
+# py3-pip を含めてインストール (venvをこのステージで作成するため)
+RUN apk add --no-cache sudo bash zsh git curl python3 py3-pip tree openssh fzf zoxide coreutils && \
     adduser -D -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-COPY --from=builder /opt/venv /opt/venv
+# runtime の Python (3.12) で venv を作成
+COPY requirements.txt /tmp/requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --upgrade pip && \
+    /opt/venv/bin/pip install -r /tmp/requirements.txt && \
+    # Pythonのキャッシュ・不要なコンパイル済みファイルを削除
+    find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + && \
+    find /opt/venv -name "*.pyc" -delete && \
+    rm /tmp/requirements.txt
+
 COPY --from=builder --chown=rafale:rafale /build /home/rafale/dotfiles
 
 WORKDIR /home/rafale

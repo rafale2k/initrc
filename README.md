@@ -259,18 +259,15 @@ ha            # 使えるコマンドを fzf で探す
 ## [v2.2.7] - 2026-07-13
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更を3行で情熱的に要約します！
-
-1.  **Dockerビルド戦略を抜本的に改善！** 無駄を徹底排除し、コンテナイメージを軽量化、運用効率が劇的に向上！🚀
-2.  **OGP画像も最新版へ更新完了！** 視覚的魅力UPで、サービスの一貫性と品質を盤石に保ちます！✨
-3.  **信頼性と美しさを両立！** この変更で、我々の提供するサービスはさらに安定し、ユーザー体験を最高峰へ押し上げます！🛡️
+> SNSの第一印象を司るOGP画像を、情熱込めて再生成！✨
+ファイルサイズ最適化で表示は高速に、魅力は最大限に高めました！🚀
+これでユーザーエンゲージメント爆上げ、サイトのブランド力も最強です！🔥
 
 ---
+- chore: regenerate OGP image [skip ci] (8b08f29)
+- chore: release v2.2.7 (f780acc)
 - refactor(docker): Improve build stage cleanup strategy (f72488a)
 - chore: regenerate OGP image [skip ci] (0a2de94)
-- chore: release v2.2.6 (485257f)
-- Update Golang to 1.26.5 (45978e6)
-- chore: release v2.2.6 (dd74072)
 
 <!-- RELEASE_NOTES_END -->
 

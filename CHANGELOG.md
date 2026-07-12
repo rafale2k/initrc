@@ -1,6 +1,19 @@
 ## [v2.2.7] - 2026-07-13
 
 > ### 🤖 AI Release Summary
+> SNSの第一印象を司るOGP画像を、情熱込めて再生成！✨
+ファイルサイズ最適化で表示は高速に、魅力は最大限に高めました！🚀
+これでユーザーエンゲージメント爆上げ、サイトのブランド力も最強です！🔥
+
+---
+- chore: regenerate OGP image [skip ci] (8b08f29)
+- chore: release v2.2.7 (f780acc)
+- refactor(docker): Improve build stage cleanup strategy (f72488a)
+- chore: regenerate OGP image [skip ci] (0a2de94)
+
+## [v2.2.7] - 2026-07-13
+
+> ### 🤖 AI Release Summary
 > SREとして、今回の変更を3行で情熱的に要約します！
 
 1.  **Dockerビルド戦略を抜本的に改善！** 無駄を徹底排除し、コンテナイメージを軽量化、運用効率が劇的に向上！🚀

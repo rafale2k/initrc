@@ -1,6 +1,24 @@
 ## [v2.2.7] - 2026-07-13
 
 > ### 🤖 AI Release Summary
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+🚀 Golang 1.26.5へのバージョンアップ完了！これで基盤はさらに堅牢に進化！
+🛡️ セキュリティとパフォーマンスが飛躍的に向上、信頼性も爆上がりしました！
+🛠️ 未来への土台は万全、最高の安定性で本番環境へ羽ばたく準備万端です！
+
+---
+- Update Golang to 1.26.5 (185a903)
+- chore: release v2.2.7 (2d99669)
+- chore: regenerate OGP image [skip ci] (8b08f29)
+- chore: release v2.2.7 (f780acc)
+- refactor(docker): Improve build stage cleanup strategy (f72488a)
+- ... and 1 more changes.
+
+
+## [v2.2.7] - 2026-07-13
+
+> ### 🤖 AI Release Summary
 > SNSの第一印象を司るOGP画像を、情熱込めて再生成！✨
 ファイルサイズ最適化で表示は高速に、魅力は最大限に高めました！🚀
 これでユーザーエンゲージメント爆上げ、サイトのブランド力も最強です！🔥

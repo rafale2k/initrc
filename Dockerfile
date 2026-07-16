@@ -25,7 +25,7 @@ RUN find . -name ".git" -exec rm -rf {} + && \
     find themes -mindepth 1 -maxdepth 1 -type d | grep -vE "^themes/robbyrussell.zsh-theme$" | xargs rm -rf
 
 # 2. 実行ステージ
-FROM alpine:3.22
+FROM alpine:3.24
 
 # py3-pip を含めてインストール (venvをこのステージで作成するため)
 # fzf は apk ではなく builder の Go 1.26.5 製バイナリを使用

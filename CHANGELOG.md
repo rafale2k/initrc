@@ -1,3 +1,19 @@
+## [v2.2.8] - 2026-07-18
+
+> ### 🤖 AI Release Summary
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+1.  **システム基盤のDocker Alpineを最新版へ爆速更新！🚀 堅牢な実行環境を保証します！**
+2.  **開発効率を支えるOh-My-Zshも最新化！💪 セキュリティと快適性を両立させました！**
+3.  **全ての依存性アップデートで、我々のサービスは揺るぎない安定性を手に入れました！✨ 最高の運用体制へ邁進！**
+
+---
+- chore(deps): bump alpine from 3.22 to 3.24 (94538f6)
+- chore(deps): bump oh-my-zsh from `ff2f16e` to `677a459` (9af4d13)
+- chore: regenerate OGP image [skip ci] (08dbf8b)
+- chore: release v2.2.7 (afba668)
+- build(docker): Adjust fzf installation source (ac8e8ee)
+
 ## [v2.2.7] - 2026-07-13
 
 > ### 🤖 AI Release Summary

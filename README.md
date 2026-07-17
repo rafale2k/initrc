@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.7-blue)
+![Version](https://img.shields.io/badge/version-v2.2.8-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,24 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.7] - 2026-07-13
+## [v2.2.8] - 2026-07-18
 
 > ### 🤖 AI Release Summary
-> はい、承知いたしました！SREとして、今回の変更を3行で情熱的に要約します！
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+1.  **システム基盤のDocker Alpineを最新版へ爆速更新！🚀 堅牢な実行環境を保証します！**
+2.  **開発効率を支えるOh-My-Zshも最新化！💪 セキュリティと快適性を両立させました！**
+3.  **全ての依存性アップデートで、我々のサービスは揺るぎない安定性を手に入れました！✨ 最高の運用体制へ邁進！**
 
 ---
-
-Dockerfileでのfzfインストール元を厳選し、ビルドの信頼性を向上させました！🚀
-依存関係の健全化で、イメージ構築の安定性とセキュリティが飛躍的に向上！🛡️
-この小さな調整が、サービスの基盤を盤石にし、安定稼働を約束します！✨
-
----
+- chore(deps): bump alpine from 3.22 to 3.24 (94538f6)
+- chore(deps): bump oh-my-zsh from `ff2f16e` to `677a459` (9af4d13)
+- chore: regenerate OGP image [skip ci] (08dbf8b)
+- chore: release v2.2.7 (afba668)
 - build(docker): Adjust fzf installation source (ac8e8ee)
-- chore: release v2.2.7 (8b2cea5)
-- Update Golang to 1.26.5 (185a903)
-- chore: release v2.2.7 (2d99669)
-- chore: regenerate OGP image [skip ci] (8b08f29)
-- ... and 3 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

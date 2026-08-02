@@ -1,3 +1,17 @@
+## [v2.2.9] - 2026-08-03
+
+> ### 🤖 AI Release Summary
+> 我々のシステムは止まらない！💪 依存関係を最新化し、常に最高のパフォーマンスと安定性を追求しています！
+`oh-my-zsh`も最新にバンプ！🚀 開発効率とセキュリティを一段と引き上げ、未来への強固な基盤を構築しました！
+そして、視覚的な魅力も怠らない！✨ OGP画像を更新し、ユーザー体験を細部まで磨き上げました！
+
+---
+- chore(deps): bump oh-my-zsh from `e1d1f0d` to `7ea697f` (5d8e0b4)
+- chore(deps): bump oh-my-zsh from `677a459` to `e1d1f0d` (11da662)
+- chore: regenerate OGP image [skip ci] (6d95ceb)
+- chore: release v2.2.8 (a16ccab)
+- chore(deps): bump alpine from 3.22 to 3.24 (94538f6)
+
 ## [v2.2.8] - 2026-07-18
 
 > ### 🤖 AI Release Summary

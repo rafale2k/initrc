@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.8-blue)
+![Version](https://img.shields.io/badge/version-v2.2.9-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,21 +256,19 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.8] - 2026-07-18
+## [v2.2.9] - 2026-08-03
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更を3行で情熱的に要約します！
-
-1.  **システム基盤のDocker Alpineを最新版へ爆速更新！🚀 堅牢な実行環境を保証します！**
-2.  **開発効率を支えるOh-My-Zshも最新化！💪 セキュリティと快適性を両立させました！**
-3.  **全ての依存性アップデートで、我々のサービスは揺るぎない安定性を手に入れました！✨ 最高の運用体制へ邁進！**
+> 我々のシステムは止まらない！💪 依存関係を最新化し、常に最高のパフォーマンスと安定性を追求しています！
+`oh-my-zsh`も最新にバンプ！🚀 開発効率とセキュリティを一段と引き上げ、未来への強固な基盤を構築しました！
+そして、視覚的な魅力も怠らない！✨ OGP画像を更新し、ユーザー体験を細部まで磨き上げました！
 
 ---
+- chore(deps): bump oh-my-zsh from `e1d1f0d` to `7ea697f` (5d8e0b4)
+- chore(deps): bump oh-my-zsh from `677a459` to `e1d1f0d` (11da662)
+- chore: regenerate OGP image [skip ci] (6d95ceb)
+- chore: release v2.2.8 (a16ccab)
 - chore(deps): bump alpine from 3.22 to 3.24 (94538f6)
-- chore(deps): bump oh-my-zsh from `ff2f16e` to `677a459` (9af4d13)
-- chore: regenerate OGP image [skip ci] (08dbf8b)
-- chore: release v2.2.7 (afba668)
-- build(docker): Adjust fzf installation source (ac8e8ee)
 
 <!-- RELEASE_NOTES_END -->
 

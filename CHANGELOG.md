@@ -1,3 +1,19 @@
+## [v2.2.10] - 2026-08-15
+
+> ### 🤖 AI Release Summary
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+最新の依存関係で、愛用するシェル環境の基盤を全面リフレッシュ！🚀
+セキュリティと安定性を最優先に、システムをさらに堅牢に強化しました！🛡️
+OGP画像も更新し、細部に至るまで完璧を追求するSRE魂がここに！💖
+
+---
+- chore(deps): bump oh-my-zsh from `6adfef3` to `97b27bb` (6f5fd5a)
+- chore(deps): bump zsh/plugins/zsh-syntax-highlighting (668874b)
+- chore(deps): bump oh-my-zsh from `7ea697f` to `6adfef3` (c4430b9)
+- chore: regenerate OGP image [skip ci] (89fda4b)
+- chore: release v2.2.9 (b0066cd)
+
 ## [v2.2.9] - 2026-08-03
 
 > ### 🤖 AI Release Summary

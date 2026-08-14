@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.9-blue)
+![Version](https://img.shields.io/badge/version-v2.2.10-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,19 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.9] - 2026-08-03
+## [v2.2.10] - 2026-08-15
 
 > ### 🤖 AI Release Summary
-> 我々のシステムは止まらない！💪 依存関係を最新化し、常に最高のパフォーマンスと安定性を追求しています！
-`oh-my-zsh`も最新にバンプ！🚀 開発効率とセキュリティを一段と引き上げ、未来への強固な基盤を構築しました！
-そして、視覚的な魅力も怠らない！✨ OGP画像を更新し、ユーザー体験を細部まで磨き上げました！
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+最新の依存関係で、愛用するシェル環境の基盤を全面リフレッシュ！🚀
+セキュリティと安定性を最優先に、システムをさらに堅牢に強化しました！🛡️
+OGP画像も更新し、細部に至るまで完璧を追求するSRE魂がここに！💖
 
 ---
-- chore(deps): bump oh-my-zsh from `e1d1f0d` to `7ea697f` (5d8e0b4)
-- chore(deps): bump oh-my-zsh from `677a459` to `e1d1f0d` (11da662)
-- chore: regenerate OGP image [skip ci] (6d95ceb)
-- chore: release v2.2.8 (a16ccab)
-- chore(deps): bump alpine from 3.22 to 3.24 (94538f6)
+- chore(deps): bump oh-my-zsh from `6adfef3` to `97b27bb` (6f5fd5a)
+- chore(deps): bump zsh/plugins/zsh-syntax-highlighting (668874b)
+- chore(deps): bump oh-my-zsh from `7ea697f` to `6adfef3` (c4430b9)
+- chore: regenerate OGP image [skip ci] (89fda4b)
+- chore: release v2.2.9 (b0066cd)
 
 <!-- RELEASE_NOTES_END -->
 

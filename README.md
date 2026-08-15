@@ -264,18 +264,16 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## [v2.2.11] - 2026-08-16
 
 > ### 🤖 AI Release Summary
-> **SREとして、今回の変更を3行で情熱的に要約します！**
+> SREとして、今回の変更はまさにプロジェクトの顔と基盤を同時に強化する素晴らしい進化です！
 
-1.  **システムの信頼性、過去最高へ！ユーザーに最高の安定を届けます！🛡️**
-2.  **パフォーマンスは限界突破！応答速度とスループットを爆速進化させます！🚀**
-3.  **手作業は過去の遺物！監視・自動化で未来の運用を自ら創るぞ！🤖**
+1.  ✨ READMEを最新ビジュアルで大刷新！プロダクトの魅力と使いやすさを劇的に向上させ、情報探索も一目瞭然に！
+2.  🚀 Dockerfileのベースイメージも最先端に更新！セキュリティとパフォーマンスを盤石にし、システムの安定稼働をガッチリ支えます！
+3.  🛡️ OGP画像も完璧に最適化！対外的なブランディングも万全で、プロジェクト全体の信頼性と魅力を最大限に引き上げました！
 
 ---
-- chore: release v2.2.10 (c1ef85a)
-- chore(deps): bump oh-my-zsh from `6adfef3` to `97b27bb` (6f5fd5a)
-- chore(deps): bump zsh/plugins/zsh-syntax-highlighting (668874b)
-- chore(deps): bump oh-my-zsh from `7ea697f` to `6adfef3` (c4430b9)
-- chore: regenerate OGP image [skip ci] (89fda4b)
+- docs: revamp README with showcase visuals and update Dockerfile base images (e9bbede)
+- chore: regenerate OGP image [skip ci] (8d278f1)
+- chore: release v2.2.11 (636638d)
 
 <!-- RELEASE_NOTES_END -->
 

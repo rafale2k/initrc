@@ -1,6 +1,20 @@
 ## [v2.2.11] - 2026-08-16
 
 > ### 🤖 AI Release Summary
+> SREとして、今回の変更はまさにプロジェクトの顔と基盤を同時に強化する素晴らしい進化です！
+
+1.  ✨ READMEを最新ビジュアルで大刷新！プロダクトの魅力と使いやすさを劇的に向上させ、情報探索も一目瞭然に！
+2.  🚀 Dockerfileのベースイメージも最先端に更新！セキュリティとパフォーマンスを盤石にし、システムの安定稼働をガッチリ支えます！
+3.  🛡️ OGP画像も完璧に最適化！対外的なブランディングも万全で、プロジェクト全体の信頼性と魅力を最大限に引き上げました！
+
+---
+- docs: revamp README with showcase visuals and update Dockerfile base images (e9bbede)
+- chore: regenerate OGP image [skip ci] (8d278f1)
+- chore: release v2.2.11 (636638d)
+
+## [v2.2.11] - 2026-08-16
+
+> ### 🤖 AI Release Summary
 > **SREとして、今回の変更を3行で情熱的に要約します！**
 
 1.  **システムの信頼性、過去最高へ！ユーザーに最高の安定を届けます！🛡️**

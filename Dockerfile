@@ -1,9 +1,9 @@
 # 1. ビルドステージ (dotfilesの整理のみ; Pythonは使わない)
-FROM golang:1.26.5-alpine AS builder
+FROM golang:1.26.6-alpine AS builder
 
 RUN apk add --no-cache git
 
-# fzf を Go 1.26.5 でソースビルド (alpine:3.22 の apk 版は Go 1.24.12 製のため)
+# fzf を Go 1.26.6 でソースビルド (alpine:3.24 の apk 版よりも最新の Go でビルド)
 RUN go install github.com/junegunn/fzf@latest
 
 WORKDIR /build
@@ -28,14 +28,14 @@ RUN find . -name ".git" -exec rm -rf {} + && \
 FROM alpine:3.24
 
 # py3-pip を含めてインストール (venvをこのステージで作成するため)
-# fzf は apk ではなく builder の Go 1.26.5 製バイナリを使用
+# fzf は apk ではなく builder の Go 1.26.6 製バイナリを使用
 COPY --from=builder /go/bin/fzf /usr/local/bin/fzf
 
 RUN apk add --no-cache sudo bash zsh git curl python3 py3-pip tree openssh zoxide coreutils && \
     adduser -D -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
-# runtime の Python (3.12) で venv を作成
+# runtime の Python (3.14) で venv を作成
 COPY requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m venv /opt/venv && \

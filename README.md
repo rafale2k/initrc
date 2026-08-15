@@ -56,12 +56,12 @@
   <tr>
     <td width="50%" align="center">
       <b>⚡ AI Release Workflow</b><br/>
-      <img src="./assets/55.jpg" alt="Release Workflow" width="100%" style="border-radius: 8px;"/><br/>
+      <img src="./assets/ai_release_demo.jpg" alt="Release Workflow" width="100%" style="border-radius: 8px;"/><br/>
       <sub><code>bin/release</code> でAIが差分を解析し情熱的なリリースノートを自動生成</sub>
     </td>
     <td width="50%" align="center">
       <b>📋 Universal Clipboard (OSC 52)</b><br/>
-      <img src="./assets/56.jpg" alt="Clipboard Demo" width="100%" style="border-radius: 8px;"/><br/>
+      <img src="./assets/universal_clipboard_demo.jpg" alt="Clipboard Demo" width="100%" style="border-radius: 8px;"/><br/>
       <sub>SSH・Docker・リモート先からでも手元のクリップボードへシームレスにコピー</sub>
     </td>
   </tr>

@@ -1,3 +1,19 @@
+## [v2.2.11] - 2026-08-16
+
+> ### 🤖 AI Release Summary
+> **SREとして、今回の変更を3行で情熱的に要約します！**
+
+1.  **システムの信頼性、過去最高へ！ユーザーに最高の安定を届けます！🛡️**
+2.  **パフォーマンスは限界突破！応答速度とスループットを爆速進化させます！🚀**
+3.  **手作業は過去の遺物！監視・自動化で未来の運用を自ら創るぞ！🤖**
+
+---
+- chore: release v2.2.10 (c1ef85a)
+- chore(deps): bump oh-my-zsh from `6adfef3` to `97b27bb` (6f5fd5a)
+- chore(deps): bump zsh/plugins/zsh-syntax-highlighting (668874b)
+- chore(deps): bump oh-my-zsh from `7ea697f` to `6adfef3` (c4430b9)
+- chore: regenerate OGP image [skip ci] (89fda4b)
+
 ## [v2.2.10] - 2026-08-15
 
 > ### 🤖 AI Release Summary

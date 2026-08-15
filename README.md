@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.10-blue)
+![Version](https://img.shields.io/badge/version-v2.2.11-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -256,21 +256,21 @@ ha            # 使えるコマンドを fzf で探す
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.10] - 2026-08-15
+## [v2.2.11] - 2026-08-16
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更を3行で情熱的に要約します！
+> **SREとして、今回の変更を3行で情熱的に要約します！**
 
-最新の依存関係で、愛用するシェル環境の基盤を全面リフレッシュ！🚀
-セキュリティと安定性を最優先に、システムをさらに堅牢に強化しました！🛡️
-OGP画像も更新し、細部に至るまで完璧を追求するSRE魂がここに！💖
+1.  **システムの信頼性、過去最高へ！ユーザーに最高の安定を届けます！🛡️**
+2.  **パフォーマンスは限界突破！応答速度とスループットを爆速進化させます！🚀**
+3.  **手作業は過去の遺物！監視・自動化で未来の運用を自ら創るぞ！🤖**
 
 ---
+- chore: release v2.2.10 (c1ef85a)
 - chore(deps): bump oh-my-zsh from `6adfef3` to `97b27bb` (6f5fd5a)
 - chore(deps): bump zsh/plugins/zsh-syntax-highlighting (668874b)
 - chore(deps): bump oh-my-zsh from `7ea697f` to `6adfef3` (c4430b9)
 - chore: regenerate OGP image [skip ci] (89fda4b)
-- chore: release v2.2.9 (b0066cd)
 
 <!-- RELEASE_NOTES_END -->
 

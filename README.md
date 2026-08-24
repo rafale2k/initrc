@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.11-blue)
+![Version](https://img.shields.io/badge/version-v2.2.12-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -261,19 +261,21 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.11] - 2026-08-16
+## [v2.2.12] - 2026-08-25
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更はまさにプロジェクトの顔と基盤を同時に強化する素晴らしい進化です！
+> SREとして、今回の変更はまさに勝利のアップデートです！
 
-1.  ✨ READMEを最新ビジュアルで大刷新！プロダクトの魅力と使いやすさを劇的に向上させ、情報探索も一目瞭然に！
-2.  🚀 Dockerfileのベースイメージも最先端に更新！セキュリティとパフォーマンスを盤石にし、システムの安定稼働をガッチリ支えます！
-3.  🛡️ OGP画像も完璧に最適化！対外的なブランディングも万全で、プロジェクト全体の信頼性と魅力を最大限に引き上げました！
+1.  最高の開発体験のために、`oh-my-zsh`と`powerlevel10k`を最新化！シェル環境の安定と進化は最優先です！✨
+2.  ユーザーへの情報伝達も抜かりなく！最新デモ画像でREADMEを鮮やかにアップデートしました！🚀
+3.  これで開発者もユーザーも最高の状態へ！常に前進し続ける私たちの情熱の証です！🔥
 
 ---
-- docs: revamp README with showcase visuals and update Dockerfile base images (e9bbede)
-- chore: regenerate OGP image [skip ci] (8d278f1)
-- chore: release v2.2.11 (636638d)
+- chore(deps): bump zsh/themes/powerlevel10k from `9253fb1` to `3308262` (083168f)
+- chore(deps): bump oh-my-zsh from `97b27bb` to `97e1105` (d6af686)
+- docs: update AI release and clipboard demo visuals in README gallery (d043656)
+- chore: regenerate OGP image [skip ci] (1f90ff3)
+- chore: release v2.2.11 (21e7f01)
 
 <!-- RELEASE_NOTES_END -->
 

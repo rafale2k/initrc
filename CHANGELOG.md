@@ -1,3 +1,19 @@
+## [v2.2.13] - 2026-08-29
+
+> ### 🤖 AI Release Summary
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+1.  🚀 基盤のGolangを最新1.27へ！システムのパフォーマンスとセキュリティを最前線で強化しました！
+2.  ✨ Zsh環境も最新化し、開発体験とターミナルの安定性を向上！日々の作業がさらに快適に！
+3.  🛡️ 依存関係を常に最新に保ち、安定稼働と未来の成長を約束！SREの情熱、ここにあり！
+
+---
+- chore(deps): bump golang from 1.26.6-alpine to 1.27.0-alpine (d961ef7)
+- chore(deps): bump zsh/plugins/zsh-syntax-highlighting (b1fb1bc)
+- chore(deps): bump oh-my-zsh from `97e1105` to `830a5bc` (4658458)
+- chore: regenerate OGP image [skip ci] (4b92fd0)
+- chore: release v2.2.12 (b483720)
+
 ## [v2.2.12] - 2026-08-25
 
 > ### 🤖 AI Release Summary

@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.12-blue)
+![Version](https://img.shields.io/badge/version-v2.2.13-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -261,21 +261,21 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.12] - 2026-08-25
+## [v2.2.13] - 2026-08-29
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更はまさに勝利のアップデートです！
+> SREとして、今回の変更を3行で情熱的に要約します！
 
-1.  最高の開発体験のために、`oh-my-zsh`と`powerlevel10k`を最新化！シェル環境の安定と進化は最優先です！✨
-2.  ユーザーへの情報伝達も抜かりなく！最新デモ画像でREADMEを鮮やかにアップデートしました！🚀
-3.  これで開発者もユーザーも最高の状態へ！常に前進し続ける私たちの情熱の証です！🔥
+1.  🚀 基盤のGolangを最新1.27へ！システムのパフォーマンスとセキュリティを最前線で強化しました！
+2.  ✨ Zsh環境も最新化し、開発体験とターミナルの安定性を向上！日々の作業がさらに快適に！
+3.  🛡️ 依存関係を常に最新に保ち、安定稼働と未来の成長を約束！SREの情熱、ここにあり！
 
 ---
-- chore(deps): bump zsh/themes/powerlevel10k from `9253fb1` to `3308262` (083168f)
-- chore(deps): bump oh-my-zsh from `97b27bb` to `97e1105` (d6af686)
-- docs: update AI release and clipboard demo visuals in README gallery (d043656)
-- chore: regenerate OGP image [skip ci] (1f90ff3)
-- chore: release v2.2.11 (21e7f01)
+- chore(deps): bump golang from 1.26.6-alpine to 1.27.0-alpine (d961ef7)
+- chore(deps): bump zsh/plugins/zsh-syntax-highlighting (b1fb1bc)
+- chore(deps): bump oh-my-zsh from `97e1105` to `830a5bc` (4658458)
+- chore: regenerate OGP image [skip ci] (4b92fd0)
+- chore: release v2.2.12 (b483720)
 
 <!-- RELEASE_NOTES_END -->
 

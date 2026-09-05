@@ -1,3 +1,17 @@
+## [v2.3.0] - 2026-09-06
+
+> ### 🤖 AI Release Summary
+> 最速のGemini 3.8 Flashを心臓部に据え、AIアシストの次元を一段階上へと引き上げたぞ！ 🔥
+既存の互換性を完璧に守り抜く職人技で、止まらない進化と絶対的な信頼性を両立だ！ 💎
+Dockerfileからログ解析まで自動化の火力を最大化し、運用の苦痛を過去のものにする！ 🚀
+
+---
+- feat(ai): update model to Gemini 3.8 Flash (low) and preserve llm compatibility (9400c9e)
+- chore: release v2.2.15 (bbd274f)
+- fix(docker): mitigate openssl vulnerability in alpine image via apk upgrade (6eabef8)
+- chore: regenerate OGP image [skip ci] (21fcadc)
+- chore: release v2.2.14 (fab8055)
+
 ## [v2.2.15] - 2026-09-06
 
 > ### 🤖 AI Release Summary

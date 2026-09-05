@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.14-blue)
+![Version](https://img.shields.io/badge/version-v2.2.15-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -265,19 +265,21 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.14] - 2026-09-06
+## [v2.2.15] - 2026-09-06
 
 > ### 🤖 AI Release Summary
-> 手作業はもう過去！🚀 自動化が加速し、デプロイも運用も超高速・安定稼働を実現しました！
-監視は賢く、復旧は瞬時に！💡 サービスの信頼性が今、盤石の域に達し、揺るぎない品質を提供します！
-さあ、この進化を胸に、私たちは次なる高みへ！✨ 最高のユーザー体験を届けに行きましょう！
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+1.  **緊急対応！** OpenSSLの脆弱性を即座に鎮圧し、お客様の安心・安全を死守しました！🚨🛡️
+2.  Alpineイメージを最新化し、サービスの安定稼働をより堅牢に進化させました！🚀💪
+3.  OGP画像も最適化し、細部まで最高のユーザー体験を追求！常に改善し続けます！✨💖
 
 ---
+- fix(docker): mitigate openssl vulnerability in alpine image via apk upgrade (6eabef8)
+- chore: regenerate OGP image [skip ci] (21fcadc)
+- chore: release v2.2.14 (fab8055)
 - chore: release v2.2.14 (c8951d0)
 - chore(deps): bump golang from 1.27.0-alpine to 1.27.1-alpine (28bbead)
-- chore(deps): bump oh-my-zsh from `830a5bc` to `a5ecff7` (129a840)
-- chore: regenerate OGP image [skip ci] (2404045)
-- ... and 1 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

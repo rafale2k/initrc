@@ -1,3 +1,19 @@
+## [v2.2.15] - 2026-09-06
+
+> ### 🤖 AI Release Summary
+> SREとして、今回の変更を3行で情熱的に要約します！
+
+1.  **緊急対応！** OpenSSLの脆弱性を即座に鎮圧し、お客様の安心・安全を死守しました！🚨🛡️
+2.  Alpineイメージを最新化し、サービスの安定稼働をより堅牢に進化させました！🚀💪
+3.  OGP画像も最適化し、細部まで最高のユーザー体験を追求！常に改善し続けます！✨💖
+
+---
+- fix(docker): mitigate openssl vulnerability in alpine image via apk upgrade (6eabef8)
+- chore: regenerate OGP image [skip ci] (21fcadc)
+- chore: release v2.2.14 (fab8055)
+- chore: release v2.2.14 (c8951d0)
+- chore(deps): bump golang from 1.27.0-alpine to 1.27.1-alpine (28bbead)
+
 ## [v2.2.14] - 2026-09-06
 
 > ### 🤖 AI Release Summary

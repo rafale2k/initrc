@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # =================================================================
-# 🚀 bin/aic v3.1 - AI-Driven Commit Assistant (Next-Gen Edition)
-# Optimized for Conventional Commits & Gemini 2.5 Flash
+# 🚀 bin/aic v3.2 - AI-Driven Commit Assistant (Next-Gen Edition)
+# Optimized for Conventional Commits & Gemini 3.8 Flash (Low)
 # =================================================================
 
 # 0. 環境変数のセットアップ
@@ -18,11 +18,13 @@ _ai_generate_commit_proposals() {
         fi
     fi
 
-    # 1. Diff の統計情報と中身を取得 (Gemini 2.5 の広大なコンテキストを活かしつつ 20000 文字程度に拡張)
-    local diff_stat=$(git diff --cached --stat)
-    local full_diff=$(git diff --cached | head -c 20000)
+    # 1. Diff の統計情報と中身を取得 (広大なコンテキストを活かしつつ 20000 文字程度に拡張)
+    local diff_stat
+    diff_stat=$(git diff --cached --stat)
+    local full_diff
+    full_diff=$(git diff --cached | head -c 20000)
 
-    # 2. システムプロンプト (Gemini 2.5 Flash 向けの高度な指示)
+    # 2. システムプロンプト (Conventional Commits 準拠)
     local system_prompt="You are a world-class software engineer. 
 Analyze the provided git diff and generate EXACTLY 3 high-quality commit message proposals in English.
 
@@ -39,9 +41,15 @@ feat(auth): add OAuth2 provider support
 fix(api): resolve memory leak in connection pool
 chore(deps): update dependency-xyz to v2.0.0"
 
-    # 3. llm コマンドで生成 (Gemini 2.5 Flash を明示)
+    # 3. llm コマンドで生成 (Gemini 3.8 Flash / thinking_level low を指定)
+    local model="${AI_ASSIST_MODEL:-gemini-3.8-flash}"
+    local -a opts=()
+    if [[ "$model" =~ gemini-3\.[0-9]-flash ]]; then
+        opts=(-o thinking_level low)
+    fi
+
     echo -e "Context - File Statistics:\n$diff_stat\n\nActual Diff:\n$full_diff" | \
-    llm prompt -m gemini-2.5-flash -s "$system_prompt" 2>/dev/null
+    llm prompt -m "$model" "${opts[@]}" -s "$system_prompt" 2>/dev/null
 }
 
 main() {
@@ -57,7 +65,7 @@ main() {
         return 1
     fi
 
-    echo "🤖 AI is analyzing changes (Gemini 2.5 Flash)..."
+    echo "🤖 AI is analyzing changes (Gemini 3.8 Flash)..."
     
     local proposals
     proposals=$(_ai_generate_commit_proposals)
@@ -75,7 +83,7 @@ main() {
     local selected
     selected=$(echo "$choices" | grep -v '^$' | fzf \
         --height 60% --reverse --border --ansi \
-        --header "Select Gemini 2.5 Proposal (ESC to cancel)" \
+        --header "Select Gemini 3.8 Flash Proposal (ESC to cancel)" \
         --preview "git diff --cached --color=always" \
         --preview-window "right:60%:wrap")
 
@@ -103,7 +111,7 @@ main() {
             echo -n "$selected" | xclip -selection clipboard
             echo "📋 Message copied to clipboard."
         fi
-        echo "✨ Committed successfully with Gemini 2.5!"
+        echo "✨ Committed successfully with Gemini 3.8 Flash!"
     fi
 }
 

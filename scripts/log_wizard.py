@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import os
 import sys
 import subprocess
 from collections import Counter
@@ -10,13 +11,18 @@ C_YELLOW = '\033[93m'
 C_END = '\033[0m'
 
 def analyze_with_llm(raw_log):
-    # Gemini 3.0 Preview への「ズバッと」プロンプト
+    # Gemini 3.8 Flash への「ズバッと」プロンプト
     prompt = f"以下の1行のログから、何が起きているか、攻撃の予兆か、具体的な対策を30文字以内でズバッと指摘せよ。余計な挨拶は不要。\n\n{raw_log}"
     
+    model = os.environ.get("AI_ASSIST_MODEL", "gemini-3.8-flash")
+    cmd = ['llm', prompt, '-m', model]
+    if 'gemini-3.' in model:
+        cmd.extend(['-o', 'thinking_level', 'low'])
+
     try:
         # llm コマンドを実行
         result = subprocess.run(
-            ['llm', prompt],
+            cmd,
             capture_output=True,
             text=True,
             encoding='utf-8',
@@ -53,7 +59,7 @@ def analyze_logs():
         print(f"{C_CYAN}✨ 異常ログは見つかりませんでした。{C_END}")
         return
 
-    print(f"\n{C_YELLOW}🚀 Gemini 3.0 Preview Analysis (Top 3 Errors){C_END}")
+    print(f"\n{C_YELLOW}🚀 Gemini 3.8 Flash Analysis (Top 3 Errors){C_END}")
     print("-" * 70)
 
     for i, (msg, count) in enumerate(counts.most_common(3), 1):

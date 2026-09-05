@@ -9,3 +9,5 @@ bin/bat
 bin/fd
 Update.md
 .vscode
+__pycache__/
+*.pyc

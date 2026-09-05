@@ -1,11 +1,18 @@
 #!/bin/bash
 # shellcheck shell=bash
-# --- Gemini AI Assistant: ask, wtf, dask, kask & dinv (llm powered v3.1) ---
+# --- Gemini AI Assistant: ask, wtf, dask, kask & dinv (llm powered v3.2) ---
 
-# [本番級設定] 使用するモデルを一括管理
-export AI_ASSIST_MODEL="gemini/gemini-3-flash-preview"
+# [本番級設定] 使用するモデルを一括管理 (他モデル利用時は環境変数で上書き可能)
+export AI_ASSIST_MODEL="${AI_ASSIST_MODEL:-gemini-3.8-flash}"
+export AI_ASSIST_OPTIONS="${AI_ASSIST_OPTIONS:--o thinking_level low}"
 
 # --- 内部ユーティリティ ---
+
+# llm 呼び出しヘルパー (モデルとオプションを一括適用)
+_call_llm() {
+    # shellcheck disable=SC2086
+    llm -m "$AI_ASSIST_MODEL" $AI_ASSIST_OPTIONS "$@"
+}
 
 # 実行中のコンテナを fzf で選ぶ
 _select_container() {
@@ -80,10 +87,10 @@ ask() {
     local system_prompt
     system_prompt="You are a pragmatic Shell Expert. Output ONLY the executable shell command for $(uname). No markdown, no explanation, no code blocks."
 
-    echo "🤖 Thinking..."
+    echo "🤖 Thinking (Gemini 3.8 Flash)..."
 
     local raw_cmd
-    raw_cmd=$(llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query") || return 1
+    raw_cmd=$(_call_llm -s "$system_prompt" "$query") || return 1
 
     local cmd
     # shellcheck disable=SC2016
@@ -97,7 +104,7 @@ dask() {
     local query="$*"
     [[ -z "$query" ]] && { echo "🤔 Usage: dask 'Docker task'"; return 1; }
 
-    echo "🐳 Analyzing Docker context..."
+    echo "🐳 Analyzing Docker context (Gemini 3.8 Flash)..."
     local context="[Context]\n"
     [[ -f "docker-compose.yml" ]] && context+="Compose File (head):\n$(head -n 50 docker-compose.yml)\n\n"
     context+="Container Status:\n$(docker ps --format '{{.Names}} ({{.Status}})')\n"
@@ -105,7 +112,7 @@ dask() {
 
     local system_prompt="You are a Docker expert. 1. Brief explanation (1 line). 2. Command in new line. No markdown."
     local response
-    response=$(echo -e "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
+    response=$(echo -e "$context" | _call_llm -s "$system_prompt" "$query")
     _parse_and_execute_ai_response "$response"
 }
 
@@ -115,7 +122,7 @@ kask() {
     local query="$*"
     [[ -z "$query" ]] && { echo "🤔 Usage: kask 'K8s task'"; return 1; }
 
-    echo "☸️  Gathering Cluster Context..."
+    echo "☸️  Gathering Cluster Context (Gemini 3.8 Flash)..."
     local ns
     ns=$(kubectl config view --minify --output 'jsonpath={..namespace}' 2>/dev/null || echo "default")
 
@@ -125,7 +132,7 @@ kask() {
 
     local system_prompt="You are a Kubernetes/SRE expert. 1. Brief explanation. 2. Command in new line. No markdown."
     local response
-    response=$(echo -e "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query")
+    response=$(echo -e "$context" | _call_llm -s "$system_prompt" "$query")
     _parse_and_execute_ai_response "$response"
 }
 
@@ -137,11 +144,11 @@ wtf() {
         [[ -z "$context" ]] && context="Last command context: $(fc -ln -1)"
     fi
 
-    echo "🔍 Analyzing error..."
+    echo "🔍 Analyzing error (Gemini 3.8 Flash)..."
     local system_prompt="You are a senior DevOps engineer. Analyze this error and provide a concise fix in markdown."
     echo -e "--- 🤖 Error Analysis ---\n"
     # SC2015 対策: パイプ先を専用の関数へ
-    echo "$context" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" | _display_output
+    echo "$context" | _call_llm -s "$system_prompt" | _display_output
     echo -e "\n--------------------------"
 }
 
@@ -165,9 +172,9 @@ dinv() {
     [[ -z "$content" ]] && { echo "❌ File not found or empty."; return 1; }
 
     local system_prompt="You are a Senior SRE. Analyze the provided file content based on the query."
-    echo -e "🤖 Analyzing with Gemini...\n"
+    echo -e "🤖 Analyzing with Gemini 3.8 Flash...\n"
     # SC2015 対策
-    echo -e "[File: $file_path]\n$content" | llm -m "$AI_ASSIST_MODEL" -s "$system_prompt" "$query" | _display_output
+    echo -e "[File: $file_path]\n$content" | _call_llm -s "$system_prompt" "$query" | _display_output
 }
 
 alias lz='"$DOTPATH"/scripts/log_wizard.py'

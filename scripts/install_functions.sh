@@ -156,8 +156,21 @@ setup_ai_tools() {
     fi
     cat << 'EOF' > "$HOME/bin/ginv"
 #!/bin/bash
-[ -z "$1" ] && exit 1
-llm "$1" -m gemini-2.5-flash --no-stream
+MODEL="${AI_ASSIST_MODEL:-gemini-3.8-flash}"
+OPTS=()
+if [[ "$MODEL" =~ gemini-3\.[0-9]-flash ]]; then
+    OPTS=(-o thinking_level low)
+fi
+if [ -n "$1" ]; then
+    INPUT="$*"
+elif [ ! -t 0 ]; then
+    INPUT=$(cat)
+else
+    echo "Usage: ginv 'prompt' or command | ginv" >&2
+    exit 1
+fi
+[ -z "$INPUT" ] && exit 1
+llm "$INPUT" -m "$MODEL" "${OPTS[@]}" --no-stream
 EOF
     chmod +x "$HOME/bin/ginv"
 }

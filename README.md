@@ -14,7 +14,7 @@
 
 ---
 
-![AI](https://img.shields.io/badge/AI-Gemini%203%20Flash-vibrantblue?logo=google-gemini&logoColor=white)
+![AI](https://img.shields.io/badge/AI-Gemini%203.8%20Flash-vibrantblue?logo=google-gemini&logoColor=white)
 ![LLM](https://img.shields.io/badge/LLM-llm%20integrated-6f42c1?logo=python&logoColor=white)
 ![Linting](https://img.shields.io/badge/shellcheck-100%25%20passing-brightgreen)
 ![IaC](https://img.shields.io/badge/concept-IaC%20Ready-lightgrey?logo=terraform&logoColor=623CE4)
@@ -45,7 +45,7 @@
     <td width="50%" align="center">
       <b>🤖 AI SRE Copilot & Diagnosis</b><br/>
       <img src="./assets/ai_copilot_demo.jpg" alt="AI Copilot Demo" width="100%" style="border-radius: 8px;"/><br/>
-      <sub><code>ask</code> / <code>wtf</code> / <code>greview</code> で Gemini 3 Flash がエラー原因・K8s/Docker状態・差分を即時診断</sub>
+      <sub><code>ask</code> / <code>wtf</code> / <code>greview</code> で Gemini 3.8 Flash がエラー原因・K8s/Docker状態・差分を即時診断</sub>
     </td>
     <td width="50%" align="center">
       <b>🧭 Smart Interactive Navigation</b><br/>
@@ -78,7 +78,7 @@
 - **Safety Net (`bu`)**: `bu [file]` でタイムスタンプ付き高速バックアップ。`bu diff` で差分確認、`bu restore` で安全復元。
 
 ### 🤖 2. SRE AI Copilot（AI アシスタント）
-Google Gemini 3 Flash を核とした SRE 専用 AI ツール群。すべて **確認プロンプト付き** で安全に実行可能。
+Google Gemini 3.8 Flash (Low) を核とした SRE 専用 AI ツール群（<code>AI_ASSIST_MODEL</code> で他 AI へも切替可能）。すべて **確認プロンプト付き** で安全に実行可能。
 - **`ask 'query'`**: 自然言語をシェルコマンドに変換し、確認後に実行。
 - **`wtf [error]`**: エラーログ・スタックトレースを解析し、根本原因と修正手順を提示。引数なしで直前のエラーやクリップボードを解析。
 - **`dask 'task'`**: Docker Compose のコンテナログ・ステータスを自動付加して AI にトラブルシューティング相談。
@@ -219,7 +219,7 @@ ha            # コマンド一覧を fzf で検索して即実行
 ~/dotfiles/
 ├── common/           # bash / zsh 共通モジュール（loader.sh が自動読込）
 │   ├── loader.sh     # エントリポイント: PATH 設定 → _*.sh 読み込み → シェル別設定
-│   ├── _ai_assist.sh # ask / wtf / dask / kask / dinv (Gemini 3 Flash 連携)
+│   ├── _ai_assist.sh # ask / wtf / dask / kask / dinv (Gemini 3.8 Flash 連携)
 │   ├── _backup.sh    # bu / eb (タイムスタンプ付きバックアップ管理)
 │   ├── _docker.sh    # de / dl / drm / dce / dps / dclean
 │   ├── _env_detector.sh # OS/PM 判定 + ENV_ICON (Docker/WSL/Cloud/Pi/Local)
@@ -255,7 +255,7 @@ ha            # コマンド一覧を fzf で検索して即実行
 - **対応 OS**: macOS / Ubuntu / Debian / Fedora / AlmaLinux
 - **主要ツール**: `zsh`, `python3`, `fzf`, `eza`, `bat`, `zoxide`（インストーラが自動セットアップ）
 - **コンテナ環境**: Alpine Linux 3.24 ベース（ビルド時 apk upgrade による OpenSSL 脆弱性対策済み）
-- **AI エンジン**: `llm` + `llm-gemini` プラグイン（`LLM_GEMINI_KEY` 環境変数）
+- **AI エンジン**: `llm` + `llm-gemini` プラグイン（`LLM_GEMINI_KEY` 環境変数、`AI_ASSIST_MODEL` で任意の LLM に切替可能）
 - **カラーテーマ**:
   - **一般ユーザー**: Monokai Dark (`#272822`) / Deep Navy
   - **Root ユーザー**: Tokyo Night (`#1a1b26`) — 視覚的な警告モード

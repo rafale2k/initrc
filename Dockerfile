@@ -1,7 +1,8 @@
 # 1. ビルドステージ (dotfilesの整理のみ; Pythonは使わない)
 FROM golang:1.27.1-alpine AS builder
 
-RUN apk add --no-cache git
+RUN apk update && apk upgrade --no-cache && \
+    apk add --no-cache git
 
 # fzf を Go 1.26.6 でソースビルド (alpine:3.24 の apk 版よりも最新の Go でビルド)
 RUN go install github.com/junegunn/fzf@latest
@@ -31,7 +32,8 @@ FROM alpine:3.24
 # fzf は apk ではなく builder の Go 1.26.6 製バイナリを使用
 COPY --from=builder /go/bin/fzf /usr/local/bin/fzf
 
-RUN apk add --no-cache sudo bash zsh git curl python3 py3-pip tree openssh zoxide coreutils && \
+RUN apk update && apk upgrade --no-cache && \
+    apk add --no-cache sudo bash zsh git curl python3 py3-pip tree openssh openssl zoxide coreutils && \
     adduser -D -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 

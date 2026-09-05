@@ -118,6 +118,9 @@ docker run -it --rm \
   rafale2k/initrc:latest
 ```
 
+> 🛡️ **堅牢なセキュリティ（脆弱性対策）**:  
+> Alpine ベースイメージの OpenSSL / libcrypto 等における脆弱性（CVE）対策として、イメージビルド時に `apk update && apk upgrade --no-cache` を実行し、公式の最新セキュリティパッチを適用した安全なコンテナ環境を提供しています。
+
 ### 🏎️ 通常インストール
 ```bash
 git clone https://github.com/rafale2k/initrc.git ~/dotfiles
@@ -251,6 +254,7 @@ ha            # コマンド一覧を fzf で検索して即実行
 
 - **対応 OS**: macOS / Ubuntu / Debian / Fedora / AlmaLinux
 - **主要ツール**: `zsh`, `python3`, `fzf`, `eza`, `bat`, `zoxide`（インストーラが自動セットアップ）
+- **コンテナ環境**: Alpine Linux 3.24 ベース（ビルド時 apk upgrade による OpenSSL 脆弱性対策済み）
 - **AI エンジン**: `llm` + `llm-gemini` プラグイン（`LLM_GEMINI_KEY` 環境変数）
 - **カラーテーマ**:
   - **一般ユーザー**: Monokai Dark (`#272822`) / Deep Navy

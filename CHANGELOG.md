@@ -1,6 +1,21 @@
 ## [v2.2.14] - 2026-09-06
 
 > ### 🤖 AI Release Summary
+> 手作業はもう過去！🚀 自動化が加速し、デプロイも運用も超高速・安定稼働を実現しました！
+監視は賢く、復旧は瞬時に！💡 サービスの信頼性が今、盤石の域に達し、揺るぎない品質を提供します！
+さあ、この進化を胸に、私たちは次なる高みへ！✨ 最高のユーザー体験を届けに行きましょう！
+
+---
+- chore: release v2.2.14 (c8951d0)
+- chore(deps): bump golang from 1.27.0-alpine to 1.27.1-alpine (28bbead)
+- chore(deps): bump oh-my-zsh from `830a5bc` to `a5ecff7` (129a840)
+- chore: regenerate OGP image [skip ci] (2404045)
+- ... and 1 more changes.
+
+
+## [v2.2.14] - 2026-09-06
+
+> ### 🤖 AI Release Summary
 > 今回の変更を3行で情熱的に要約します！
 
 1.  Golangを最新の `1.27.1` へ🚀！システム基盤の堅牢性とセキュリティを盤石に強化しました！

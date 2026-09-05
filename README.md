@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.2.13-blue)
+![Version](https://img.shields.io/badge/version-v2.2.14-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -261,21 +261,21 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.2.13] - 2026-08-29
+## [v2.2.14] - 2026-09-06
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更を3行で情熱的に要約します！
+> 今回の変更を3行で情熱的に要約します！
 
-1.  🚀 基盤のGolangを最新1.27へ！システムのパフォーマンスとセキュリティを最前線で強化しました！
-2.  ✨ Zsh環境も最新化し、開発体験とターミナルの安定性を向上！日々の作業がさらに快適に！
-3.  🛡️ 依存関係を常に最新に保ち、安定稼働と未来の成長を約束！SREの情熱、ここにあり！
+1.  Golangを最新の `1.27.1` へ🚀！システム基盤の堅牢性とセキュリティを盤石に強化しました！
+2.  開発体験の要、oh-my-zshも最新版に更新！✨SREチームの生産性を最大限に引き出し、開発効率を爆上げします！
+3.  常に依存関係を最新に保ち、変化に強い信頼性あふれるサービス提供を約束します！🛡️我々のシステムは進化し続ける！
 
 ---
+- chore(deps): bump golang from 1.27.0-alpine to 1.27.1-alpine (28bbead)
+- chore(deps): bump oh-my-zsh from `830a5bc` to `a5ecff7` (129a840)
+- chore: regenerate OGP image [skip ci] (2404045)
+- chore: release v2.2.13 (16d944b)
 - chore(deps): bump golang from 1.26.6-alpine to 1.27.0-alpine (d961ef7)
-- chore(deps): bump zsh/plugins/zsh-syntax-highlighting (b1fb1bc)
-- chore(deps): bump oh-my-zsh from `97e1105` to `830a5bc` (4658458)
-- chore: regenerate OGP image [skip ci] (4b92fd0)
-- chore: release v2.2.12 (b483720)
 
 <!-- RELEASE_NOTES_END -->
 

@@ -5,21 +5,54 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(docker)"
+    labels:
+      - "docker"
+      - "dependencies"
+    groups:
+      docker-dependencies:
+        patterns:
+          - "*"
 
   # Pythonパッケージの更新チェック (requirements.txt)
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(deps)"
+    labels:
+      - "dependencies"
+    groups:
+      pip-dependencies:
+        patterns:
+          - "*"
 
   # Gitサブモジュールの更新チェック
   - package-ecosystem: "gitsubmodule"
     directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(submodule)"
+    labels:
+      - "dependencies"
+    groups:
+      submodules:
+        patterns:
+          - "*"
 
   # GitHub Actions ワークフロー自体の更新チェック
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
+    commit-message:
+      prefix: "chore(ci)"
+    labels:
+      - "dependencies"
+    groups:
+      actions:
+        patterns:
+          - "*"

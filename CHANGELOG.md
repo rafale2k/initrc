@@ -1,3 +1,17 @@
+## [v2.3.1] - 2026-09-08
+
+> ### 🤖 AI Release Summary
+> 🖼️ **魂のOGP画像を完全再生成！視覚的インパクトを爆上げし、サービスの魅力を極限まで引き上げたぞ！**
+⚡ **ファイルサイズは倍増の約39KBへ！だがこのリッチ化こそがユーザーのクリックを奪う必然のコストだ！**
+🚀 **`[skip ci]`を的確に叩き込み、無駄なビルドを完全遮断！インフラの静けさと情熱的な配信を両立させたぜ！**
+
+---
+- chore: regenerate OGP image [skip ci] (ad903e7)
+- chore: release v2.3.0 (bca801a)
+- feat(ai): update model to Gemini 3.8 Flash (low) and preserve llm compatibility (9400c9e)
+- chore: release v2.2.15 (bbd274f)
+- fix(docker): mitigate openssl vulnerability in alpine image via apk upgrade (6eabef8)
+
 ## [v2.3.0] - 2026-09-06
 
 > ### 🤖 AI Release Summary

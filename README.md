@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.3.0-blue)
+![Version](https://img.shields.io/badge/version-v2.3.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -265,19 +265,19 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.3.0] - 2026-09-06
+## [v2.3.1] - 2026-09-08
 
 > ### 🤖 AI Release Summary
-> 最速のGemini 3.8 Flashを心臓部に据え、AIアシストの次元を一段階上へと引き上げたぞ！ 🔥
-既存の互換性を完璧に守り抜く職人技で、止まらない進化と絶対的な信頼性を両立だ！ 💎
-Dockerfileからログ解析まで自動化の火力を最大化し、運用の苦痛を過去のものにする！ 🚀
+> 🖼️ **魂のOGP画像を完全再生成！視覚的インパクトを爆上げし、サービスの魅力を極限まで引き上げたぞ！**
+⚡ **ファイルサイズは倍増の約39KBへ！だがこのリッチ化こそがユーザーのクリックを奪う必然のコストだ！**
+🚀 **`[skip ci]`を的確に叩き込み、無駄なビルドを完全遮断！インフラの静けさと情熱的な配信を両立させたぜ！**
 
 ---
+- chore: regenerate OGP image [skip ci] (ad903e7)
+- chore: release v2.3.0 (bca801a)
 - feat(ai): update model to Gemini 3.8 Flash (low) and preserve llm compatibility (9400c9e)
 - chore: release v2.2.15 (bbd274f)
 - fix(docker): mitigate openssl vulnerability in alpine image via apk upgrade (6eabef8)
-- chore: regenerate OGP image [skip ci] (21fcadc)
-- chore: release v2.2.14 (fab8055)
 
 <!-- RELEASE_NOTES_END -->
 

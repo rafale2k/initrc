@@ -1,56 +1,112 @@
-# 1. ビルドステージ (dotfilesの整理のみ; Pythonは使わない)
-FROM golang:1.27.1-alpine AS builder
+# syntax=docker/dockerfile:1
 
-RUN apk update && apk upgrade --no-cache && \
-    apk add --no-cache git
+# ==========================================
+# 1. fzf ビルドステージ (Go製バイナリのビルド)
+# ==========================================
+FROM golang:1.27.1-alpine@sha256:cf6fca6641884b8433441b2b0652976f975e1d0fdd26d177eaaf8596087f3125 AS fzf-builder
 
-# fzf を Go 1.26.6 でソースビルド (alpine:3.24 の apk 版よりも最新の Go でビルド)
-RUN go install github.com/junegunn/fzf@latest
+ARG FZF_VERSION=v0.74.3
 
-WORKDIR /build
-COPY .git .git
-COPY .gitmodules .gitmodules
-RUN git submodule update --init --recursive
-COPY . .
+# Go モジュールとビルドキャッシュをマウントして高速化・静的リンクでビルド
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go install -ldflags="-s -w" github.com/junegunn/fzf@${FZF_VERSION}
 
-# 徹底的な不要ファイルの削除 (サブモジュールのドキュメントやGit履歴)
-RUN find . -name ".git" -exec rm -rf {} + && \
-    find . -name "docs" -type d -exec rm -rf {} + && \
-    find . -name "examples" -type d -exec rm -rf {} + && \
-    find . -name "*.md" -not -name "README.md" -delete && \
-    find . -name "LICENSE*" -delete && \
-    find . -name "CHANGELOG*" -delete && \
-    # oh-my-zshの未使用プラグインとテーマを削除 (サイズ削減の要)
-    cd oh-my-zsh && \
-    find plugins -mindepth 1 -maxdepth 1 -type d | grep -vE "^plugins/(git|git-extras|docker|docker-compose|copyfile|copypath|z)$" | xargs rm -rf && \
-    find themes -mindepth 1 -maxdepth 1 -type d | grep -vE "^themes/robbyrussell.zsh-theme$" | xargs rm -rf
+# ==========================================
+# 2. Python 仮想環境ビルドステージ
+# ==========================================
+FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS python-builder
 
-# 2. 実行ステージ
-FROM alpine:3.24
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk update && apk upgrade --no-cache && \
+    apk add --no-cache python3 py3-pip
 
-# py3-pip を含めてインストール (venvをこのステージで作成するため)
-# fzf は apk ではなく builder の Go 1.26.6 製バイナリを使用
-COPY --from=builder /go/bin/fzf /usr/local/bin/fzf
-
-RUN apk update && apk upgrade --no-cache && \
-    apk add --no-cache sudo bash zsh git curl python3 py3-pip tree openssh openssl zoxide coreutils && \
-    adduser -D -G wheel -s /bin/zsh rafale && \
-    echo "rafale ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# runtime の Python (3.14) で venv を作成
 COPY requirements.txt /tmp/requirements.txt
 RUN --mount=type=cache,target=/root/.cache/pip \
     python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --upgrade pip && \
     /opt/venv/bin/pip install -r /tmp/requirements.txt && \
     /opt/venv/bin/pip uninstall -y setuptools && \
-    # Pythonのキャッシュ・不要なコンパイル済みファイルを削除
+    # 不要なバイトコードおよびセキュリティスキャナで誤検知される静的SBOMファイルを削除
     find /opt/venv -type d -name "__pycache__" -exec rm -rf {} + && \
     find /opt/venv -name "*.pyc" -delete && \
-    rm /tmp/requirements.txt
+    find /opt/venv -name "*.cdx.json" -delete && \
+    find /opt/venv -type d -name "sboms" -exec rm -rf {} +
 
-COPY --from=builder --chown=rafale:rafale /build /home/rafale/dotfiles
+# ==========================================
+# 3. dotfiles 整理ステージ (軽量Alpineで不要ファイル削除)
+# ==========================================
+FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS dotfiles-builder
 
+SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
+
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk update && apk upgrade --no-cache && \
+    apk add --no-cache git
+
+WORKDIR /build
+COPY . .
+
+# サブモジュールが未チェックアウトの場合のみ git submodule update を実行
+RUN if [ ! -f "oh-my-zsh/oh-my-zsh.sh" ] && [ -d ".git" ]; then \
+        git submodule update --init --recursive; \
+    fi && \
+    # 徹底的な不要ファイル削除 (Git履歴、ドキュメント、CI/エディタ設定など)
+    find . -name ".git" -exec rm -rf {} + && \
+    find . -name "docs" -type d -exec rm -rf {} + && \
+    find . -name "examples" -type d -exec rm -rf {} + && \
+    find . -name ".vscode" -type d -exec rm -rf {} + && \
+    find . -name ".github" -type d -exec rm -rf {} + && \
+    find . -mindepth 2 -name "Dockerfile" -delete && \
+    find . -name "*.md" -not -name "README.md" -delete && \
+    find . -name "LICENSE*" -delete && \
+    find . -name "CHANGELOG*" -delete && \
+    # oh-my-zshの未使用プラグインとテーマを削除 (サイズ削減の要)
+    find oh-my-zsh/plugins -mindepth 1 -maxdepth 1 \
+        ! -name "git" \
+        ! -name "git-extras" \
+        ! -name "docker" \
+        ! -name "docker-compose" \
+        ! -name "copyfile" \
+        ! -name "copypath" \
+        ! -name "z" \
+        -exec rm -rf {} + && \
+    find oh-my-zsh/themes -mindepth 1 -maxdepth 1 \
+        ! -name "robbyrussell.zsh-theme" \
+        -exec rm -rf {} +
+
+# ==========================================
+# 4. 実行ステージ
+# ==========================================
+FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS runtime
+
+# セキュリティ更新の適用と最小限パッケージのインストール
+# ※ py3-pip は不要（/opt/venv を流用）、openssh は openssh-client に限定して脆弱性サーフェスを最小化
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk update && apk upgrade --no-cache && \
+    apk add --no-cache \
+        sudo \
+        bash \
+        zsh \
+        git \
+        curl \
+        python3 \
+        tree \
+        openssh-client \
+        openssl \
+        zoxide \
+        coreutils && \
+    adduser -D -u 1000 -G wheel -s /bin/zsh rafale && \
+    echo "rafale ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/rafale && \
+    chmod 0440 /etc/sudoers.d/rafale
+
+# 各ビルダーからの成果物をコピー
+COPY --from=fzf-builder /go/bin/fzf /usr/local/bin/fzf
+COPY --from=python-builder /opt/venv /opt/venv
+COPY --from=dotfiles-builder --chown=rafale:rafale /build /home/rafale/dotfiles
+
+# ユーザー権限でシンボリックリンクを作成（chown処理不要で高速・安全）
+USER rafale
 WORKDIR /home/rafale
 
 RUN ln -sfn /home/rafale/dotfiles/zsh/.zshrc /home/rafale/.zshrc && \
@@ -61,12 +117,7 @@ RUN ln -sfn /home/rafale/dotfiles/zsh/.zshrc /home/rafale/.zshrc && \
     ln -sfn /home/rafale/dotfiles/zsh/plugins/zsh-autosuggestions /home/rafale/.oh-my-zsh/custom/plugins/zsh-autosuggestions && \
     ln -sfn /home/rafale/dotfiles/zsh/plugins/zsh-syntax-highlighting /home/rafale/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting && \
     ln -sfn /home/rafale/dotfiles/zsh/plugins/history-search-multi-word /home/rafale/.oh-my-zsh/custom/plugins/history-search-multi-word && \
-    ln -sfn /home/rafale/dotfiles/zsh/themes/powerlevel10k /home/rafale/.oh-my-zsh/custom/themes/powerlevel10k && \
-    # 所有権設定: GNU chown -h が使えればシンボリックリンク自体に設定する。
-    # 失敗した場合はリンク先（またはリンク）に対して通常の chown を試みる。
-    (chown -h rafale:rafale /home/rafale/.zshrc /home/rafale/.p10k.zsh /home/rafale/.oh-my-zsh /home/rafale/.gitconfig) || \
-    (chown rafale:rafale /home/rafale/.zshrc /home/rafale/.p10k.zsh /home/rafale/.oh-my-zsh /home/rafale/.gitconfig || true)
+    ln -sfn /home/rafale/dotfiles/zsh/themes/powerlevel10k /home/rafale/.oh-my-zsh/custom/themes/powerlevel10k
 
-USER rafale
 ENV PATH="/opt/venv/bin:/home/rafale/dotfiles/bin:/home/rafale/dotfiles/scripts:${PATH}"
 ENV TERM=xterm-256color

@@ -1,3 +1,10 @@
+## [v2.3.2] - 2026-09-14
+- chore(submodule): bump the submodules group with 2 updates (2e8e8ac)
+- chore(deps): update msgpack requirement in the pip-dependencies group (93d690f)
+- chore(submodule): bump oh-my-zsh in the submodules group (ed2f0d2)
+- dependabot (cf97bc6)
+- refactor(docker): optimize multi-stage build stages (0ee413f)
+
 ## [v2.3.1] - 2026-09-08
 
 > ### 🤖 AI Release Summary

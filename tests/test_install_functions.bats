@@ -154,7 +154,6 @@ MOCK_OS
 }
 
 @test "_sudo executes with SUDO_CMD" {
-    # Undo the _sudo mock from setup() to test the original function
     source scripts/install_functions.sh
     SUDO_CMD="echo"
     run _sudo "hello"
@@ -163,7 +162,6 @@ MOCK_OS
 }
 
 @test "_sudo executes without SUDO_CMD" {
-    # Undo the _sudo mock from setup() to test the original function
     source scripts/install_functions.sh
     SUDO_CMD=""
     run _sudo echo "hello"
@@ -187,7 +185,6 @@ MOCK_OS
     mkdir() { echo "mkdir $@" >> "$LOG_FILE"; return 0; }
 
     export -f command apt-get uname ln mkdir
-
     export HOME="$MOCK_DIR/fake_home"
 
     run install_all_packages
@@ -213,7 +210,6 @@ MOCK_OS
     mkdir() { return 0; }
 
     export -f command apk uname ln mkdir
-
     export HOME="$MOCK_DIR/fake_home"
 
     run install_all_packages
@@ -237,7 +233,6 @@ MOCK_OS
     mkdir() { return 0; }
 
     export -f command brew uname ln mkdir
-
     export HOME="$MOCK_DIR/fake_home"
 
     run install_all_packages
@@ -262,7 +257,6 @@ MOCK_OS
     awk() { echo "v1.0.0"; }
 
     export -f command uname curl tar find chmod mkdir awk
-
     export HOME="$MOCK_DIR/fake_home"
 
     run install_all_packages
@@ -327,9 +321,6 @@ MOCK_OS
 }
 
 @test "setup_root_loader" {
-    # _sudo is overridden in setup() to write to LOG_FILE, we temporarily undo that
-    # or just assert on LOG_FILE.
-
     _sudo() {
         if [[ "$*" == *"grep -q .bashrc_rafale"* ]]; then
             return 1

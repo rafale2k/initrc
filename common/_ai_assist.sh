@@ -61,7 +61,7 @@ _execute_ai_cmd() {
     read -r answer < /dev/tty
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         echo "🚀 Executing..."
-        eval "$cmd"
+        bash -c "$cmd"
     else
         echo "Aborted."
     fi

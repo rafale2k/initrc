@@ -53,11 +53,15 @@ remove_initrc_symlinks() {
     # 3. Oh My Zsh のカスタムプラグイン
     local zsh_custom="$t/.oh-my-zsh/custom"
     if [ -d "$zsh_custom" ]; then
-        find "$zsh_custom" -type l -name "*" | while read -r link; do
-            if readlink "$link" | grep -q "$DOTPATH"; then
-                rm "$link"
-            fi
-        done
+        find "$zsh_custom" -type l -exec sh -c '
+            dotpath=$1
+            shift
+            for link; do
+                case $(readlink "$link") in
+                    *"$dotpath"*) rm "$link" ;;
+                esac
+            done
+        ' _ "$DOTPATH" {} +
         echo "  ✅ Cleaned Oh My Zsh custom links"
     fi
 }

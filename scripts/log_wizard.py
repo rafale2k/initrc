@@ -2,6 +2,7 @@
 import os
 import sys
 import subprocess
+import concurrent.futures
 import re
 from collections import Counter
 
@@ -67,12 +68,15 @@ def analyze_logs():
     print(f"\n{C_YELLOW}🚀 Gemini 3.8 Flash Analysis (Top 3 Errors){C_END}")
     print("-" * 70)
 
-    for i, (msg, count) in enumerate(counts.most_common(3), 1):
+    top_errors = counts.most_common(3)
+
+    # 複数同時にLLMを呼び出して高速化
+    with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+        analyses = list(executor.map(lambda x: analyze_with_llm(x[0]), top_errors))
+
+    for i, ((msg, count), analysis) in enumerate(zip(top_errors, analyses), 1):
         print(f"{C_CYAN}Rank {i} ({count}回発生):{C_END}")
         print(f"  Log: {msg[:100]}...")  # 長すぎる場合はカット
-
-        # ここで LLM 呼び出し
-        analysis = analyze_with_llm(msg)
         print(f"  {C_RED}💡 解析結果: {analysis}{C_END}\n")
 
 

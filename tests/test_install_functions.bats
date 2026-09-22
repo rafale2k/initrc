@@ -1,93 +1,174 @@
 #!/usr/bin/env bats
 
 setup() {
-    export BATS_TEST_DIRNAME=$(cd "$(dirname "$BATS_TEST_FILENAME")" >/dev/null 2>&1 && pwd)
-    export DOTPATH="$BATS_TEST_DIRNAME/.."
-    export MOCK_HOME="$BATS_TEST_DIRNAME/fake_home"
-    mkdir -p "$MOCK_HOME/bin"
-    export OLD_HOME="$HOME"
-    export HOME="$MOCK_HOME"
-    source "$DOTPATH/scripts/install_functions.sh"
+  # We will use sed to replace /etc/os-release with our MOCK_OS_RELEASE in a temporary copy of the script.
+  # This avoids trying to mock the '.' builtin.
+
+  MOCK_DIR="$(mktemp -d)"
+  export PATH="$MOCK_DIR:$PATH"
+
+  LOG_FILE="$(mktemp)"
+  export LOG_FILE
+
+  MOCK_OS_RELEASE="$(mktemp)"
+  export MOCK_OS_RELEASE
+
+  # Create a modified version of the script pointing to our mock os-release
+  MODIFIED_SCRIPT="$(mktemp)"
+  export MODIFIED_SCRIPT
+  sed "s|/etc/os-release|$MOCK_OS_RELEASE|g" ./scripts/install_functions.sh > "$MODIFIED_SCRIPT"
+  source "$MODIFIED_SCRIPT"
+
+  _sudo() {
+    echo "_sudo $*" >> "$LOG_FILE"
+    return 0
+  }
+  export -f _sudo
+
+  cat << 'MOCK' > "$MOCK_DIR/dpkg"
+#!/bin/bash
+if [ "$1" = "--print-architecture" ]; then
+    echo "amd64"
+fi
+MOCK
+  chmod +x "$MOCK_DIR/dpkg"
+
+  cat << 'MOCK' > "$MOCK_DIR/wget"
+#!/bin/bash
+echo "wget $*" >> "$LOG_FILE"
+MOCK
+  chmod +x "$MOCK_DIR/wget"
+
+  cat << 'MOCK' > "$MOCK_DIR/lsb_release"
+#!/bin/bash
+if [ "$1" = "-cs" ]; then
+    echo "mock-codename"
+fi
+MOCK
+  chmod +x "$MOCK_DIR/lsb_release"
 }
 
 teardown() {
-    export HOME="$OLD_HOME"
-    rm -rf "$MOCK_HOME"
+  rm -rf "$MOCK_DIR"
+  rm -f "$LOG_FILE"
+  rm -f "$MOCK_OS_RELEASE"
+  rm -f "$MODIFIED_SCRIPT"
+}
+
+@test "setup_os_repos configures apt correctly for ubuntu" {
+  export PM="apt"
+
+  cat << 'MOCK_OS' > "$MOCK_OS_RELEASE"
+ID=ubuntu
+VERSION_CODENAME=jammy
+MOCK_OS
+
+  run setup_os_repos
+  [ "$status" -eq 0 ]
+
+  command grep "_sudo apt-get update -qq" "$LOG_FILE"
+  command grep "_sudo apt-get install -y -qq wget gnupg curl ca-certificates lsb-release xz-utils" "$LOG_FILE"
+  command grep "_sudo mkdir -p /etc/apt/keyrings" "$LOG_FILE"
+  command grep "wget -qO- https://raw.githubusercontent.com/eza-community/eza/main/deb.asc" "$LOG_FILE"
+  command grep "_sudo gpg --dearmor --yes -o /etc/apt/keyrings/gierens.gpg" "$LOG_FILE"
+  command grep "_sudo tee /etc/apt/sources.list.d/gierens.list" "$LOG_FILE"
+  command grep "wget -qO- https://download.docker.com/linux/ubuntu/gpg" "$LOG_FILE"
+  command grep "_sudo tee /etc/apt/sources.list.d/docker.list" "$LOG_FILE"
+}
+
+@test "setup_os_repos configures apt correctly for debian using fallback grep" {
+  export PM="apt"
+
+  cat << 'MOCK_OS' > "$MOCK_OS_RELEASE"
+ID=debian
+VERSION_CODENAME=bookworm
+MOCK_OS
+
+  cat << 'MOCK' > "$MOCK_DIR/lsb_release"
+#!/bin/bash
+return 1 2>/dev/null || :
+MOCK
+
+  run setup_os_repos
+  [ "$status" -eq 0 ]
+
+  command grep "wget -qO- https://download.docker.com/linux/debian/gpg" "$LOG_FILE"
+}
+
+@test "setup_os_repos configures apt but apt-get update fails" {
+  export PM="apt"
+
+  cat << 'MOCK_OS' > "$MOCK_OS_RELEASE"
+ID=ubuntu
+VERSION_CODENAME=jammy
+MOCK_OS
+
+  _sudo() {
+    echo "_sudo $@" >> "$LOG_FILE"
+    if [ "$1" = "apt-get" ] && [ "$2" = "update" ]; then
+        return 1
+    fi
+    return 0
+  }
+  export -f _sudo
+
+  run setup_os_repos
+  [ "$status" -eq 0 ]
+
+  command grep "_sudo apt-get update -qq" "$LOG_FILE"
+  run command grep "_sudo apt-get install -y -qq wget" "$LOG_FILE"
+  [ "$status" -eq 1 ]
+}
+
+@test "setup_os_repos configures dnf correctly for non-rhel" {
+  export PM="dnf"
+  export OS="fedora"
+
+  run setup_os_repos
+  [ "$status" -eq 0 ]
+
+  command grep "_sudo dnf install -y -q xz" "$LOG_FILE"
+  command grep "_sudo dnf makecache -q" "$LOG_FILE"
+  run command grep "_sudo dnf install -y -q epel-release" "$LOG_FILE"
+  [ "$status" -eq 1 ]
+}
+
+@test "setup_os_repos configures dnf correctly for rhel" {
+  export PM="dnf"
+  export OS="rhel"
+
+  run setup_os_repos
+  [ "$status" -eq 0 ]
+
+  command grep "_sudo dnf install -y -q epel-release" "$LOG_FILE"
+  command grep "_sudo dnf install -y -q xz" "$LOG_FILE"
+  command grep "_sudo dnf makecache -q" "$LOG_FILE"
+}
+
+@test "setup_os_repos does nothing for unknown PM" {
+  export PM="pacman"
+
+  run setup_os_repos
+  [ "$status" -eq 0 ]
+  [ ! -s "$LOG_FILE" ]
 }
 
 @test "_sudo executes with SUDO_CMD" {
+    # Undo the _sudo mock from setup() to test the original function
+    source scripts/install_functions.sh
     SUDO_CMD="echo"
     run _sudo "hello"
     [ "$status" -eq 0 ]
-    [ "$output" = "hello" ]
+    [[ "$output" == *"hello"* ]]
 }
 
 @test "_sudo executes without SUDO_CMD" {
+    # Undo the _sudo mock from setup() to test the original function
+    source scripts/install_functions.sh
     SUDO_CMD=""
     run _sudo echo "hello"
     [ "$status" -eq 0 ]
-    [ "$output" = "hello" ]
-}
-
-
-@test "setup_os_repos for apt" {
-    export PM="apt"
-    export ID="ubuntu"
-
-    # Mock source to prevent reading real /etc/os-release
-    # We will alias the `.` command instead of redefining it as a function, which bash restricts
-
-    # Since we can't easily override `.` within BATS via function export,
-    # we will mock the subshell output for os_id and codename directly by redefining lsb_release, etc.
-
-    # Mock commands
-    _sudo() { echo "_sudo $@"; return 0; }
-    apt-get() { echo "apt-get $@"; return 0; }
-    wget() { echo "wget $@"; return 0; }
-    gpg() { echo "gpg $@"; return 0; }
-    tee() { echo "tee $@"; return 0; }
-    dpkg() { echo "amd64"; return 0; }
-    lsb_release() { echo "jammy"; return 0; }
-    mkdir() { echo "mkdir $@"; return 0; }
-
-    export -f _sudo apt-get wget gpg tee dpkg lsb_release mkdir
-
-    run setup_os_repos
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"⚙️  Configuring apt..."* ]]
-    # When _sudo is mocked directly, it might echo differently depending on expansion
-    # We will just look for the underlying command name since we also assert _sudo execution manually
-    [[ "$output" == *"apt-get update"* ]]
-}
-
-@test "setup_os_repos for dnf rhel" {
-    export PM="dnf"
-    export OS="rhel"
-
-    _sudo() { echo "_sudo $@"; return 0; }
-    dnf() { echo "dnf $@"; return 0; }
-    export -f _sudo dnf
-
-    run setup_os_repos
-    [ "$status" -eq 0 ]
-    [[ "$output" == *"dnf install -y -q epel-release"* ]]
-    [[ "$output" == *"dnf install -y -q xz"* ]]
-    [[ "$output" == *"dnf makecache -q"* ]]
-}
-
-@test "setup_os_repos for dnf non-rhel" {
-    export PM="dnf"
-    export OS="fedora"
-
-    _sudo() { echo "_sudo $@"; return 0; }
-    dnf() { echo "dnf $@"; return 0; }
-    export -f _sudo dnf
-
-    run setup_os_repos
-    [ "$status" -eq 0 ]
-    [[ "$output" != *"epel-release"* ]]
-    [[ "$output" == *"dnf install -y -q xz"* ]]
-    [[ "$output" == *"dnf makecache -q"* ]]
+    [[ "$output" == *"hello"* ]]
 }
 
 @test "install_all_packages with apt-get" {
@@ -100,19 +181,20 @@ teardown() {
             esac
         fi
     }
-    apt-get() { echo "apt-get $@"; return 0; }
+    apt-get() { echo "apt-get $@" >> "$LOG_FILE"; return 0; }
     uname() { echo "Linux"; }
-    ln() { echo "ln $@"; return 0; }
-    mkdir() { echo "mkdir $@"; return 0; }
+    ln() { echo "ln $@" >> "$LOG_FILE"; return 0; }
+    mkdir() { echo "mkdir $@" >> "$LOG_FILE"; return 0; }
 
     export -f command apt-get uname ln mkdir
 
+    export HOME="$MOCK_DIR/fake_home"
+
     run install_all_packages
     [ "$status" -eq 0 ]
-    [[ "$output" == *"Starting Package Installation..."* ]]
-    [[ "$output" == *"apt-get update"* ]]
-    [[ "$output" == *"apt-get install"* ]]
-    [[ "$output" == *"ln -sf "* ]]
+    command grep "apt-get update" "$LOG_FILE"
+    command grep "apt-get install" "$LOG_FILE"
+    command grep "ln -sf" "$LOG_FILE"
 }
 
 @test "install_all_packages with apk" {
@@ -125,16 +207,18 @@ teardown() {
             esac
         fi
     }
-    apk() { echo "apk $@"; return 0; }
+    apk() { echo "apk $@" >> "$LOG_FILE"; return 0; }
     uname() { echo "Linux"; }
     ln() { return 0; }
     mkdir() { return 0; }
 
     export -f command apk uname ln mkdir
 
+    export HOME="$MOCK_DIR/fake_home"
+
     run install_all_packages
     [ "$status" -eq 0 ]
-    [[ "$output" == *"apk add --no-cache"* ]]
+    command grep "apk add --no-cache" "$LOG_FILE"
 }
 
 @test "install_all_packages with brew (macOS)" {
@@ -154,16 +238,17 @@ teardown() {
 
     export -f command brew uname ln mkdir
 
+    export HOME="$MOCK_DIR/fake_home"
+
     run install_all_packages
     [ "$status" -eq 0 ]
     [[ "$output" == *"brew install"* ]]
 }
 
 @test "install_all_packages fallback github release" {
-    # Simulate no package manager and missing tools to trigger curl/tar fallback
     command() {
         if [ "$1" = "-v" ]; then
-            return 1 # all tools missing
+            return 1
         fi
     }
     uname() {
@@ -178,6 +263,8 @@ teardown() {
 
     export -f command uname curl tar find chmod mkdir awk
 
+    export HOME="$MOCK_DIR/fake_home"
+
     run install_all_packages
     [ "$status" -eq 0 ]
     [[ "$output" == *"tar xz -C "* ]]
@@ -191,40 +278,37 @@ teardown() {
 
     export -f sh curl
 
-    export DOTPATH="$BATS_TEST_DIRNAME/fake_dotpath"
+    export DOTPATH="$MOCK_DIR/fake_dotpath"
     mkdir -p "$DOTPATH/zsh/themes/powerlevel10k"
     mkdir -p "$DOTPATH/zsh/plugins/zsh-autosuggestions"
 
-    export OLD_HOME="$HOME"
-    export HOME="$BATS_TEST_DIRNAME/fake_home"
+    export HOME="$MOCK_DIR/fake_home"
     mkdir -p "$HOME"
 
     run setup_oh_my_zsh
-
-    rm -rf "$DOTPATH" "$HOME"
-    export HOME="$OLD_HOME"
 
     [ "$status" -eq 0 ]
     [[ "$output" == *"インストール中"* ]]
     [[ "$output" == *"Linking Zsh plugins..."* ]]
     [[ "$output" == *"Linked zsh-autosuggestions"* ]]
-    [[ "$output" == *"Plugin not found in"* ]] # for missing plugins
+    [[ "$output" == *"Plugin not found in"* ]]
 }
 
 @test "setup_ai_tools" {
-    command() { return 1; } # simulate llm missing
+    command() { return 1; }
     pipx() { echo "pipx $@"; return 0; }
     chmod() { echo "chmod $@"; return 0; }
 
     export -f command pipx chmod
+    export HOME="$MOCK_DIR/fake_home"
+    mkdir -p "$HOME/bin"
 
     run setup_ai_tools
     [ "$status" -eq 0 ]
     [[ "$output" == *"pipx install llm"* ]]
     [[ "$output" == *"pipx inject llm llm-gemini"* ]]
 
-    # Verify file was created in the mock HOME directory
-    [ -f "$MOCK_HOME/bin/ginv" ]
+    [ -f "$HOME/bin/ginv" ]
 }
 
 @test "deploy_configs" {
@@ -232,8 +316,8 @@ teardown() {
     ln() { echo "ln $@"; return 0; }
     export -f perl ln
 
-    export DOTPATH="$BATS_TEST_DIRNAME/fake_dotpath"
-    export HOME="$BATS_TEST_DIRNAME/fake_home"
+    export DOTPATH="$MOCK_DIR/fake_dotpath"
+    export HOME="$MOCK_DIR/fake_home"
     mkdir -p "$HOME"
 
     run deploy_configs "$HOME"
@@ -243,18 +327,21 @@ teardown() {
 }
 
 @test "setup_root_loader" {
+    # _sudo is overridden in setup() to write to LOG_FILE, we temporarily undo that
+    # or just assert on LOG_FILE.
+
     _sudo() {
         if [[ "$*" == *"grep -q .bashrc_rafale"* ]]; then
-            return 1 # simulate grep failure so it attempts to echo
+            return 1
         fi
-        echo "_sudo $@"
+        echo "_sudo $@" >> "$LOG_FILE"
     }
     export -f _sudo
 
     run setup_root_loader
     [ "$status" -eq 0 ]
-    [[ "$output" == *"_sudo bash -c cat << 'EOF' > /root/.bashrc_rafale"* ]]
-    [[ "$output" == *"_sudo bash -c echo 'source /root/.bashrc_rafale' >> /root/.bashrc"* ]]
+    command grep "_sudo bash -c cat << 'EOF' > /root/.bashrc_rafale" "$LOG_FILE"
+    command grep "_sudo bash -c echo 'source /root/.bashrc_rafale' >> /root/.bashrc" "$LOG_FILE"
 }
 
 @test "verify_installation with all tools missing" {

@@ -76,7 +76,7 @@ def analyze_logs():
 
     for i, ((msg, count), analysis) in enumerate(zip(top_errors, analyses), 1):
         print(f"{C_CYAN}Rank {i} ({count}回発生):{C_END}")
-        print(f"  Log: {msg[:100]}...")  # 長すぎる場合はカット
+        print(f"  Log: {msg[:100]}...") # 長すぎる場合はカット
         print(f"  {C_RED}💡 解析結果: {analysis}{C_END}\n")
 
 

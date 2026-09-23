@@ -3,35 +3,40 @@ import os
 import sys
 import subprocess
 import concurrent.futures
+import re
 from collections import Counter
 
 # ANSIカラー（視認性向上）
-C_RED = '\033[91m'
-C_CYAN = '\033[96m'
-C_YELLOW = '\033[93m'
-C_END = '\033[0m'
+C_RED = "\033[91m"
+C_CYAN = "\033[96m"
+C_YELLOW = "\033[93m"
+C_END = "\033[0m"
+
 
 def analyze_with_llm(raw_log):
     # Gemini 3.8 Flash への「ズバッと」プロンプト
     prompt = f"以下の1行のログから、何が起きているか、攻撃の予兆か、具体的な対策を30文字以内でズバッと指摘せよ。余計な挨拶は不要。\n\n{raw_log}"
-    
+
     model = os.environ.get("AI_ASSIST_MODEL", "gemini-3.8-flash")
-    cmd = ['llm', prompt, '-m', model]
-    if 'gemini-3.' in model:
-        cmd.extend(['-o', 'thinking_level', 'low'])
+
+    # 脆弱性対策: OSコマンドインジェクションや引数インジェクションを防ぐため、
+    # モデル名として安全な文字（英数字、ドット、ハイフン、アンダースコア、スラッシュ）のみを許可する。
+    if not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9.\-_\/]*$", model):
+        model = "gemini-3.8-flash"
+
+    cmd = ["llm", prompt, "-m", model]
+    if "gemini-3." in model:
+        cmd.extend(["-o", "thinking_level", "low"])
 
     try:
         # llm コマンドを実行
         result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            check=True
+            cmd, capture_output=True, text=True, encoding="utf-8", check=True
         )
-        return result.stdout.strip().replace('\n', ' ')
+        return result.stdout.strip().replace("\n", " ")
     except Exception as e:
         return f"LLM Error: {str(e)[:30]}"
+
 
 def analyze_logs():
     if sys.stdin.isatty():
@@ -39,8 +44,8 @@ def analyze_logs():
         return
 
     # キーワード：これらが含まれる行を「異常」とみなす
-    KEYWORDS = ['error', 'failed', 'warning', 'critical', '404', '500', 'denied']
-    
+    KEYWORDS = ["error", "failed", "warning", "critical", "404", "500", "denied"]
+
     counts = Counter()
     samples = {}
 
@@ -48,7 +53,7 @@ def analyze_logs():
         line_strip = line.strip()
         if not line_strip:
             continue
-            
+
         line_lower = line_strip.lower()
         if any(kw in line_lower for kw in KEYWORDS):
             # ログ行をそのままキーにして集計（重複排除はLLM側でもできる）
@@ -73,6 +78,7 @@ def analyze_logs():
         print(f"{C_CYAN}Rank {i} ({count}回発生):{C_END}")
         print(f"  Log: {msg[:100]}...") # 長すぎる場合はカット
         print(f"  {C_RED}💡 解析結果: {analysis}{C_END}\n")
+
 
 if __name__ == "__main__":
     analyze_logs()

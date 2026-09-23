@@ -1,3 +1,10 @@
+## [v2.4.0] - 2026-09-24
+- test: Add unit tests for log_wizard.py (90fc29a)
+- test: add BATS tests for scripts/install_functions.sh (135e669)
+- test: Add unit tests for log_wizard.py (fb05120)
+- test: add BATS tests for scripts/install_functions.sh (ec16c13)
+- Fix merge conflicts (7d6f236)
+
 ## [v2.3.2] - 2026-09-14
 - chore(submodule): bump the submodules group with 2 updates (2e8e8ac)
 - chore(deps): update msgpack requirement in the pip-dependencies group (93d690f)

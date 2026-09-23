@@ -27,7 +27,7 @@ jobs:
 
       - name: Generate OGP Image
         run: |
-          sudo apt-get install -y imagemagick
+          sudo apt-get update && sudo apt-get install -y imagemagick fonts-noto-cjk
           VERSION=${{ steps.get_version.outputs.VERSION }}
 
           # 最新のサマリだけを確実に取るために -m 1 を追加

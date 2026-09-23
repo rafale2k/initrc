@@ -1,3 +1,10 @@
+## [v2.4.1] - 2026-09-24
+- ci: fix imagemagick installation failure in dockerhub-readme workflow (fd8d361)
+- chore: release v2.4.0 (9d53ab8)
+- chore: release v2.4.0 (fe2e0d8)
+- test: Add unit tests for log_wizard.py (90fc29a)
+- test: add BATS tests for scripts/install_functions.sh (135e669)
+
 ## [v2.4.0] - 2026-09-24
 
 > ### 🤖 AI Release Summary

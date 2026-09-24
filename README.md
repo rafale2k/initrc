@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.4.1-blue)
+![Version](https://img.shields.io/badge/version-v2.4.2-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -265,12 +265,19 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.4.1] - 2026-09-24
+## [v2.4.2] - 2026-09-24
+
+> ### 🤖 AI Release Summary
+> 🛡️ **コンテナの守りを強固に！** DockerのAlpineベースイメージを即座に更新し、脆弱性を許さない鉄壁のセキュア環境を維持！
+⚡ **開発効率をブースト！** Oh My Zshと構文ハイライトのサブモジュールを最新化し、エンジニアの快適なシェル操作と爆速運用を支援！
+✨ **見栄えも妥協なし！** OGP画像を最適化してリフレッシュし、システムの信頼性だけでなくプロジェクトの顔までパーフェクトに仕上げ完了！
+
+---
+- chore(submodule): bump the submodules group with 2 updates (f9bf359)
+- chore(docker): bump alpine in the docker-dependencies group (b92f9ee)
+- chore: regenerate OGP image [skip ci] (20b8597)
+- chore: release v2.4.1 (0cb9aec)
 - ci: fix imagemagick installation failure in dockerhub-readme workflow (fd8d361)
-- chore: release v2.4.0 (9d53ab8)
-- chore: release v2.4.0 (fe2e0d8)
-- test: Add unit tests for log_wizard.py (90fc29a)
-- test: add BATS tests for scripts/install_functions.sh (135e669)
 
 <!-- RELEASE_NOTES_END -->
 

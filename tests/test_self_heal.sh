@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Setup a clean environment for testing
+export HOME
+HOME=$(mktemp -d)
+trap 'rm -rf "$HOME"' EXIT
+unset XDG_CACHE_HOME
+
 export DOTPATH
 DOTPATH="$(pwd)"
 # shellcheck source=/dev/null
@@ -38,19 +43,19 @@ test_no_missing_tools() {
     MOCK_DATE=1000000
 
     # clean up
-    rm -f "/tmp/.dotfiles_last_check_testuser" "/tmp/.dcheck_report_testuser"
+    rm -f "$HOME/.cache/dotfiles/last_check" "$HOME/.cache/dotfiles/dcheck_report"
 
     dcheck --force
 
     # wait for background process
     sleep 0.2
 
-    if [[ -f "/tmp/.dcheck_report_testuser" ]]; then
+    if [[ -f "$HOME/.cache/dotfiles/dcheck_report" ]]; then
         echo "FAIL: Report file created when no tools are missing"
         return 1
     fi
 
-    if [[ ! -f "/tmp/.dotfiles_last_check_testuser" ]]; then
+    if [[ ! -f "$HOME/.cache/dotfiles/last_check" ]]; then
         echo "FAIL: Cache file not created"
         return 1
     fi
@@ -77,7 +82,7 @@ INNER_EOF
     export DOTPATH="$TEMP_DOTPATH"
 
     # clean up
-    rm -f "/tmp/.dotfiles_last_check_testuser" "/tmp/.dcheck_report_testuser"
+    rm -f "$HOME/.cache/dotfiles/last_check" "$HOME/.cache/dotfiles/dcheck_report"
 
     dcheck --force
 
@@ -88,13 +93,13 @@ INNER_EOF
     export DOTPATH="$OLD_DOTPATH"
     rm -rf "$TEMP_DOTPATH"
 
-    if [[ ! -f "/tmp/.dcheck_report_testuser" ]]; then
+    if [[ ! -f "$HOME/.cache/dotfiles/dcheck_report" ]]; then
         echo "FAIL: Report file not created when tools are missing"
         return 1
     fi
 
     local content
-    content=$(cat "/tmp/.dcheck_report_testuser")
+    content=$(cat "$HOME/.cache/dotfiles/dcheck_report")
     if ! echo "$content" | grep -q "eza"; then
         echo "FAIL: 'eza' not found in report"
         return 1
@@ -113,8 +118,9 @@ test_cache_hit() {
     MOCK_DATE=1000000
 
     # clean up and pre-seed cache file
-    rm -f "/tmp/.dotfiles_last_check_testuser" "/tmp/.dcheck_report_testuser"
-    echo "999900" > "/tmp/.dotfiles_last_check_testuser"
+    mkdir -p "$HOME/.cache/dotfiles"
+    rm -f "$HOME/.cache/dotfiles/last_check" "$HOME/.cache/dotfiles/dcheck_report"
+    echo "999900" > "$HOME/.cache/dotfiles/last_check"
 
     # This shouldn't run because within threshold (100)
     dcheck
@@ -124,7 +130,7 @@ test_cache_hit() {
 
     # the cache shouldn't have been updated because we hit the cache
     local cache_content
-    cache_content=$(cat "/tmp/.dotfiles_last_check_testuser")
+    cache_content=$(cat "$HOME/.cache/dotfiles/last_check")
     if [[ "$cache_content" != "999900" ]]; then
         echo "FAIL: Cache file updated when it shouldn't be"
         return 1
@@ -138,8 +144,9 @@ test_cache_miss() {
     MOCK_DATE=1000000
 
     # clean up and pre-seed cache file
-    rm -f "/tmp/.dotfiles_last_check_testuser" "/tmp/.dcheck_report_testuser"
-    echo "100000" > "/tmp/.dotfiles_last_check_testuser" # older than threshold (3600)
+    mkdir -p "$HOME/.cache/dotfiles"
+    rm -f "$HOME/.cache/dotfiles/last_check" "$HOME/.cache/dotfiles/dcheck_report"
+    echo "100000" > "$HOME/.cache/dotfiles/last_check" # older than threshold (3600)
 
     dcheck
 
@@ -148,7 +155,7 @@ test_cache_miss() {
 
     # the cache should have been updated
     local cache_content
-    cache_content=$(cat "/tmp/.dotfiles_last_check_testuser")
+    cache_content=$(cat "$HOME/.cache/dotfiles/last_check")
     if [[ "$cache_content" != "1000000" ]]; then
         echo "FAIL: Cache file not updated"
         return 1

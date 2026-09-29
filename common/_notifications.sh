@@ -4,8 +4,8 @@
 # Maintenance Report: Display tools restored by dcheck
 # -----------------------------------------------------------------------------
 show_maintenance_report() {
-    local report_file
-    report_file="/tmp/.dcheck_report_$(whoami)"
+    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
+    local report_file="$cache_dir/dcheck_report"
     
     if [ -f "$report_file" ]; then
         # ツールが重複して書き込まれるのを防ぎつつ表示

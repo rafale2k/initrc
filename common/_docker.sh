@@ -62,7 +62,7 @@ dl() {
 }
 
 # [drm] コンテナを選択して停止・削除 (複数選択可)
-unalias drm 2>/dev/null
+unalias drm 2>/dev/null || true
 drm() {
     local containers
     if command -v fzf &> /dev/null; then
@@ -87,7 +87,7 @@ dri() {
 }
 
 # [dce] Compose サービスを選択して Exec
-unalias dce 2>/dev/null
+unalias dce 2>/dev/null || true
 dce() {
     local service
     if ! command -v fzf &> /dev/null; then

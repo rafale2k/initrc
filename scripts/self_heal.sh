@@ -2,10 +2,12 @@
 
 # 自己修復メイン関数
 dcheck() {
+    local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
+    mkdir -p "$cache_dir"
     local cache_file
-    cache_file="/tmp/.dotfiles_last_check_$(whoami)"
+    cache_file="$cache_dir/last_check"
     local report_file
-    report_file="/tmp/.dcheck_report_$(whoami)"
+    report_file="$cache_dir/dcheck_report"
     local now
     now=$(date +%s)
     local threshold=3600 # 1時間

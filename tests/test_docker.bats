@@ -51,11 +51,11 @@ teardown() {
 }
 
 @test "de: uses fzf to select container if no argument provided and fzf exists" {
-  cat << 'EOF' > "$MOCK_DIR/fzf"
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
 #!/bin/bash
 echo "fzf $@" >> "$LOG_FILE"
 echo "selected-container"
-EOF
+EOF2
   chmod +x "$MOCK_DIR/fzf"
 
   # Force command -v fzf to find it
@@ -93,10 +93,10 @@ EOF
 }
 
 @test "de: returns immediately if fzf is aborted (returns empty)" {
-  cat << 'EOF' > "$MOCK_DIR/fzf"
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
 #!/bin/bash
 # Returns nothing
-EOF
+EOF2
   chmod +x "$MOCK_DIR/fzf"
 
   command() {
@@ -112,5 +112,86 @@ EOF
 
   [ "$status" -eq 0 ]
   run command grep "docker exec" "$LOG_FILE"
+  [ "$status" -eq 1 ]
+}
+
+@test "dl: with provided container name runs docker logs" {
+  run bash -c "
+      source common/_docker.sh
+      docker() { echo \"docker \$*\" >> \"$LOG_FILE\"; }
+      dl \"my-container\"
+  "
+  [ "$status" -eq 0 ]
+
+  command grep "docker logs -f --tail 100 my-container" "$LOG_FILE"
+}
+
+@test "dl: without container uses fzf to select and runs docker logs" {
+  # Mock fzf to return a selected container name
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
+#!/bin/bash
+echo "fzf-container"
+EOF2
+  chmod +x "$MOCK_DIR/fzf"
+
+  run bash -c "
+      source common/_docker.sh
+      docker() {
+          if [[ \"\$1\" == \"ps\" ]]; then
+              echo \"container1\"
+              echo \"fzf-container\"
+              echo \"container3\"
+          else
+              echo \"docker \$*\" >> \"$LOG_FILE\"
+          fi
+      }
+      dl
+  "
+  [ "$status" -eq 0 ]
+
+  command grep "docker logs -f --tail 100 fzf-container" "$LOG_FILE"
+}
+
+@test "dl: without container and fzf aborts does nothing" {
+  # Mock fzf to simulate user abort (empty output and non-zero exit)
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
+#!/bin/bash
+return 1 2>/dev/null || :
+EOF2
+  chmod +x "$MOCK_DIR/fzf"
+
+  run bash -c "
+      source common/_docker.sh
+      docker() {
+          if [[ \"\$1\" == \"ps\" ]]; then
+              echo \"container1\"
+          else
+              echo \"docker \$*\" >> \"$LOG_FILE\"
+          fi
+      }
+      dl
+  "
+  [ "$status" -eq 0 ]
+
+  # Check that docker logs was NOT called
+  run command grep "docker logs" "$LOG_FILE"
+  [ "$status" -eq 1 ]
+}
+
+@test "dl: without container and fzf is missing does nothing" {
+  # Remove fzf mock
+  rm -f "$MOCK_DIR/fzf"
+
+  run bash -c "
+      source common/_docker.sh
+      docker() {
+          echo \"docker \$*\" >> \"$LOG_FILE\"
+      }
+      dl
+  "
+  [ "$status" -eq 0 ]
+
+  # Check that docker logs was NOT called
+  run command grep "docker logs" "$LOG_FILE"
   [ "$status" -eq 1 ]
 }

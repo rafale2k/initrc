@@ -4,6 +4,8 @@
 dcheck() {
     local cache_dir="${XDG_CACHE_HOME:-$HOME/.cache}/dotfiles"
     mkdir -p "$cache_dir"
+    chmod 700 "$cache_dir"
+
     local cache_file
     cache_file="$cache_dir/last_check"
     local report_file

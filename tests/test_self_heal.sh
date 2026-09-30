@@ -8,6 +8,7 @@ unset XDG_CACHE_HOME
 
 export DOTPATH
 DOTPATH="$(pwd)"
+
 # shellcheck source=/dev/null
 source scripts/self_heal.sh
 

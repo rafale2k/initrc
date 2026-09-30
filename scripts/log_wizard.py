@@ -47,7 +47,6 @@ def analyze_logs():
     KEYWORDS = ["error", "failed", "warning", "critical", "404", "500", "denied"]
 
     counts = Counter()
-    samples = {}
 
     for line in sys.stdin:
         line_strip = line.strip()
@@ -58,8 +57,6 @@ def analyze_logs():
         if any(kw in line_lower for kw in KEYWORDS):
             # ログ行をそのままキーにして集計（重複排除はLLM側でもできる）
             counts[line_strip] += 1
-            if line_strip not in samples:
-                samples[line_strip] = line_strip
 
     if not counts:
         print(f"{C_CYAN}✨ 異常ログは見つかりませんでした。{C_END}")

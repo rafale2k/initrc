@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # --- Rafale SRE Custom Theme (OMB) ---
 
-function _omb_theme_PROMPT_COMMAND() {
+_omb_theme_PROMPT_COMMAND() {
     local EXIT_CODE="$?"
     local ROOT_MARKER=""
     local EXIT_S=""

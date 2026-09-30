@@ -1,6 +1,11 @@
 #!/bin/bash
 
 # Setup a clean environment for testing
+export HOME
+HOME=$(mktemp -d)
+trap 'rm -rf "$HOME"' EXIT
+unset XDG_CACHE_HOME
+
 export DOTPATH
 DOTPATH="$(pwd)"
 

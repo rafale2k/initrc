@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.4.2-blue)
+![Version](https://img.shields.io/badge/version-v2.4.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -265,19 +265,12 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.4.2] - 2026-09-24
-
-> ### 🤖 AI Release Summary
-> 🛡️ **コンテナの守りを強固に！** DockerのAlpineベースイメージを即座に更新し、脆弱性を許さない鉄壁のセキュア環境を維持！
-⚡ **開発効率をブースト！** Oh My Zshと構文ハイライトのサブモジュールを最新化し、エンジニアの快適なシェル操作と爆速運用を支援！
-✨ **見栄えも妥協なし！** OGP画像を最適化してリフレッシュし、システムの信頼性だけでなくプロジェクトの顔までパーフェクトに仕上げ完了！
-
----
-- chore(submodule): bump the submodules group with 2 updates (f9bf359)
-- chore(docker): bump alpine in the docker-dependencies group (b92f9ee)
-- chore: regenerate OGP image [skip ci] (20b8597)
-- chore: release v2.4.1 (0cb9aec)
-- ci: fix imagemagick installation failure in dockerhub-readme workflow (fd8d361)
+## [v2.4.3] - 2026-10-01
+- Fix insecure temporary file creation in self_heal script (7209f29)
+- test(docker): add tests for dl function in common/_docker.sh (a5639b6)
+- test(docker): add bats tests for dl function in common/_docker.sh (e732d0c)
+- Refactor eza download logic in install_functions.sh to use _download_github_release (1a66a2e)
+- perf: optimize symlink cleanup with globstar bash loop (501a90a)
 
 <!-- RELEASE_NOTES_END -->
 

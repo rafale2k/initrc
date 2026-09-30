@@ -1,3 +1,10 @@
+## [v2.4.3] - 2026-10-01
+- Fix insecure temporary file creation in self_heal script (7209f29)
+- test(docker): add tests for dl function in common/_docker.sh (a5639b6)
+- test(docker): add bats tests for dl function in common/_docker.sh (e732d0c)
+- Refactor eza download logic in install_functions.sh to use _download_github_release (1a66a2e)
+- perf: optimize symlink cleanup with globstar bash loop (501a90a)
+
 ## [v2.4.2] - 2026-09-24
 
 > ### 🤖 AI Release Summary

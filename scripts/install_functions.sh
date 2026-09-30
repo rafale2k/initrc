@@ -74,7 +74,6 @@ install_all_packages() {
     fi
 
     # 3. 最終救済: それでも bat/fd/eza が無いならバイナリを落とす
-    local arch; arch=$(uname -m)
     local os_type; os_type=$(uname -s)
 
     # 汎用 GitHub リリースダウンロード関数
@@ -99,14 +98,8 @@ install_all_packages() {
     if ! command -v eza >/dev/null 2>&1 && [ ! -f "$HOME/bin/eza" ]; then
         local e_os="unknown-linux-gnu"
         [ "$os_type" = "Darwin" ] && e_os="apple-darwin"
-        local eza_ver; eza_ver=$(curl -fLsS -o /dev/null -w "%{url_effective}" \
-            https://github.com/eza-community/eza/releases/latest | awk -F/ '{print $NF}')
-        if [ -n "$eza_ver" ]; then
-            curl -fLsS "https://github.com/eza-community/eza/releases/download/${eza_ver}/eza_${arch}-${e_os}.tar.gz" \
-                | tar xz -C "$HOME/bin" 2>/dev/null || true
-            find "$HOME/bin" -type f -name "eza*" ! -name "*.gz" -exec mv {} "$HOME/bin/eza" \; 2>/dev/null || true
-            chmod +x "$HOME/bin/eza"
-        fi
+        _download_github_release "eza" "eza-community/eza" \
+            "eza___ARCH__-${e_os}.tar.gz" 0 || true
     fi
 
     # bat 救済 (Linux のみ)

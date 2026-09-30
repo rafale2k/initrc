@@ -198,7 +198,7 @@ _smart_copy() {
 }
 
 # 1. ファイルの中身をコピー
-function copyfile() {
+copyfile() {
   local file=$1
   if [[ -f "$file" ]]; then
     local data
@@ -212,14 +212,14 @@ function copyfile() {
 }
 
 # 2. 現在の絶対パスをコピー
-function copypath() {
+copypath() {
   local path=${1:-$PWD}
   _smart_copy "$path"
   echo "📍 Path '$path' copied to clipboard (OSC52 + Native)"
 }
 
 # 3. パイプからの入力をコピー
-function osc_copy() {
+osc_copy() {
   local data
   data=$(cat) # 標準入力をすべて読み込む
   _smart_copy "$data"

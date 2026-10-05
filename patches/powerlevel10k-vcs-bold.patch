@@ -1,0 +1,20 @@
+--- zsh/themes/powerlevel10k/internal/p10k.zsh
++++ zsh/themes/powerlevel10k/internal/p10k.zsh
+@@ -568,7 +568,16 @@
+   if [[ -n $_p9k__ret ]]; then
+     _p9k__ret[-1,-1]=''
+   else
+-    local style=%b  # TODO: support bold
++    local style=%b
++    local var=_POWERLEVEL9K_VCS_${1}_${2}FORMAT_BOLD
++    if (( $+parameters[$var] )); then
++      [[ ${(P)var} == true ]] && style=%B
++    else
++      var=_POWERLEVEL9K_VCS_${2}FORMAT_BOLD
++      if (( $+parameters[$var] )); then
++        [[ ${(P)var} == true ]] && style=%B
++      fi
++    fi
+     _p9k_color prompt_vcs_$1 BACKGROUND "${__p9k_vcs_states[$1]}"
+     _p9k_background $_p9k__ret
+     style+=$_p9k__ret

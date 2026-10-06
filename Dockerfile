@@ -3,7 +3,7 @@
 # ==========================================
 # 1. fzf ビルドステージ (Go製バイナリのビルド)
 # ==========================================
-FROM golang:1.27.1-alpine@sha256:cf6fca6641884b8433441b2b0652976f975e1d0fdd26d177eaaf8596087f3125 AS fzf-builder
+FROM golang:1.27.1-alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414 AS fzf-builder
 
 ARG FZF_VERSION=v0.74.3
 
@@ -15,7 +15,7 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 # ==========================================
 # 2. Python 仮想環境ビルドステージ
 # ==========================================
-FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS python-builder
+FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS python-builder
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk update && apk upgrade --no-cache && \
@@ -36,7 +36,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # ==========================================
 # 3. dotfiles 整理ステージ (軽量Alpineで不要ファイル削除)
 # ==========================================
-FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS dotfiles-builder
+FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS dotfiles-builder
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
@@ -78,7 +78,7 @@ RUN if [ ! -f "oh-my-zsh/oh-my-zsh.sh" ] && [ -d ".git" ]; then \
 # ==========================================
 # 4. 実行ステージ
 # ==========================================
-FROM alpine:3.24@sha256:28bd5fe8b56d1bd048e5babf5b10710ebe0bae67db86916198a6eec434943f8b AS runtime
+FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6 AS runtime
 
 # セキュリティ更新の適用と最小限パッケージのインストール
 # ※ py3-pip は不要（/opt/venv を流用）、openssh は openssh-client に限定して脆弱性サーフェスを最小化

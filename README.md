@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.3.2-blue)
+![Version](https://img.shields.io/badge/version-v2.4.4-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -265,12 +265,12 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.3.2] - 2026-09-14
-- chore(submodule): bump the submodules group with 2 updates (2e8e8ac)
-- chore(deps): update msgpack requirement in the pip-dependencies group (93d690f)
-- chore(submodule): bump oh-my-zsh in the submodules group (ed2f0d2)
-- dependabot (cf97bc6)
-- refactor(docker): optimize multi-stage build stages (0ee413f)
+## [v2.4.4] - 2026-10-06
+- Support bold formatting in VCS styles (825e8e4)
+- chore(docker): bump golang (810c58c)
+- chore(submodule): bump oh-my-zsh (ecc1a7e)
+- chore: regenerate OGP image [skip ci] (06f303b)
+- chore: release v2.4.3 (be392c8)
 
 <!-- RELEASE_NOTES_END -->
 

@@ -28,6 +28,9 @@ _select_container() {
 _is_safe_command() {
     local cmd="$1"
     # 破壊的なコマンドのパターンを検知
+    if echo "$cmd" | grep -qE "rm -rf /|mkfs|dd if=/dev/zero|:(){:|:&};:"; then
+        return 1 # 危険
+    fi
     if [[ "$cmd" =~ rm[[:space:]]+-rf[[:space:]]+(/|\$HOME|/[a-zA-Z0-9]+[[:space:]]*$) ]]; then
         return 1
     fi
@@ -61,7 +64,7 @@ _execute_ai_cmd() {
     read -r answer < /dev/tty
     if [[ "$answer" =~ ^[Yy]$ ]]; then
         echo "🚀 Executing..."
-        eval "$cmd"
+        bash -c "$cmd"
     else
         echo "Aborted."
     fi

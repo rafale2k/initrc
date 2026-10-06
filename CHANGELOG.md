@@ -1,3 +1,61 @@
+## [v2.4.4] - 2026-10-06
+- Support bold formatting in VCS styles (825e8e4)
+- chore(docker): bump golang (810c58c)
+- chore(submodule): bump oh-my-zsh (ecc1a7e)
+- chore: regenerate OGP image [skip ci] (06f303b)
+- chore: release v2.4.3 (be392c8)
+
+## [v2.4.3] - 2026-10-01
+- Fix insecure temporary file creation in self_heal script (7209f29)
+- test(docker): add tests for dl function in common/_docker.sh (a5639b6)
+- test(docker): add bats tests for dl function in common/_docker.sh (e732d0c)
+- Refactor eza download logic in install_functions.sh to use _download_github_release (1a66a2e)
+- perf: optimize symlink cleanup with globstar bash loop (501a90a)
+
+## [v2.4.2] - 2026-09-24
+
+> ### 🤖 AI Release Summary
+> 🛡️ **コンテナの守りを強固に！** DockerのAlpineベースイメージを即座に更新し、脆弱性を許さない鉄壁のセキュア環境を維持！
+⚡ **開発効率をブースト！** Oh My Zshと構文ハイライトのサブモジュールを最新化し、エンジニアの快適なシェル操作と爆速運用を支援！
+✨ **見栄えも妥協なし！** OGP画像を最適化してリフレッシュし、システムの信頼性だけでなくプロジェクトの顔までパーフェクトに仕上げ完了！
+
+---
+- chore(submodule): bump the submodules group with 2 updates (f9bf359)
+- chore(docker): bump alpine in the docker-dependencies group (b92f9ee)
+- chore: regenerate OGP image [skip ci] (20b8597)
+- chore: release v2.4.1 (0cb9aec)
+- ci: fix imagemagick installation failure in dockerhub-readme workflow (fd8d361)
+
+## [v2.4.1] - 2026-09-24
+- ci: fix imagemagick installation failure in dockerhub-readme workflow (fd8d361)
+- chore: release v2.4.0 (9d53ab8)
+- chore: release v2.4.0 (fe2e0d8)
+- test: Add unit tests for log_wizard.py (90fc29a)
+- test: add BATS tests for scripts/install_functions.sh (135e669)
+
+## [v2.4.0] - 2026-09-24
+
+> ### 🤖 AI Release Summary
+> 🔥 変更差分がまだ届いていないが、我々のインフラへのパッションはすでに沸点突破だ！！
+🛠️ レビュー対象のコードやログを投入してくれれば、SLOを死守する魂の要約を爆速でデリバリーするぞ！！
+🚀 完璧な可用性とゼロダウンタイムの未来を掴み取るため、熱い変更内容のシェアを待っているッ！！
+
+---
+- chore: release v2.4.0 (fe2e0d8)
+- test: Add unit tests for log_wizard.py (90fc29a)
+- test: add BATS tests for scripts/install_functions.sh (135e669)
+- test: Add unit tests for log_wizard.py (fb05120)
+- test: add BATS tests for scripts/install_functions.sh (ec16c13)
+- ... and 33 more changes.
+
+
+## [v2.4.0] - 2026-09-24
+- test: Add unit tests for log_wizard.py (90fc29a)
+- test: add BATS tests for scripts/install_functions.sh (135e669)
+- test: Add unit tests for log_wizard.py (fb05120)
+- test: add BATS tests for scripts/install_functions.sh (ec16c13)
+- Fix merge conflicts (7d6f236)
+
 ## [v2.3.2] - 2026-09-14
 - chore(submodule): bump the submodules group with 2 updates (2e8e8ac)
 - chore(deps): update msgpack requirement in the pip-dependencies group (93d690f)

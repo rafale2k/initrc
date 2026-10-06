@@ -106,6 +106,13 @@ jobs:
           fi
           shellcheck install.sh uninstall.sh scripts/*.sh common/*.sh
 
+      - name: 🧪 Run Tests
+        run: |
+          if [ -f tests/test_self_heal.sh ]; then
+            chmod +x tests/test_self_heal.sh
+            ./tests/test_self_heal.sh
+          fi
+
   macos-test:
     name: 🍎 macOS latest Build
     runs-on: macos-latest

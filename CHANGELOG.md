@@ -1,3 +1,12 @@
+## [v2.4.4] - 2026-10-07
+- chore: release v2.4.4 (ec2e8f9)
+- Support bold formatting in VCS styles (825e8e4)
+- chore(docker): bump golang (810c58c)
+- chore(submodule): bump oh-my-zsh (ecc1a7e)
+- chore: regenerate OGP image [skip ci] (06f303b)
+- ... and 3 more changes.
+
+
 ## [v2.4.4] - 2026-10-06
 - Support bold formatting in VCS styles (825e8e4)
 - chore(docker): bump golang (810c58c)

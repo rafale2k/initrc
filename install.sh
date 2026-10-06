@@ -48,6 +48,7 @@ if [ -d ".git" ] || [ -f "zsh/.zshrc" ]; then
      git config --global --add safe.directory "$DOTPATH"
      # .git がない場合は、ここで改めて clone するか init する
      git submodule update --init --recursive || echo "⚠️ Submodule sync failed"
+     patch -N -d zsh/themes/powerlevel10k -p1 < "$DOTPATH/patches/p10k_bold.patch" || echo "⚠️ Patch applied already"
 else
      echo "⚠️ Context unknown, skipping..."
 fi

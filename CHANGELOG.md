@@ -1,3 +1,10 @@
+## [v2.4.4] - 2026-10-06
+- Support bold formatting in VCS styles (825e8e4)
+- chore(docker): bump golang (810c58c)
+- chore(submodule): bump oh-my-zsh (ecc1a7e)
+- chore: regenerate OGP image [skip ci] (06f303b)
+- chore: release v2.4.3 (be392c8)
+
 ## [v2.4.3] - 2026-10-01
 - Fix insecure temporary file creation in self_heal script (7209f29)
 - test(docker): add tests for dl function in common/_docker.sh (a5639b6)

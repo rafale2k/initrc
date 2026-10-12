@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.4.4-blue)
+![Version](https://img.shields.io/badge/version-v2.4.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -265,13 +265,19 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.4.4] - 2026-10-07
+## [v2.4.5] - 2026-10-13
+
+> ### 🤖 AI Release Summary
+> 🛡️ **msgpackの依存関係を最新化！** 潜在的リスクを排除し、システムの堅牢性と信頼性を極限まで高めました！
+⚡ **oh-my-zshサブモジュールを即座に更新！** 開発者の生産性とインフラ運用のスピードをさらに加速させます！
+✨ **OGP画像を鮮烈にリフレッシュ！** ユーザー体験とブランド価値を最大化する最高のビジュアルへ進化完了です！
+
+---
+- chore(deps): update msgpack requirement (5f3930e)
+- chore(submodule): bump oh-my-zsh (f4eb37a)
+- chore: regenerate OGP image [skip ci] (7937b7d)
+- chore: release v2.4.4 (409ab87)
 - chore: release v2.4.4 (ec2e8f9)
-- Support bold formatting in VCS styles (825e8e4)
-- chore(docker): bump golang (810c58c)
-- chore(submodule): bump oh-my-zsh (ecc1a7e)
-- chore: regenerate OGP image [skip ci] (06f303b)
-- ... and 3 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

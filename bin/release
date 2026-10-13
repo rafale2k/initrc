@@ -8,7 +8,7 @@ read -p "Enter new version (Press Enter to auto-bump): " NEW_VERSION
 
 # 自動インクリメント
 if [ -z "$NEW_VERSION" ]; then
-    NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
+    NEW_VERSION=$(echo "$CURRENT_VERSION" | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
 fi
 
 # 以降で使用する変数を統一

@@ -111,10 +111,13 @@ Google Gemini 3.8 Flash (Low) を核とした SRE 専用 AI ツール群（<code
 インストール不要。Docker があればワンコマンドで環境が立ち上がります。
 
 ```bash
+# 事前に環境変数としてエクスポートしておくことで、コマンド履歴やプロセス一覧への漏洩を防ぎます
+# export LLM_GEMINI_KEY="あなたのGEMINI_API_KEY"
+
 docker run -it --rm \
   --group-add $(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo 0) \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -e LLM_GEMINI_KEY="あなたのGEMINI_API_KEY" \
+  -e LLM_GEMINI_KEY \
   rafale2k/initrc:latest
 ```
 

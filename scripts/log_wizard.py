@@ -3,6 +3,7 @@ import os
 import sys
 import subprocess
 import concurrent.futures
+import shutil
 import re
 from collections import Counter
 
@@ -24,7 +25,11 @@ def analyze_with_llm(raw_log):
     if not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9.\-_\/]*$", model):
         model = "gemini-3.8-flash"
 
-    cmd = ["llm", prompt, "-m", model]
+    llm_path = shutil.which("llm")
+    if not llm_path:
+        return "LLM Error: llm command not found"
+
+    cmd = [llm_path, prompt, "-m", model]
     if "gemini-3." in model:
         cmd.extend(["-o", "thinking_level", "low"])
 

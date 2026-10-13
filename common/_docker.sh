@@ -22,7 +22,7 @@ alias dclt='docker compose logs -f --tail 50'
 alias dps='docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | sed -e "s/Up/$(printf "\033[32mUp\033[0m")/g" -e "s/Exited/$(printf "\033[31mExited\033[0m")/g"'
 
 # [dip] コンテナの内部 IP アドレスを一瞬で表示
-alias dip="docker ps -q | xargs -n 1 docker inspect --format '{{ .Name }}: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' | sed 's/\///'"
+alias dip="docker ps -q | xargs docker inspect --format '{{ .Name }}: {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' | sed 's/\///'"
 
 # [dim] イメージをサイズ順に並べて表示（肥大化チェック）
 alias dim='docker images --format "table {{.Repository}}\t{{.Tag}}\t{{.Size}}" | (read -r; printf "%s\n" "$REPLY"; sort -hr -k3)'

@@ -68,7 +68,8 @@ drm() {
     if command -v fzf &> /dev/null; then
         containers=$(docker ps -a --format "{{.Names}}" | fzf --multi --prompt="🗑️ Select Containers to Remove (TAB to multi-select) > " --height 40% --reverse)
         if [ -n "$containers" ]; then
-            echo "$containers" | xargs -I {} sh -c "docker stop {} && docker rm {}"
+            echo "$containers" | xargs docker stop
+            echo "$containers" | xargs docker rm
         fi
     else
         echo "⚠️ fzf is required for drm."

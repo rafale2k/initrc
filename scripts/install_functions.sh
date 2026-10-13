@@ -216,10 +216,6 @@ verify_installation() {
         echo "✅ ginv found at $TARGET_BIN_DIR/ginv"
     else
         echo "⚠️  ginv not found at $TARGET_BIN_DIR/ginv."
-        # ginv is optional/generated, so maybe just warn? Or fail if critical.
-        # Keeping it as a warning for now based on original script, but original script didn't exit on it?
-        # Actually original script said "One or more critical tools are missing" if EXIT_CODE!=0.
-        # ginv check didn't set EXIT_CODE in the original script.
     fi
 
     if [[ $EXIT_CODE -ne 0 ]]; then

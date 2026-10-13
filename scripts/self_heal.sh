@@ -23,11 +23,13 @@ dcheck() {
 
     (
         local missing_tools=()
-        for tool in eza bat fd zoxide fzf tree; do
-            if ! command -v "$tool" >/dev/null 2>&1; then
-                missing_tools+=("$tool")
-            fi
-        done
+        if ! hash eza bat fd zoxide fzf tree 2>/dev/null; then
+            for tool in eza bat fd zoxide fzf tree; do
+                if ! command -v "$tool" >/dev/null 2>&1; then
+                    missing_tools+=("$tool")
+                fi
+            done
+        fi
 
         if [ ${#missing_tools[@]} -gt 0 ]; then
             # 不足ツールを通知レポートへ追記

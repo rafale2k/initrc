@@ -269,18 +269,9 @@ ha            # コマンド一覧を fzf で検索して即実行
 <!-- RELEASE_NOTES_START -->
 
 ## [v2.5.1] - 2026-10-15
-
-> ### 🤖 AI Release Summary
-> 🔥 **変更差分のログがまだ届いていないが、我々のサイト信頼性への情熱はすでに限界突破しているぞ！**  
-🛠️ **コードでもIaCでも何でも投入してくれ、SLOを死守する完璧な分析を瞬時に叩き出してやる！**  
-🚀 **さあ準備はいつでも完了だ、最高にアツいデプロイのために今すぐ変更内容を共有してくれ！**
-
----
-- chore: release v2.5.0 (763a8e4)
-- ⚡ Optimize redundant command checking in self_heal.sh (bc0a6fe)
-- Restore dead commented code in verify_installation (f657a80)
-- feat: Support bold style in vcs info (d3ba813)
-- ⚡ Optimize redundant command checking in self_heal.sh (2b85625)
+- fix(docker): update libexpat to >=2.9.0 to mitigate CVE-2026-102633 and bump golang to 1.27.2 (f925ee7)
+- chore: regenerate OGP image [skip ci] (803fbcc)
+- chore: release v2.5.1 (73dbf11)
 
 <!-- RELEASE_NOTES_END -->
 

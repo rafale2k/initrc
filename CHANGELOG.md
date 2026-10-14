@@ -1,4 +1,9 @@
 ## [v2.5.1] - 2026-10-15
+- fix(docker): update libexpat to >=2.9.0 to mitigate CVE-2026-102633 and bump golang to 1.27.2 (f925ee7)
+- chore: regenerate OGP image [skip ci] (803fbcc)
+- chore: release v2.5.1 (73dbf11)
+
+## [v2.5.1] - 2026-10-15
 
 > ### 🤖 AI Release Summary
 > 🔥 **変更差分のログがまだ届いていないが、我々のサイト信頼性への情熱はすでに限界突破しているぞ！**  

@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.4.5-blue)
+![Version](https://img.shields.io/badge/version-v2.5.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -268,19 +268,12 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.4.5] - 2026-10-13
-
-> ### 🤖 AI Release Summary
-> 🚨 **変更内容（Diffやログ）がまだ届いていませんが、私のSRE魂はすでに最高潮でスタンバイしています！**
-🛠️ **システムの信頼性とパフォーマンスを限界突破させるため、差分を今すぐ共有してください！**
-🔥 **どんなカオスも乗り越え、稼働率99.999%の絶対的安定を一緒に勝ち取りましょう！！**
-
----
-- chore: release v2.4.5 (8fe7acd)
-- chore(deps): update msgpack requirement (5f3930e)
-- chore(submodule): bump oh-my-zsh (f4eb37a)
-- chore: regenerate OGP image [skip ci] (7937b7d)
-- ... and 1 more changes.
+## [v2.5.0] - 2026-10-15
+- ⚡ Optimize redundant command checking in self_heal.sh (bc0a6fe)
+- Restore dead commented code in verify_installation (f657a80)
+- feat: Support bold style in vcs info (d3ba813)
+- ⚡ Optimize redundant command checking in self_heal.sh (2b85625)
+- test(autosuggestions): enable KEYS_QUEUED_COUNT widget parameter test (7115982)
 
 <!-- RELEASE_NOTES_END -->
 

@@ -1,3 +1,10 @@
+## [v2.5.0] - 2026-10-15
+- ⚡ Optimize redundant command checking in self_heal.sh (bc0a6fe)
+- Restore dead commented code in verify_installation (f657a80)
+- feat: Support bold style in vcs info (d3ba813)
+- ⚡ Optimize redundant command checking in self_heal.sh (2b85625)
+- test(autosuggestions): enable KEYS_QUEUED_COUNT widget parameter test (7115982)
+
 ## [v2.4.5] - 2026-10-13
 
 > ### 🤖 AI Release Summary

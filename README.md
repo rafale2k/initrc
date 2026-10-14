@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.5.0-blue)
+![Version](https://img.shields.io/badge/version-v2.5.1-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -268,12 +268,19 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.5.0] - 2026-10-15
+## [v2.5.1] - 2026-10-15
+
+> ### 🤖 AI Release Summary
+> 🔥 **変更差分のログがまだ届いていないが、我々のサイト信頼性への情熱はすでに限界突破しているぞ！**  
+🛠️ **コードでもIaCでも何でも投入してくれ、SLOを死守する完璧な分析を瞬時に叩き出してやる！**  
+🚀 **さあ準備はいつでも完了だ、最高にアツいデプロイのために今すぐ変更内容を共有してくれ！**
+
+---
+- chore: release v2.5.0 (763a8e4)
 - ⚡ Optimize redundant command checking in self_heal.sh (bc0a6fe)
 - Restore dead commented code in verify_installation (f657a80)
 - feat: Support bold style in vcs info (d3ba813)
 - ⚡ Optimize redundant command checking in self_heal.sh (2b85625)
-- test(autosuggestions): enable KEYS_QUEUED_COUNT widget parameter test (7115982)
 
 <!-- RELEASE_NOTES_END -->
 

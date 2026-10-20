@@ -6,8 +6,11 @@ setup() {
     LOG_FILE="$(mktemp)"
     export LOG_FILE
 
-    # Create dummy aliases so unalias in _git.sh doesn't fail under set -e
     shopt -s expand_aliases
+
+    # Mock unalias to avoid errors in strict mode if 'gl' or 'g' doesn't exist
+    unalias() { true; }
+    export -f unalias
     alias gl=true
     alias g=true
 
@@ -23,12 +26,21 @@ setup() {
     # Mock git
     git() {
         echo "git $*" >> "$LOG_FILE"
+        if [[ "$1" == "diff" && "$2" == "--cached" ]]; then
+            if [[ "$MOCK_DIFF_EMPTY" == "1" ]]; then
+                echo ""
+            else
+                echo "some diff"
+            fi
+            return 0
+        fi
         if [[ "$1" == "symbolic-ref" && "$2" == "--short" && "$3" == "HEAD" ]]; then
             if [[ "$MOCK_GIT_BRANCH_FAIL" == "1" ]]; then
                 return 1
             else
                 echo "feature-branch"
             fi
+            return 0
         fi
         return 0
     }
@@ -38,6 +50,28 @@ setup() {
 teardown() {
     rm -rf "$MOCK_DIR"
     rm -f "$LOG_FILE"
+}
+
+@test "greview fails and shows error when there are no staged changes" {
+    export MOCK_DIFF_EMPTY=1
+
+    run greview
+    [ "$status" -eq 1 ]
+    [ "$output" = "❌ No staged changes." ]
+}
+
+@test "greview calls ginv when there are staged changes" {
+    # Mock ginv to capture its inputs
+    ginv() {
+        local stdin
+        stdin=$(cat)
+        echo "ginv called with: $stdin - $1"
+    }
+    export -f ginv
+
+    run greview
+    [ "$status" -eq 0 ]
+    [ "$output" = "ginv called with: some diff - この Git 差分を日本語で短くコードレビューして。" ]
 }
 
 @test "gquick: with argument uses provided message and current branch" {

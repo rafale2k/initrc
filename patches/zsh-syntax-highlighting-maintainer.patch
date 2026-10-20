@@ -1,0 +1,11 @@
+--- zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
++++ zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+@@ -528,7 +528,7 @@
+          type "_zsh_highlight_${highlighter}_highlighter_predicate" &> /dev/null;
+     then
+         # Old (0.4.x) function names
+-        if false; then
++        if (( ${+ZSH_HIGHLIGHT_MAINTAINER_MODE} )); then
+             # TODO: only show this warning for plugin authors/maintainers, not for end users
+             print -r -- >&2 "zsh-syntax-highlighting: warning: ${(qq)highlighter} highlighter uses deprecated entry point names; please ask its maintainer to update it: https://github.com/zsh-users/zsh-syntax-highlighting/issues/329"
+         fi

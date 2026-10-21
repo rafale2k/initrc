@@ -274,3 +274,114 @@ EOF2
   run command grep "docker stop" "$LOG_FILE"
   [ "$status" -eq 1 ]
 }
+
+@test "dce: without fzf returns error and 1" {
+  # Remove fzf mock
+  rm -f "$MOCK_DIR/fzf"
+
+  # Force command -v fzf to return 1
+  command() {
+    if [[ "$1" == "-v" && "$2" == "fzf" ]]; then
+      return 1
+    fi
+    builtin command "$@"
+  }
+  export -f command
+
+  run dce
+
+  [ "$status" -eq 1 ]
+  [ "$output" = "⚠️ fzf is not installed." ]
+}
+
+@test "dce: happy path executes bash in selected service" {
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
+#!/bin/bash
+echo "fzf $@" >> "$LOG_FILE"
+echo "selected-service"
+EOF2
+  chmod +x "$MOCK_DIR/fzf"
+
+  # Force command -v fzf to find it
+  command() {
+    if [[ "$1" == "-v" && "$2" == "fzf" ]]; then
+      echo "$MOCK_DIR/fzf"
+      return 0
+    fi
+    builtin command "$@"
+  }
+  export -f command
+
+  docker() {
+    echo "docker $*" >> "$LOG_FILE"
+    if [[ "$*" == "compose ps --services" ]]; then
+      echo "service1"
+      echo "service2"
+    fi
+    return 0
+  }
+  export -f docker
+
+  run dce
+
+  [ "$status" -eq 0 ]
+  command grep "docker compose ps --services" "$LOG_FILE"
+  command grep "fzf --prompt=🚀 Select Service (Compose Exec) >  --height 40% --reverse" "$LOG_FILE"
+  command grep "docker compose exec selected-service /bin/bash" "$LOG_FILE"
+}
+
+@test "dce: falls back to /bin/sh if /bin/bash fails" {
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
+#!/bin/bash
+echo "selected-service"
+EOF2
+  chmod +x "$MOCK_DIR/fzf"
+
+  # Force command -v fzf to find it
+  command() {
+    if [[ "$1" == "-v" && "$2" == "fzf" ]]; then
+      echo "$MOCK_DIR/fzf"
+      return 0
+    fi
+    builtin command "$@"
+  }
+  export -f command
+
+  docker() {
+    echo "docker $*" >> "$LOG_FILE"
+    if [[ "$*" == "compose exec selected-service /bin/bash" ]]; then
+      return 1
+    fi
+    return 0
+  }
+  export -f docker
+
+  run dce
+
+  [ "$status" -eq 0 ]
+  command grep "docker compose exec selected-service /bin/bash" "$LOG_FILE"
+  command grep "docker compose exec selected-service /bin/sh" "$LOG_FILE"
+}
+
+@test "dce: returns immediately if fzf is aborted (returns empty)" {
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
+#!/bin/bash
+# Returns nothing
+EOF2
+  chmod +x "$MOCK_DIR/fzf"
+
+  command() {
+    if [[ "$1" == "-v" && "$2" == "fzf" ]]; then
+      echo "$MOCK_DIR/fzf"
+      return 0
+    fi
+    builtin command "$@"
+  }
+  export -f command
+
+  run dce
+
+  [ "$status" -eq 0 ]
+  run command grep "docker compose exec" "$LOG_FILE"
+  [ "$status" -eq 1 ]
+}

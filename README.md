@@ -269,18 +269,12 @@ ha            # コマンド一覧を fzf で検索して即実行
 <!-- RELEASE_NOTES_START -->
 
 ## [v2.6.0] - 2026-10-22
-
-> ### 🤖 AI Release Summary
-> 🔥 差分エラーの撲滅からGit機能の最適化まで、信頼性を極限まで高める怒涛のテスト強化ラッシュを完遂！  
-⚡️ DCE改善とgquickの検証を一気にマージし、CIパイプラインのパフォーマンスを劇的にブースト！  
-🛡️ 絶え間ないmainブランチの同期とJules機能の統合により、本番環境の鉄壁な安定性を死守したぞ！
-
----
+- for vuls (97a5437)
+- chore: regenerate OGP image [skip ci] (a61408c)
+- chore: release v2.6.0 (d58fe8f)
 - test: add test coverage for dce function in _docker.sh (ac9f49e)
 - test: add bats tests for gquick function (fd27cb7)
-- Add tests for _git.sh (d6535ab)
-- test: add BATS test for bu diff no backup error path (e9fbcbf)
-- 🧪 Resolve conflict in test_git.bats to integrate gquick tests (48ff413)
+- ... and 45 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

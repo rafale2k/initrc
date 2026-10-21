@@ -1,4 +1,13 @@
 ## [v2.6.0] - 2026-10-22
+- for vuls (97a5437)
+- chore: regenerate OGP image [skip ci] (a61408c)
+- chore: release v2.6.0 (d58fe8f)
+- test: add test coverage for dce function in _docker.sh (ac9f49e)
+- test: add bats tests for gquick function (fd27cb7)
+- ... and 45 more changes.
+
+
+## [v2.6.0] - 2026-10-22
 
 > ### 🤖 AI Release Summary
 > 🔥 差分エラーの撲滅からGit機能の最適化まで、信頼性を極限まで高める怒涛のテスト強化ラッシュを完遂！  

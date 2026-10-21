@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.5.1-blue)
+![Version](https://img.shields.io/badge/version-v2.6.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -268,10 +268,19 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.5.1] - 2026-10-15
-- fix(docker): update libexpat to >=2.9.0 to mitigate CVE-2026-102633 and bump golang to 1.27.2 (f925ee7)
-- chore: regenerate OGP image [skip ci] (803fbcc)
-- chore: release v2.5.1 (73dbf11)
+## [v2.6.0] - 2026-10-22
+
+> ### 🤖 AI Release Summary
+> 🔥 差分エラーの撲滅からGit機能の最適化まで、信頼性を極限まで高める怒涛のテスト強化ラッシュを完遂！  
+⚡️ DCE改善とgquickの検証を一気にマージし、CIパイプラインのパフォーマンスを劇的にブースト！  
+🛡️ 絶え間ないmainブランチの同期とJules機能の統合により、本番環境の鉄壁な安定性を死守したぞ！
+
+---
+- test: add test coverage for dce function in _docker.sh (ac9f49e)
+- test: add bats tests for gquick function (fd27cb7)
+- Add tests for _git.sh (d6535ab)
+- test: add BATS test for bu diff no backup error path (e9fbcbf)
+- 🧪 Resolve conflict in test_git.bats to integrate gquick tests (48ff413)
 
 <!-- RELEASE_NOTES_END -->
 

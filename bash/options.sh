@@ -48,13 +48,6 @@ alias reload='exec bash'
 # rm/cp/mv は common/_system.sh で全ユーザー向けに定義済みのため重複定義しない
 # ==============================================================================
 if [ "${EUID:-1}" -eq 0 ]; then
-    # --- 1. 視認性を上げる（root であることを自覚する） ---
-    # eza が ~/bin にない root 環境でも最低限の表示を確保
-    alias ls='ls --color=auto'
-    alias ll='ls -alF --color=auto'
-    alias la='ls -A --color=auto'
-    alias l='ls -CF --color=auto'
-
     # --- 2. ログやプロセスをサクッと確認 ---
     alias df='df -h'
     alias free='free -m'

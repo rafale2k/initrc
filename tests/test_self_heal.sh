@@ -37,6 +37,18 @@ command() {
     builtin command "$@"
 }
 
+hash() {
+    local arg
+    for arg in "$@"; do
+        for tool in "${MOCK_MISSING_TOOLS[@]}"; do
+            if [[ "$tool" == "$arg" ]]; then
+                return 1
+            fi
+        done
+    done
+    return 0
+}
+
 whoami() {
     echo "testuser"
 }

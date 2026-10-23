@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.4.5-blue)
+![Version](https://img.shields.io/badge/version-v2.6.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -111,10 +111,13 @@ Google Gemini 3.8 Flash (Low) を核とした SRE 専用 AI ツール群（<code
 インストール不要。Docker があればワンコマンドで環境が立ち上がります。
 
 ```bash
+# 事前に環境変数としてエクスポートしておくことで、コマンド履歴やプロセス一覧への漏洩を防ぎます
+# export LLM_GEMINI_KEY="あなたのGEMINI_API_KEY"
+
 docker run -it --rm \
   --group-add $(stat -c '%g' /var/run/docker.sock 2>/dev/null || echo 0) \
   -v /var/run/docker.sock:/var/run/docker.sock \
-  -e LLM_GEMINI_KEY="あなたのGEMINI_API_KEY" \
+  -e LLM_GEMINI_KEY \
   rafale2k/initrc:latest
 ```
 
@@ -265,19 +268,13 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.4.5] - 2026-10-13
-
-> ### 🤖 AI Release Summary
-> 🚨 **変更内容（Diffやログ）がまだ届いていませんが、私のSRE魂はすでに最高潮でスタンバイしています！**
-🛠️ **システムの信頼性とパフォーマンスを限界突破させるため、差分を今すぐ共有してください！**
-🔥 **どんなカオスも乗り越え、稼働率99.999%の絶対的安定を一緒に勝ち取りましょう！！**
-
----
-- chore: release v2.4.5 (8fe7acd)
-- chore(deps): update msgpack requirement (5f3930e)
-- chore(submodule): bump oh-my-zsh (f4eb37a)
-- chore: regenerate OGP image [skip ci] (7937b7d)
-- ... and 1 more changes.
+## [v2.6.0] - 2026-10-22
+- for vuls (97a5437)
+- chore: regenerate OGP image [skip ci] (a61408c)
+- chore: release v2.6.0 (d58fe8f)
+- test: add test coverage for dce function in _docker.sh (ac9f49e)
+- test: add bats tests for gquick function (fd27cb7)
+- ... and 45 more changes.
 
 <!-- RELEASE_NOTES_END -->
 

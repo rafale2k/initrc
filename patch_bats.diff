@@ -1,0 +1,42 @@
+<<<<<<< SEARCH
+  # Source the script we are testing
+  source "./scripts/uninstall_functions.sh"
+}
+=======
+  # Source the script we are testing
+  source "${BATS_TEST_DIRNAME}/../scripts/uninstall_functions.sh"
+}
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+  # Removed
+  [ ! -e "$HOME/.vimrc" ]
+  [ ! -e "$HOME/.gitconfig" ]
+  [ ! -e "$HOME/.inputrc" ]
+  [ ! -e "$HOME/.gitignore_global" ]
+=======
+  # Removed
+  [ ! -L "$HOME/.vimrc" ]
+  [ ! -L "$HOME/.gitconfig" ]
+  [ ! -L "$HOME/.inputrc" ]
+  [ ! -L "$HOME/.gitignore_global" ]
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+  # Removed
+  [ ! -e "$HOME/bin/initrc_symlink" ]
+}
+=======
+  # Removed
+  [ ! -L "$HOME/bin/initrc_symlink" ]
+}
+>>>>>>> REPLACE
+<<<<<<< SEARCH
+  # Removed
+  [ ! -e "$zsh_custom/plugins/initrc_symlink" ]
+  [ ! -e "$zsh_custom/themes/mytheme/initrc_symlink" ]
+}
+=======
+  # Removed
+  [ ! -L "$zsh_custom/plugins/initrc_symlink" ]
+  [ ! -L "$zsh_custom/themes/mytheme/initrc_symlink" ]
+}
+>>>>>>> REPLACE

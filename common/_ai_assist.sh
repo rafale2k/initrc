@@ -41,8 +41,8 @@ _is_safe_command() {
 _parse_and_execute_ai_response() {
     local response="$1"
     local explanation cmd
-    explanation=$(echo "$response" | head -n 1)
-    cmd=$(echo "$response" | tail -n +2 | xargs)
+    explanation=$(printf "%s\n" "$response" | head -n 1)
+    cmd=$(printf "%s\n" "$response" | tail -n +2 | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
     echo -e "\n💡 \033[1;34m$explanation\033[0m"
     _execute_ai_cmd "$cmd"
 }
@@ -50,15 +50,19 @@ _parse_and_execute_ai_response() {
 # AI提案のコマンドを実行するか確認して実行
 _execute_ai_cmd() {
     local cmd="$1"
+
+    # Remove ANSI escape sequences and non-printable control characters (except tab/newline)
+    cmd=$(printf "%s" "$cmd" | sed 's/\x1B\[[0-9;]*[a-zA-Z]//g' | tr -d '\000-\010\013-\037\177')
+
     [[ -z "$cmd" ]] && { echo "❌ No command generated."; return 1; }
 
     if ! _is_safe_command "$cmd"; then
-        echo -e "\n⚠️  \033[1;31mDangerous command detected!\033[0m: $cmd"
+        printf "\n⚠️  \033[1;31mDangerous command detected!\033[0m: %s\n" "$cmd"
         echo "Execution blocked for safety."
         return 1
     fi
 
-    echo -e "\n👉 AI suggests: \033[1;32m$cmd\033[0m\n"
+    printf "\n👉 AI suggests: \033[1;32m%s\033[0m\n\n" "$cmd"
     echo -n "Run this command? [y/N]: "
     local answer
     read -r answer < /dev/tty
@@ -97,7 +101,7 @@ ask() {
 
     local cmd
     # shellcheck disable=SC2016
-    cmd=$(echo "$raw_cmd" | sed -E 's/^`{1,3}([a-z]*)?//g; s/`{1,3}$//g' | xargs)
+    cmd=$(printf "%s\n" "$raw_cmd" | sed -E 's/^`{1,3}([a-z]*)?//g; s/`{1,3}$//g' | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
     _execute_ai_cmd "$cmd"
 }

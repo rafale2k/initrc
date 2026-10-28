@@ -88,46 +88,70 @@ n() {
     printf "\e]4;0;%s\a" "$bg_orig"
 }
 
+# ログ・プロセス監視用ヘルパー関数群
+_l_watch_log() {
+    local log_file="$1"
+    echo -e "\033[35m-- Monitoring: $log_file --\033[0m"
+    # SC2015 回避: if 文で分岐
+    if command -v ccze &> /dev/null; then
+        tail -f "$log_file" | ccze -A
+    else
+        tail -f "$log_file"
+    fi
+}
+
+_l_resource_monitor() {
+    echo -e "\033[32m-- System Resource Monitor --\033[0m"
+    if command -v htop &> /dev/null; then
+        htop
+    else
+        top -u "$USER"
+    fi
+}
+
+_l_handle_no_args() {
+    local log_file
+    log_file=$(find . -maxdepth 2 -name "*.log" 2>/dev/null | fzf --prompt="Watch Log > " --height=40% --reverse)
+    if [ -n "$log_file" ]; then
+        _l_watch_log "$log_file"
+    else
+        _l_resource_monitor
+    fi
+}
+
+_l_check_port() {
+    local port="$1"
+    echo -e "\033[36m-- Process using port $port (sudo) --\033[0m"
+    sudo lsof -i ":$port" || echo "No process found on port $port"
+}
+
+_l_search_process() {
+    local query="$1"
+    echo -e "\033[33m-- Searching process: $query --\033[0m"
+    local pids
+    pids=$(pgrep -d, -f -i "$query")
+    if [ -n "$pids" ]; then
+        # ヘッダーを維持しつつヒット箇所を色付け
+        # shellcheck disable=SC2009
+        ps -up "$pids" | grep --color=always -i -E "$query|$"
+    else
+        echo "No process found matching: $query"
+    fi
+}
+
 # ログ・プロセス監視 (l)
 l() {
     if [ $# -eq 0 ]; then
-        local log_file
-        log_file=$(find . -maxdepth 2 -name "*.log" 2>/dev/null | fzf --prompt="Watch Log > " --height=40% --reverse)
-        if [ -n "$log_file" ]; then
-            echo -e "\033[35m-- Monitoring: $log_file --\033[0m"
-            # SC2015 回避: if 文で分岐
-            if command -v ccze &> /dev/null; then
-                tail -f "$log_file" | ccze -A
-            else
-                tail -f "$log_file"
-            fi
-        else
-            echo -e "\033[32m-- System Resource Monitor --\033[0m"
-            if command -v htop &> /dev/null; then
-                htop
-            else
-                top -u "$USER"
-            fi
-        fi
+        _l_handle_no_args
         return
     fi
 
     if [[ "$1" =~ ^[0-9]+$ ]]; then
-        echo -e "\033[36m-- Process using port $1 (sudo) --\033[0m"
-        sudo lsof -i ":$1" || echo "No process found on port $1"
+        _l_check_port "$1"
         return
     fi
 
-    echo -e "\033[33m-- Searching process: $1 --\033[0m"
-    local pids
-    pids=$(pgrep -d, -f -i "$1")
-    if [ -n "$pids" ]; then
-        # ヘッダーを維持しつつヒット箇所を色付け
-        # shellcheck disable=SC2009
-        ps -up "$pids" | grep --color=always -i -E "$1|$"
-    else
-        echo "No process found matching: $1"
-    fi
+    _l_search_process "$1"
 }
 
 # --- 5. エイリアス定義 (最後にまとめて記述) ---

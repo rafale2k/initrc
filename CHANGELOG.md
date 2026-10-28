@@ -1,3 +1,10 @@
+## [v2.6.2] - 2026-10-29
+- feat(zsh): fix zsh-autosuggestions TODO to conditionally use (b) flag for zsh>=5.0.8 (d45a851)
+- fix: use (b) flag in zsh-autosuggestions to drop older zsh support (756d3e8)
+- fix(alias-finder): remove backward compatibility check ZSH_ALIAS_FINDER_AUTOMATIC (3bcb497)
+- feat: support highlighting named-fd and numeric-fd file descriptors (afe9ba8)
+- perf: optimize zsh-syntax-highlighting path checks with (Y1) glob qualifier (8edca6d)
+
 ## [v2.6.1] - 2026-10-24
 
 > ### 🤖 AI Release Summary

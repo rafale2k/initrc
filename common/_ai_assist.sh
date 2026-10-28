@@ -63,12 +63,11 @@ _execute_ai_cmd() {
     fi
 
     printf "\n👉 AI suggests: \033[1;32m%s\033[0m\n\n" "$cmd"
-    echo -n "Run this command? [y/N]: "
-    local answer
-    read -r answer < /dev/tty
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-        echo "🚀 Executing..."
-        bash -c "$cmd"
+    echo "Press Enter to execute, or edit the command before running."
+    local edited_cmd
+    read -r -e -i "$cmd" -p "🚀 " edited_cmd < /dev/tty
+    if [[ -n "$edited_cmd" ]]; then
+        bash -c "$edited_cmd"
     else
         echo "Aborted."
     fi

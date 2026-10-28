@@ -271,7 +271,9 @@ Check out the [list of changes]({status["compare_url"]}).
                             f"Error running {e.stage} command: {e.returncode}",  # pyright: ignore[reportAttributeAccessIssue]
                             file=sys.stderr,
                         )
-                        print(e.stderr, file=sys.stderr)  # pyright: ignore[reportAttributeAccessIssue]
+                        print(
+                            e.stderr, file=sys.stderr
+                        )  # pyright: ignore[reportAttributeAccessIssue]
                     case shutil.Error:
                         print(f"Error copying files: {e}", file=sys.stderr)
 
@@ -462,13 +464,17 @@ class Git:
 
 
 class GitHub:
+    session = requests.Session()
+    adapter = requests.adapters.HTTPAdapter(pool_connections=20, pool_maxsize=20)
+    session.mount("https://", adapter)
+
     @staticmethod
     def check_newer_tag(repo, current_tag) -> UpdateStatusFalse | UpdateStatusTrue:
         # GET /repos/:owner/:repo/git/refs/tags
         url = f"https://api.github.com/repos/{repo}/git/refs/tags"
 
         # Send a GET request to the GitHub API
-        response = requests.get(url, headers=HEADERS)
+        response = GitHub.session.get(url, headers=HEADERS)
         current_version = coerce(current_tag)
         if current_version is None:
             raise ValueError(
@@ -528,7 +534,7 @@ class GitHub:
         url = f"https://api.github.com/repos/{repo}/compare/{version}...{branch}"
 
         # Send a GET request to the GitHub API
-        response = requests.get(url, headers=HEADERS)
+        response = GitHub.session.get(url, headers=HEADERS)
 
         # If the request was successful
         if response.status_code == 200:

@@ -9,3 +9,42 @@
              # TODO: only show this warning for plugin authors/maintainers, not for end users
              print -r -- >&2 "zsh-syntax-highlighting: warning: ${(qq)highlighter} highlighter uses deprecated entry point names; please ask its maintainer to update it: https://github.com/zsh-users/zsh-syntax-highlighting/issues/329"
          fi
+@@ -573,11 +573,13 @@
+ # Initialize the array of active highlighters if needed.
+ [[ $#ZSH_HIGHLIGHT_HIGHLIGHTERS -eq 0 ]] && ZSH_HIGHLIGHT_HIGHLIGHTERS=(main)
+
+-if (( $+X_ZSH_HIGHLIGHT_DIRS_BLACKLIST )); then
+-  print >&2 'zsh-syntax-highlighting: X_ZSH_HIGHLIGHT_DIRS_BLACKLIST is deprecated. Please use ZSH_HIGHLIGHT_DIRS_BLACKLIST.'
+-  ZSH_HIGHLIGHT_DIRS_BLACKLIST=($X_ZSH_HIGHLIGHT_DIRS_BLACKLIST)
+-  unset X_ZSH_HIGHLIGHT_DIRS_BLACKLIST
+-fi
++if (( ${+ZSH_HIGHLIGHT_MAINTAINER_MODE} )); then
++  if (( $+X_ZSH_HIGHLIGHT_DIRS_BLACKLIST )); then
++    print >&2 'zsh-syntax-highlighting: X_ZSH_HIGHLIGHT_DIRS_BLACKLIST is deprecated. Please use ZSH_HIGHLIGHT_DIRS_BLACKLIST.'
++    ZSH_HIGHLIGHT_DIRS_BLACKLIST=($X_ZSH_HIGHLIGHT_DIRS_BLACKLIST)
++    unset X_ZSH_HIGHLIGHT_DIRS_BLACKLIST
++  fi
++fi
+
+ # Restore the aliases we unned
+ eval "$zsh_highlight__aliases"
+--- zsh/plugins/zsh-syntax-highlighting/highlighters/main/main-highlighter.zsh
++++ zsh/plugins/zsh-syntax-highlighting/highlighters/main/main-highlighter.zsh
+@@ -417,11 +417,13 @@
+     '!' # reserved word; unrelated to $histchars[1]
+   )
+
+-  if (( $+X_ZSH_HIGHLIGHT_DIRS_BLACKLIST )); then
+-    print >&2 'zsh-syntax-highlighting: X_ZSH_HIGHLIGHT_DIRS_BLACKLIST is deprecated. Please use ZSH_HIGHLIGHT_DIRS_BLACKLIST.'
+-    ZSH_HIGHLIGHT_DIRS_BLACKLIST=($X_ZSH_HIGHLIGHT_DIRS_BLACKLIST)
+-    unset X_ZSH_HIGHLIGHT_DIRS_BLACKLIST
+-  fi
++  if (( ${+ZSH_HIGHLIGHT_MAINTAINER_MODE} )); then
++    if (( $+X_ZSH_HIGHLIGHT_DIRS_BLACKLIST )); then
++      print >&2 'zsh-syntax-highlighting: X_ZSH_HIGHLIGHT_DIRS_BLACKLIST is deprecated. Please use ZSH_HIGHLIGHT_DIRS_BLACKLIST.'
++      ZSH_HIGHLIGHT_DIRS_BLACKLIST=($X_ZSH_HIGHLIGHT_DIRS_BLACKLIST)
++      unset X_ZSH_HIGHLIGHT_DIRS_BLACKLIST
++    fi
++  fi
+
+   _zsh_highlight_main_highlighter_highlight_list -$#PREBUFFER '' 1 "$PREBUFFER$BUFFER"

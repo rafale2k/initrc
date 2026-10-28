@@ -48,6 +48,26 @@ class TestLogWizard(unittest.TestCase):
 
     @patch('scripts.log_wizard.shutil.which')
     @patch('scripts.log_wizard.subprocess.run')
+    def test_analyze_with_llm_error_path_timeout_expired(self, mock_run, mock_which):
+        # Setup the mock to raise a TimeoutExpired
+        mock_which.return_value = "/usr/bin/llm"
+        error = subprocess.TimeoutExpired(
+            cmd=['llm', 'prompt'],
+            timeout=10,
+            output="Timeout output",
+            stderr="Timeout error"
+        )
+        mock_run.side_effect = error
+
+        # Call the function
+        result = analyze_with_llm("test log")
+
+        # Verify the result
+        expected_error_str = str(error)[:30]
+        self.assertEqual(result, f"LLM Error: {expected_error_str}")
+
+    @patch('scripts.log_wizard.shutil.which')
+    @patch('scripts.log_wizard.subprocess.run')
     def test_analyze_with_llm_success_path(self, mock_run, mock_which):
         mock_which.return_value = "/usr/bin/llm"
         # Setup the mock to return a completed process with stdout

@@ -51,6 +51,7 @@ if [ -d ".git" ] || [ -f "zsh/.zshrc" ]; then
 
     # Apply patches
     echo "🩹 Applying patches..."
+    patch -p0 < "$DOTPATH/patches/alias-finder-remove-backward-compatibility.patch" --forward || echo "⚠️ Patch failed or already applied"
     patch -p0 < "$DOTPATH/patches/powerlevel10k-vcs-bold.patch" --forward || echo "⚠️ Patch failed or already applied"
     patch -p1 < "$DOTPATH/patches/zsh-syntax-highlighting/0001-highlight-pipeline-starts-if-multifuncdef.patch" --directory="$DOTPATH/zsh/plugins/zsh-syntax-highlighting" --forward || echo "⚠️ Patch failed or already applied"
 else

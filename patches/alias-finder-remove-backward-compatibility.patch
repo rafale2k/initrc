@@ -1,0 +1,20 @@
+--- oh-my-zsh/plugins/alias-finder/alias-finder.plugin.zsh
++++ oh-my-zsh/plugins/alias-finder/alias-finder.plugin.zsh
+@@ -4,7 +4,6 @@ alias-finder() {
+   # build command and options
+   for c in "$@"; do
+     case $c in
+-      # TODO: Remove backward compatibility (other than zstyle form)
+       # set options if exist
+       -e|--exact) exact=true;;
+       -l|--longer) longer=true;;
+@@ -60,8 +59,7 @@ alias-finder() {
+ }
+
+ preexec_alias-finder() {
+-  # TODO: Remove backward compatibility (other than zstyle form)
+-  zstyle -t ':omz:plugins:alias-finder' autoload && alias-finder $1 || if [[ $ZSH_ALIAS_FINDER_AUTOMATIC = true ]]; then
++  if zstyle -t ':omz:plugins:alias-finder' autoload; then
+     alias-finder $1
+   fi
+ }

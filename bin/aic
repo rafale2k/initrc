@@ -101,18 +101,23 @@ main() {
 
     # コミット実行
     if [[ -n "$selected" ]]; then
-        git commit -m "$selected"
-        
-        # クリップボードコピー
-        if command -v pbcopy &>/dev/null; then
-            echo -n "$selected" | pbcopy
-            echo "📋 Message copied to clipboard."
-        elif command -v xclip &>/dev/null; then
-            echo -n "$selected" | xclip -selection clipboard
-            echo "📋 Message copied to clipboard."
-        fi
-        echo "✨ Committed successfully with Gemini 3.8 Flash!"
+        _execute_commit "$selected"
     fi
+}
+
+_execute_commit() {
+    local message="$1"
+    git commit -m "$message"
+
+    # クリップボードコピー
+    if command -v pbcopy &>/dev/null; then
+        echo -n "$message" | pbcopy
+        echo "📋 Message copied to clipboard."
+    elif command -v xclip &>/dev/null; then
+        echo -n "$message" | xclip -selection clipboard
+        echo "📋 Message copied to clipboard."
+    fi
+    echo "✨ Committed successfully with Gemini 3.8 Flash!"
 }
 
 main "$@"

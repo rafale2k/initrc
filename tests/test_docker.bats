@@ -195,3 +195,82 @@ EOF2
   run command grep "docker logs" "$LOG_FILE"
   [ "$status" -eq 1 ]
 }
+
+@test "drm: uses fzf to select containers and removes them" {
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
+#!/bin/bash
+echo "container1 container2"
+EOF2
+  chmod +x "$MOCK_DIR/fzf"
+
+  run bash -c "
+      source common/_docker.sh
+      docker() {
+          if [[ \"\$1\" == \"ps\" ]]; then
+              echo \"container1\"
+              echo \"container2\"
+              echo \"container3\"
+          else
+              echo \"docker \$*\" >> \"$LOG_FILE\"
+          fi
+      }
+      export -f docker
+
+      xargs() {
+          local cmd=\"\$*\"
+          while read -r line; do
+             echo \"\$cmd \$line\" >> \"$LOG_FILE\"
+          done
+      }
+      export -f xargs
+
+      drm
+  "
+  [ "$status" -eq 0 ]
+  command grep "docker stop container1 container2" "$LOG_FILE"
+  command grep "docker rm container1 container2" "$LOG_FILE"
+}
+
+@test "drm: missing fzf prints warning" {
+  rm -f "$MOCK_DIR/fzf"
+
+  # To avoid picking up fzf from host
+  command() {
+    if [[ "$1" == "-v" && "$2" == "fzf" ]]; then
+      return 1
+    fi
+    builtin command "$@"
+  }
+  export -f command
+
+  run bash -c "
+      source common/_docker.sh
+      docker() { echo \"docker \$*\" >> \"$LOG_FILE\"; }
+      export -f docker
+      command() { if [[ \"\$1\" == \"-v\" && \"\$2\" == \"fzf\" ]]; then return 1; fi; builtin command \"\$@\"; }
+      export -f command
+      drm
+  "
+  [ "$status" -eq 0 ]
+  [[ "$output" == *"fzf is required for this command."* ]]
+  run command grep "docker stop" "$LOG_FILE"
+  [ "$status" -eq 1 ]
+}
+
+@test "drm: aborting fzf does nothing" {
+  cat << 'EOF2' > "$MOCK_DIR/fzf"
+#!/bin/bash
+return 1 2>/dev/null || :
+EOF2
+  chmod +x "$MOCK_DIR/fzf"
+
+  run bash -c "
+      source common/_docker.sh
+      docker() { echo \"docker \$*\" >> \"$LOG_FILE\"; }
+      export -f docker
+      drm
+  "
+  [ "$status" -eq 0 ]
+  run command grep "docker stop" "$LOG_FILE"
+  [ "$status" -eq 1 ]
+}

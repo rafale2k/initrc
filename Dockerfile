@@ -3,7 +3,7 @@
 # ==========================================
 # 1. fzf ビルドステージ (Go製バイナリのビルド)
 # ==========================================
-FROM golang:1.27.1-alpine@sha256:8a5910f31396cd4d89662f56c68b3ae31d374308270a1c3bd96672ee5ed43414 AS fzf-builder
+FROM golang:1.27.2-alpine@sha256:f92b6ef800e499660581efdabdf25d9d817a9d124eaf900924f0504e7e27e12d AS fzf-builder
 
 ARG FZF_VERSION=v0.74.3
 
@@ -85,17 +85,23 @@ FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cab
 RUN --mount=type=cache,target=/var/cache/apk \
     apk update && apk upgrade --no-cache && \
     apk add --no-cache \
-        sudo \
         bash \
         zsh \
         git \
-        curl \
         python3 \
         tree \
         openssh-client \
         openssl \
         zoxide \
         coreutils && \
+    # 脆弱性対応 (CVE対策として edge から修正版をピンポイント適用)
+    apk add --no-cache \
+        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main \
+        --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
+        "curl>=8.23.0" \
+        "libcurl>=8.23.0" \
+        "sudo>=1.9.17_p2-r4" \
+        "libexpat>=2.9.0" && \
     adduser -D -u 1000 -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/rafale && \
     chmod 0440 /etc/sudoers.d/rafale

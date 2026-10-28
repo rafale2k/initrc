@@ -11,9 +11,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 from scripts.log_wizard import analyze_with_llm, analyze_logs
 
 class TestLogWizard(unittest.TestCase):
+    @patch('scripts.log_wizard.shutil.which')
     @patch('scripts.log_wizard.subprocess.run')
-    def test_analyze_with_llm_error_path_generic_exception(self, mock_run):
+    def test_analyze_with_llm_error_path_generic_exception(self, mock_run, mock_which):
         # Setup the mock to raise a generic exception
+        mock_which.return_value = "/usr/bin/llm"
         error_msg = "Simulated error from subprocess"
         mock_run.side_effect = Exception(error_msg)
 
@@ -24,9 +26,11 @@ class TestLogWizard(unittest.TestCase):
         expected_error_str = error_msg[:30]
         self.assertEqual(result, f"LLM Error: {expected_error_str}")
 
+    @patch('scripts.log_wizard.shutil.which')
     @patch('scripts.log_wizard.subprocess.run')
-    def test_analyze_with_llm_error_path_called_process_error(self, mock_run):
+    def test_analyze_with_llm_error_path_called_process_error(self, mock_run, mock_which):
         # Setup the mock to raise a CalledProcessError
+        mock_which.return_value = "/usr/bin/llm"
         error = subprocess.CalledProcessError(
             returncode=1,
             cmd=['llm', 'prompt'],
@@ -42,8 +46,30 @@ class TestLogWizard(unittest.TestCase):
         expected_error_str = str(error)[:30]
         self.assertEqual(result, f"LLM Error: {expected_error_str}")
 
+    @patch('scripts.log_wizard.shutil.which')
     @patch('scripts.log_wizard.subprocess.run')
-    def test_analyze_with_llm_success_path(self, mock_run):
+    def test_analyze_with_llm_error_path_timeout_expired(self, mock_run, mock_which):
+        # Setup the mock to raise a TimeoutExpired
+        mock_which.return_value = "/usr/bin/llm"
+        error = subprocess.TimeoutExpired(
+            cmd=['llm', 'prompt'],
+            timeout=10,
+            output="Timeout output",
+            stderr="Timeout error"
+        )
+        mock_run.side_effect = error
+
+        # Call the function
+        result = analyze_with_llm("test log")
+
+        # Verify the result
+        expected_error_str = str(error)[:30]
+        self.assertEqual(result, f"LLM Error: {expected_error_str}")
+
+    @patch('scripts.log_wizard.shutil.which')
+    @patch('scripts.log_wizard.subprocess.run')
+    def test_analyze_with_llm_success_path(self, mock_run, mock_which):
+        mock_which.return_value = "/usr/bin/llm"
         # Setup the mock to return a completed process with stdout
         class MockCompletedProcess:
             stdout = "Analysis result\n"
@@ -68,6 +94,18 @@ class TestLogWizard(unittest.TestCase):
     def test_analyze_logs_empty_input(self, mock_stdin, mock_stdout):
         mock_stdin.isatty.return_value = False
         mock_stdin.__iter__.return_value = iter([])
+        analyze_logs()
+        self.assertIn("✨ 異常ログは見つかりませんでした。", mock_stdout.getvalue())
+
+    @patch('sys.stdout', new_callable=io.StringIO)
+    @patch('sys.stdin')
+    def test_analyze_logs_no_keywords(self, mock_stdin, mock_stdout):
+        mock_stdin.isatty.return_value = False
+        mock_stdin.__iter__.return_value = iter([
+            "Normal info log\n",
+            "Just another regular log\n",
+            "Nothing to see here\n"
+        ])
         analyze_logs()
         self.assertIn("✨ 異常ログは見つかりませんでした。", mock_stdout.getvalue())
 

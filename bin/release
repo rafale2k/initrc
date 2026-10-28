@@ -8,7 +8,7 @@ read -p "Enter new version (Press Enter to auto-bump): " NEW_VERSION
 
 # 自動インクリメント
 if [ -z "$NEW_VERSION" ]; then
-    NEW_VERSION=$(echo $CURRENT_VERSION | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
+    NEW_VERSION=$(echo "$CURRENT_VERSION" | awk -F. '{$NF = $NF + 1;} 1' OFS=.)
 fi
 
 # 以降で使用する変数を統一
@@ -26,13 +26,13 @@ sed -i "s/version-.*-blue/version-v${DOCK_VER}-blue/g" README.md
 # 3. 前回のタグからの差分を最新10件に絞って取得
 PREV_TAG=$(git describe --tags --abbrev=0 2>/dev/null)
 
-if [ -z "$PREV_TAG" ]; then
-    CHANGELOG=$(git log --oneline -n 10)
-    DIFF_DATA=$(git log --oneline --stat -n 10)
-else
-    CHANGELOG=$(git log ${PREV_TAG}..HEAD --oneline -n 10)
-    DIFF_DATA=$(git log ${PREV_TAG}..HEAD --oneline --stat -n 10)
+GIT_RANGE=()
+if [ -n "$PREV_TAG" ]; then
+    GIT_RANGE=("${PREV_TAG}..HEAD")
 fi
+
+CHANGELOG=$(git log "${GIT_RANGE[@]}" --oneline -n 10)
+DIFF_DATA=$(git log "${GIT_RANGE[@]}" --oneline --stat -n 10)
 
 # Gemini用の作業ファイル作成
 echo "Current Changes:" > Update.md

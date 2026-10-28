@@ -97,6 +97,18 @@ class TestLogWizard(unittest.TestCase):
         analyze_logs()
         self.assertIn("✨ 異常ログは見つかりませんでした。", mock_stdout.getvalue())
 
+    @patch('sys.stdout', new_callable=io.StringIO)
+    @patch('sys.stdin')
+    def test_analyze_logs_no_keywords(self, mock_stdin, mock_stdout):
+        mock_stdin.isatty.return_value = False
+        mock_stdin.__iter__.return_value = iter([
+            "Normal info log\n",
+            "Just another regular log\n",
+            "Nothing to see here\n"
+        ])
+        analyze_logs()
+        self.assertIn("✨ 異常ログは見つかりませんでした。", mock_stdout.getvalue())
+
     @patch('scripts.log_wizard.analyze_with_llm')
     @patch('sys.stdout', new_callable=io.StringIO)
     @patch('sys.stdin')

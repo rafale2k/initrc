@@ -154,17 +154,13 @@ MOCK_OS
 }
 
 @test "_sudo executes with SUDO_CMD" {
-    source scripts/install_functions.sh
-    SUDO_CMD="echo"
-    run _sudo "hello"
+    run bash -c 'source scripts/install_functions.sh; SUDO_CMD="echo SUDO_CMD:" _sudo "hello"'
     [ "$status" -eq 0 ]
-    [[ "$output" == *"hello"* ]]
+    [[ "$output" == *"SUDO_CMD: hello"* ]]
 }
 
 @test "_sudo executes without SUDO_CMD" {
-    source scripts/install_functions.sh
-    SUDO_CMD=""
-    run _sudo echo "hello"
+    run bash -c 'source scripts/install_functions.sh; SUDO_CMD="" _sudo echo "hello"'
     [ "$status" -eq 0 ]
     [[ "$output" == *"hello"* ]]
 }

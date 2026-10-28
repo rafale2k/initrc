@@ -1,0 +1,13 @@
+--- zsh/plugins/zsh-autosuggestions/src/strategies/history.zsh.orig	2026-10-28 12:22:31.427125294 +0000
++++ zsh/plugins/zsh-autosuggestions/src/strategies/history.zsh	2026-10-28 12:22:31.431125294 +0000
+@@ -15,9 +15,7 @@
+
+	# Escape backslashes and all of the glob operators so we can use
+	# this string as a pattern to search the $history associative array.
+-	# - (#m) globbing flag enables setting references for match data
+-	# TODO: Use (b) flag when we can drop support for zsh older than v5.0.8
+-	local prefix="${1//(#m)[\\*?[\]<>()|^~#]/\\$MATCH}"
++	local prefix="${(b)1}"
+
+	# Get the history items that match the prefix, excluding those that match
+	# the ignore pattern

@@ -14,7 +14,7 @@ C_YELLOW = "\033[93m"
 C_END = "\033[0m"
 
 
-def analyze_with_llm(raw_log):
+def analyze_with_llm(raw_log, llm_path=None):
     # Gemini 3.8 Flash への「ズバッと」プロンプト
     prompt = f"以下の1行のログから、何が起きているか、攻撃の予兆か、具体的な対策を30文字以内でズバッと指摘せよ。余計な挨拶は不要。\n\n{raw_log}"
 
@@ -25,7 +25,8 @@ def analyze_with_llm(raw_log):
     if not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9.\-_\/]*$", model):
         model = "gemini-3.8-flash"
 
-    llm_path = shutil.which("llm")
+    if llm_path is None:
+        llm_path = shutil.which("llm")
     if not llm_path:
         return "LLM Error: llm command not found"
 
@@ -73,12 +74,15 @@ def analyze_logs():
     top_errors = counts.most_common(3)
 
     # 複数同時にLLMを呼び出して高速化
+    cached_llm_path = shutil.which("llm")
     with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-        analyses = list(executor.map(lambda x: analyze_with_llm(x[0]), top_errors))
+        analyses = list(
+            executor.map(lambda x: analyze_with_llm(x[0], cached_llm_path), top_errors)
+        )
 
     for i, ((msg, count), analysis) in enumerate(zip(top_errors, analyses), 1):
         print(f"{C_CYAN}Rank {i} ({count}回発生):{C_END}")
-        print(f"  Log: {msg[:100]}...") # 長すぎる場合はカット
+        print(f"  Log: {msg[:100]}...")  # 長すぎる場合はカット
         print(f"  {C_RED}💡 解析結果: {analysis}{C_END}\n")
 
 

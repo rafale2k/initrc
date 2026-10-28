@@ -1,0 +1,37 @@
+diff --git a/highlighters/main/main-highlighter.zsh b/highlighters/main/main-highlighter.zsh
+index 061e2a4..58ce16e 100644
+--- a/highlighters/main/main-highlighter.zsh
++++ b/highlighters/main/main-highlighter.zsh
+@@ -582,6 +582,7 @@ _zsh_highlight_main_highlighter_highlight_list()
+   # - parameter elision in command position
+   # - 'repeat' loops
+   #
++  local previous_word_was_a_command_word=false
+   local this_word next_word=':start::start_of_pipeline:'
+   integer in_redirection
+   # Processing buffer
+@@ -633,7 +634,14 @@ _zsh_highlight_main_highlighter_highlight_list()
+
+     # Initialize this_word and next_word.
+     if (( in_redirection == 0 )); then
+-      this_word=$next_word
++      if [[ $this_word == *':start:'* ]] && [[ $arg != 'function' ]] && (( in_redirection == 0 )); then
++      previous_word_was_a_command_word=true
++    elif [[ $this_word == *':regular:'* ]] && [[ $previous_word_was_a_command_word == true ]] && [[ -z $res || $res == 'none' ]] && (( in_redirection == 0 )) && (( $#in_alias == 0 )); then
++      previous_word_was_a_command_word=true
++    else
++      previous_word_was_a_command_word=false
++    fi
++    this_word=$next_word
+       next_word=':regular:'
+     elif (( !in_param )); then
+       # Stall $next_word.
+@@ -1135,7 +1143,7 @@ _zsh_highlight_main_highlighter_highlight_list()
+                   if (( in_redirection )) || $in_array_assignment; then
+                     style=unknown-token
+                   else
+-                    if [[ $zsyh_user_options[multifuncdef] == on ]] || false # TODO: or if the previous word was a command word
++                    if [[ $zsyh_user_options[multifuncdef] == on ]] || $previous_word_was_a_command_word
+                     then
+                       next_word+=':start::start_of_pipeline:'
+                     fi

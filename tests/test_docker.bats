@@ -252,7 +252,7 @@ EOF2
       drm
   "
   [ "$status" -eq 0 ]
-  [[ "$output" == *"fzf is required for drm"* ]]
+  [[ "$output" == *"fzf is required for this command."* ]]
   run command grep "docker stop" "$LOG_FILE"
   [ "$status" -eq 1 ]
 }

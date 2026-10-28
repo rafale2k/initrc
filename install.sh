@@ -54,6 +54,7 @@ if [ -d ".git" ] || [ -f "zsh/.zshrc" ]; then
     patch -p0 < "$DOTPATH/patches/powerlevel10k-vcs-bold.patch" --forward || echo "⚠️ Patch failed or already applied"
     patch -p0 < "$DOTPATH/patches/zsh-syntax-highlighting-b-flag.patch" --forward || echo "⚠️ Patch failed or already applied"
     patch -p0 < "$DOTPATH/patches/zsh-syntax-highlighting-maintainer.patch" --forward || echo "⚠️ Patch failed or already applied"
+    patch -p0 < "$DOTPATH/patches/zsh-autosuggestions-history-b-flag.patch" --forward || echo "⚠️ Patch failed or already applied"
 else
      echo "⚠️ Context unknown, skipping..."
 fi

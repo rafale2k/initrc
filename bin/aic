@@ -1,16 +1,28 @@
 #!/bin/bash
 
 # =================================================================
-# 🚀 bin/aic v3.3 - AI-Driven Commit Assistant (Resilient Edition)
+# 🚀 bin/aic v3.5 - AI-Driven Commit Assistant (Rock-Solid Edition)
 # Optimized for Conventional Commits with Smart Model Fallback
+# Works seamlessly under both normal user and sudo / root environments
 # =================================================================
 
 # 0. 環境変数のセットアップ
+REAL_USER="${SUDO_USER:-$USER}"
+USER_HOME=$(eval echo "~$REAL_USER" 2>/dev/null || echo "/home/y")
+
 DOTPATH="${DOTPATH:-$(cd "$(dirname "$0")/.." && pwd)}"
+if [ ! -f "$DOTPATH/common/.env.local" ] && [ -f "/home/y/dotfiles/common/.env.local" ]; then
+    DOTPATH="/home/y/dotfiles"
+fi
 [ -f "$DOTPATH/common/.env.local" ] && source "$DOTPATH/common/.env.local"
 
-# PATHに ~/.local/bin を含める (非対話シェルでも安全に動作)
-export PATH="$HOME/.local/bin:$PATH"
+# PATHに ~/.local/bin および /home/y/.local/bin を含める (sudo環境対応)
+export PATH="/home/y/.local/bin:$USER_HOME/.local/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
+
+# llm のキー設定ディレクトリを引き継ぐ (root時もユーザーyのキーを参照)
+if [ -z "$LLM_USER_PATH" ] && [ -d "/home/y/.config/io.datasette.llm" ]; then
+    export LLM_USER_PATH="/home/y/.config/io.datasette.llm"
+fi
 
 _call_llm_model() {
     local model="$1"
@@ -58,9 +70,9 @@ _ai_generate_commit_proposals() {
 
     # 1. Diff の統計情報と中身を取得
     local diff_stat
-    diff_stat=$(git diff --cached --stat)
+    diff_stat=$(git -c safe.directory=* diff --cached --stat)
     local full_diff
-    full_diff=$(git diff --cached | head -c 20000)
+    full_diff=$(git -c safe.directory=* diff --cached | head -c 20000)
     local input_data="Context - File Statistics:\n$diff_stat\n\nActual Diff:\n$full_diff"
 
     # 2. システムプロンプト (Conventional Commits 準拠)
@@ -130,13 +142,19 @@ chore(deps): update dependency-xyz to v2.0.0"
 }
 
 main() {
-    # ステージング確認
-    if git diff --cached --quiet; then
+    # 0. Git リポジトリ確認 (git 管理外ディレクトリでの暴走防止)
+    if ! git -c safe.directory=* rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "❌ Not a git repository (or any of the parent directories)."
+        return 1
+    fi
+
+    # 1. ステージング確認
+    if git -c safe.directory=* diff --cached --quiet; then
         echo "❌ No changes staged. (Use 'git add' first)"
         return 1
     fi
 
-    # ツールチェック
+    # 2. ツールチェック
     if ! command -v fzf &>/dev/null || ! command -v llm &>/dev/null; then
         echo "❌ Required tools (fzf, llm) not found."
         return 1
@@ -157,6 +175,12 @@ main() {
         rm -f /tmp/aic_used_model.$$
     fi
 
+    # 非対話環境（テスト時など）ならそのまま出力して終了
+    if [ ! -t 0 ] || [ ! -t 1 ]; then
+        echo "$proposals"
+        return 0
+    fi
+
     # 選択肢の構築
     local choices
     choices=$(echo -e "${proposals}\n---\n[Manual Input]")
@@ -166,7 +190,7 @@ main() {
     selected=$(echo "$choices" | grep -v '^$' | fzf \
         --height 60% --reverse --border --ansi \
         --header "Select $model_name Proposal (ESC to cancel)" \
-        --preview "git diff --cached --color=always" \
+        --preview "git -c safe.directory=* diff --cached --color=always" \
         --preview-window "right:60%:wrap")
 
     # キャンセル処理
@@ -190,7 +214,7 @@ main() {
 _execute_commit() {
     local message="$1"
     local model="$2"
-    git commit -m "$message"
+    git -c safe.directory=* commit -m "$message"
 
     # クリップボードコピー
     if command -v pbcopy &>/dev/null; then

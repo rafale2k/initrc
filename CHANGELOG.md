@@ -1,6 +1,22 @@
 ## [v2.6.4] - 2026-11-02
 
 > ### 🤖 AI Release Summary
+> 🚀 **fzfのマルチアーキテクチャ対応をついに完備！あらゆるCPU環境で最速のCLI体験と完璧なポータビリティを叩き出すインフラへと進化！**
+🛡️ **立ちはだかるOGP画像のコンフリクトをリモート優先で一撃粉砕！CIパイプラインの停止を絶対に許さない鉄壁の運用魂！**
+⚡ **バイナリサイズを大幅削減した新OGPを電光石火で再生成！帯域を削ぎ落とし、1ミリ秒の無駄も許さぬ最強の配信パフォーマンスを実現！**
+
+---
+- feat(docker): add multi-architecture fzf builds (0672490)
+- chore: regenerate OGP image [skip ci] (bc42d0e)
+- chore: release v2.6.4 (74aa2a9)
+- feat(cli): add non-interactive mode and git repo validation (c014e02)
+- refactor(aic): encapsulate LLM calls with timeouts and errors (e0d2e25)
+- ... and 2 more changes.
+
+
+## [v2.6.4] - 2026-11-02
+
+> ### 🤖 AI Release Summary
 > 🔥 非対話モードの実装とGitリポジトリ検証で、パイプラインの自動化とガードレールを一気に超絶強化！
 🛡️ タイムアウトと堅牢なエラーハンドリングを叩き込み、LLM呼び出しの耐障害性とオブザーバビリティを極限までブースト！
 🚀 依存関係の確実なアップデートも含め、カオスな本番環境にも絶対に屈しない最高にレジリエントなCLIへ進化完了！

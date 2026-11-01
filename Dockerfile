@@ -1,16 +1,26 @@
 # syntax=docker/dockerfile:1
 
 # ==========================================
-# 1. fzf ビルドステージ (Go製バイナリのビルド)
+# 1. fzf ダウンロードステージ (公式バイナリの取得)
 # ==========================================
-FROM golang:1.27.2-alpine@sha256:f92b6ef800e499660581efdabdf25d9d817a9d124eaf900924f0504e7e27e12d AS fzf-builder
+FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS fzf-downloader
 
-ARG FZF_VERSION=v0.74.3
+ARG FZF_VERSION=v0.74.5
+ARG TARGETARCH
 
-# Go モジュールとビルドキャッシュをマウントして高速化・静的リンクでビルド
-RUN --mount=type=cache,target=/go/pkg/mod \
-    --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 go install -ldflags="-s -w" github.com/junegunn/fzf@${FZF_VERSION}
+RUN --mount=type=cache,target=/var/cache/apk \
+    apk add --no-cache curl tar && \
+    case "${TARGETARCH}" in \
+        amd64) ARCH="amd64" ;; \
+        arm64) ARCH="arm64" ;; \
+        arm) ARCH="armv7" ;; \
+        386) ARCH="386" ;; \
+        *) ARCH="amd64" ;; \
+    esac && \
+    FZF_VER="${FZF_VERSION#v}" && \
+    curl -fLsS "https://github.com/junegunn/fzf/releases/download/${FZF_VERSION}/fzf-${FZF_VER}-linux_${ARCH}.tar.gz" \
+        | tar xz -C /usr/local/bin fzf && \
+    chmod +x /usr/local/bin/fzf
 
 # ==========================================
 # 2. Python 仮想環境ビルドステージ
@@ -107,7 +117,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
     chmod 0440 /etc/sudoers.d/rafale
 
 # 各ビルダーからの成果物をコピー
-COPY --from=fzf-builder /go/bin/fzf /usr/local/bin/fzf
+COPY --from=fzf-downloader /usr/local/bin/fzf /usr/local/bin/fzf
 COPY --from=python-builder /opt/venv /opt/venv
 COPY --from=dotfiles-builder --chown=rafale:rafale /build /home/rafale/dotfiles
 

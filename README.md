@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.6.2-blue)
+![Version](https://img.shields.io/badge/version-v2.6.3-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -268,12 +268,19 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.6.2] - 2026-10-29
+## [v2.6.3] - 2026-11-01
+
+> ### 🤖 AI Release Summary
+> 🛡️ **Alpineイメージの更新により、コンテナのセキュリティと堅牢性を極限まで高めました！**
+⚡ **開発の生命線であるoh-my-zshサブモジュールを刷新し、シェル環境のパフォーマンスと安定性をブースト！**
+🎨 **OGP画像を美しく再生成し、システムの信頼性だけでなくプロジェクトの『顔』までも完璧に磨き上げました！**
+
+---
+- chore(submodule): bump oh-my-zsh (08b0c7b)
+- chore(docker): bump alpine (fa235d7)
+- chore: regenerate OGP image [skip ci] (eb55265)
+- chore: release v2.6.2 (fb6cd88)
 - feat(zsh): fix zsh-autosuggestions TODO to conditionally use (b) flag for zsh>=5.0.8 (d45a851)
-- fix: use (b) flag in zsh-autosuggestions to drop older zsh support (756d3e8)
-- fix(alias-finder): remove backward compatibility check ZSH_ALIAS_FINDER_AUTOMATIC (3bcb497)
-- feat: support highlighting named-fd and numeric-fd file descriptors (afe9ba8)
-- perf: optimize zsh-syntax-highlighting path checks with (Y1) glob qualifier (8edca6d)
 
 <!-- RELEASE_NOTES_END -->
 

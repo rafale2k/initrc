@@ -1,3 +1,17 @@
+## [v2.6.3] - 2026-11-01
+
+> ### 🤖 AI Release Summary
+> 🛡️ **Alpineイメージの更新により、コンテナのセキュリティと堅牢性を極限まで高めました！**
+⚡ **開発の生命線であるoh-my-zshサブモジュールを刷新し、シェル環境のパフォーマンスと安定性をブースト！**
+🎨 **OGP画像を美しく再生成し、システムの信頼性だけでなくプロジェクトの『顔』までも完璧に磨き上げました！**
+
+---
+- chore(submodule): bump oh-my-zsh (08b0c7b)
+- chore(docker): bump alpine (fa235d7)
+- chore: regenerate OGP image [skip ci] (eb55265)
+- chore: release v2.6.2 (fb6cd88)
+- feat(zsh): fix zsh-autosuggestions TODO to conditionally use (b) flag for zsh>=5.0.8 (d45a851)
+
 ## [v2.6.2] - 2026-10-29
 - feat(zsh): fix zsh-autosuggestions TODO to conditionally use (b) flag for zsh>=5.0.8 (d45a851)
 - fix: use (b) flag in zsh-autosuggestions to drop older zsh support (756d3e8)

@@ -1,3 +1,17 @@
+## [v2.6.4] - 2026-11-02
+
+> ### 🤖 AI Release Summary
+> 🔥 非対話モードの実装とGitリポジトリ検証で、パイプラインの自動化とガードレールを一気に超絶強化！
+🛡️ タイムアウトと堅牢なエラーハンドリングを叩き込み、LLM呼び出しの耐障害性とオブザーバビリティを極限までブースト！
+🚀 依存関係の確実なアップデートも含め、カオスな本番環境にも絶対に屈しない最高にレジリエントなCLIへ進化完了！
+
+---
+- feat(cli): add non-interactive mode and git repo validation (c014e02)
+- refactor(aic): encapsulate LLM calls with timeouts and errors (e0d2e25)
+- chore: release v2.6.3 (a0994dd)
+- chore(submodule): bump oh-my-zsh (08b0c7b)
+- chore(docker): bump alpine (fa235d7)
+
 ## [v2.6.3] - 2026-11-01
 
 > ### 🤖 AI Release Summary

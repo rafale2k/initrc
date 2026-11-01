@@ -1,13 +1,63 @@
 #!/bin/bash
 
 # =================================================================
-# 🚀 bin/aic v3.2 - AI-Driven Commit Assistant (Next-Gen Edition)
-# Optimized for Conventional Commits & Gemini 3.8 Flash (Low)
+# 🚀 bin/aic v3.5 - AI-Driven Commit Assistant (Rock-Solid Edition)
+# Optimized for Conventional Commits with Smart Model Fallback
+# Works seamlessly under both normal user and sudo / root environments
 # =================================================================
 
 # 0. 環境変数のセットアップ
+REAL_USER="${SUDO_USER:-$USER}"
+USER_HOME=$(eval echo "~$REAL_USER" 2>/dev/null || echo "/home/y")
+
 DOTPATH="${DOTPATH:-$(cd "$(dirname "$0")/.." && pwd)}"
+if [ ! -f "$DOTPATH/common/.env.local" ] && [ -f "/home/y/dotfiles/common/.env.local" ]; then
+    DOTPATH="/home/y/dotfiles"
+fi
 [ -f "$DOTPATH/common/.env.local" ] && source "$DOTPATH/common/.env.local"
+
+# PATHに ~/.local/bin および /home/y/.local/bin を含める (sudo環境対応)
+export PATH="/home/y/.local/bin:$USER_HOME/.local/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
+
+# llm のキー設定ディレクトリを引き継ぐ (root時もユーザーyのキーを参照)
+if [ -z "$LLM_USER_PATH" ] && [ -d "/home/y/.config/io.datasette.llm" ]; then
+    export LLM_USER_PATH="/home/y/.config/io.datasette.llm"
+fi
+
+_call_llm_model() {
+    local model="$1"
+    local system_prompt="$2"
+    local input_data="$3"
+    local timeout_sec="${4:-15}"
+
+    local -a opts=()
+    if [[ "$model" =~ gemini-3\.[0-9]-flash ]]; then
+        opts=(-o thinking_level low)
+    fi
+
+    # timeout コマンドで長時間ハングを防止し、エラーもキャプチャ
+    local err_file
+    err_file=$(mktemp)
+    local output
+    output=$(echo -e "$input_data" | timeout "${timeout_sec}s" llm prompt -m "$model" "${opts[@]}" -s "$system_prompt" 2>"$err_file")
+    local ret=$?
+
+    local err_msg
+    err_msg=$(cat "$err_file")
+    rm -f "$err_file"
+
+    if [[ $ret -eq 0 && -n "$output" ]]; then
+        echo "$output"
+        return 0
+    else
+        if [[ $ret -eq 124 ]]; then
+            echo "Request timed out after ${timeout_sec}s" >&2
+        elif [[ -n "$err_msg" ]]; then
+            echo "$err_msg" | tail -n 2 >&2
+        fi
+        return 1
+    fi
+}
 
 _ai_generate_commit_proposals() {
     if [[ -z "$GEMINI_API_KEY" ]]; then
@@ -18,11 +68,12 @@ _ai_generate_commit_proposals() {
         fi
     fi
 
-    # 1. Diff の統計情報と中身を取得 (広大なコンテキストを活かしつつ 20000 文字程度に拡張)
+    # 1. Diff の統計情報と中身を取得
     local diff_stat
-    diff_stat=$(git diff --cached --stat)
+    diff_stat=$(git -c safe.directory=* diff --cached --stat)
     local full_diff
-    full_diff=$(git diff --cached | head -c 20000)
+    full_diff=$(git -c safe.directory=* diff --cached | head -c 20000)
+    local input_data="Context - File Statistics:\n$diff_stat\n\nActual Diff:\n$full_diff"
 
     # 2. システムプロンプト (Conventional Commits 準拠)
     local system_prompt="You are a world-class software engineer. 
@@ -41,38 +92,93 @@ feat(auth): add OAuth2 provider support
 fix(api): resolve memory leak in connection pool
 chore(deps): update dependency-xyz to v2.0.0"
 
-    # 3. llm コマンドで生成 (Gemini 3.8 Flash / thinking_level low を指定)
-    local model="${AI_ASSIST_MODEL:-gemini-3.8-flash}"
-    local -a opts=()
-    if [[ "$model" =~ gemini-3\.[0-9]-flash ]]; then
-        opts=(-o thinking_level low)
+    # 3. 試行するモデルのリスト (プライマリ -> フォールバック)
+    local primary_model="${AI_ASSIST_MODEL:-gemini-3.8-flash}"
+    local fallback_model="${AI_FALLBACK_MODEL:-gemini-2.5-flash}"
+
+    # プライマリモデルで試行
+    echo "🤖 AI is analyzing changes ($primary_model)..." >&2
+    local err_file
+    err_file=$(mktemp)
+    local out_file
+    out_file=$(mktemp)
+
+    _call_llm_model "$primary_model" "$system_prompt" "$input_data" 12 >"$out_file" 2>"$err_file"
+    local ret=$?
+
+    if [[ $ret -eq 0 && -s "$out_file" ]]; then
+        cat "$out_file"
+        rm -f "$out_file" "$err_file"
+        echo "$primary_model" > /tmp/aic_used_model.$$
+        return 0
     fi
 
-    echo -e "Context - File Statistics:\n$diff_stat\n\nActual Diff:\n$full_diff" | \
-    llm prompt -m "$model" "${opts[@]}" -s "$system_prompt" 2>/dev/null
+    local err_msg
+    err_msg=$(cat "$err_file")
+    rm -f "$out_file" "$err_file"
+
+    # プライマリ失敗時: フォールバックモデルで再試行
+    echo "⚠️  $primary_model unavailable (${err_msg:-busy/timeout})." >&2
+    echo "🔄 Falling back to $fallback_model..." >&2
+
+    err_file=$(mktemp)
+    out_file=$(mktemp)
+
+    _call_llm_model "$fallback_model" "$system_prompt" "$input_data" 15 >"$out_file" 2>"$err_file"
+    ret=$?
+
+    if [[ $ret -eq 0 && -s "$out_file" ]]; then
+        cat "$out_file"
+        rm -f "$out_file" "$err_file"
+        echo "$fallback_model" > /tmp/aic_used_model.$$
+        return 0
+    fi
+
+    err_msg=$(cat "$err_file")
+    rm -f "$out_file" "$err_file"
+
+    echo "❌ All AI models failed. Reason: ${err_msg:-unknown error}" >&2
+    return 1
 }
 
 main() {
-    # ステージング確認
-    if git diff --cached --quiet; then
+    # 0. Git リポジトリ確認 (git 管理外ディレクトリでの暴走防止)
+    if ! git -c safe.directory=* rev-parse --is-inside-work-tree &>/dev/null; then
+        echo "❌ Not a git repository (or any of the parent directories)."
+        return 1
+    fi
+
+    # 1. ステージング確認
+    if git -c safe.directory=* diff --cached --quiet; then
         echo "❌ No changes staged. (Use 'git add' first)"
         return 1
     fi
 
-    # ツールチェック
+    # 2. ツールチェック
     if ! command -v fzf &>/dev/null || ! command -v llm &>/dev/null; then
         echo "❌ Required tools (fzf, llm) not found."
         return 1
     fi
 
-    echo "🤖 AI is analyzing changes (Gemini 3.8 Flash)..."
-    
+    rm -f /tmp/aic_used_model.$$
     local proposals
     proposals=$(_ai_generate_commit_proposals)
 
     if [[ -z "$proposals" ]]; then
-        echo "❌ AI failed to generate proposals."
+        rm -f /tmp/aic_used_model.$$
         return 1
+    fi
+
+    local model_name="AI"
+    if [[ -f /tmp/aic_used_model.$$ ]]; then
+        model_name=$(cat /tmp/aic_used_model.$$)
+        rm -f /tmp/aic_used_model.$$
+    fi
+
+    # 非対話環境（テスト時など）ならそのまま出力して終了
+    if [ ! -t 0 ] || [ ! -t 1 ]; then
+        echo "$proposals"
+        return 0
     fi
 
     # 選択肢の構築
@@ -83,8 +189,8 @@ main() {
     local selected
     selected=$(echo "$choices" | grep -v '^$' | fzf \
         --height 60% --reverse --border --ansi \
-        --header "Select Gemini 3.8 Flash Proposal (ESC to cancel)" \
-        --preview "git diff --cached --color=always" \
+        --header "Select $model_name Proposal (ESC to cancel)" \
+        --preview "git -c safe.directory=* diff --cached --color=always" \
         --preview-window "right:60%:wrap")
 
     # キャンセル処理
@@ -101,13 +207,14 @@ main() {
 
     # コミット実行
     if [[ -n "$selected" ]]; then
-        _execute_commit "$selected"
+        _execute_commit "$selected" "$model_name"
     fi
 }
 
 _execute_commit() {
     local message="$1"
-    git commit -m "$message"
+    local model="$2"
+    git -c safe.directory=* commit -m "$message"
 
     # クリップボードコピー
     if command -v pbcopy &>/dev/null; then
@@ -117,7 +224,7 @@ _execute_commit() {
         echo -n "$message" | xclip -selection clipboard
         echo "📋 Message copied to clipboard."
     fi
-    echo "✨ Committed successfully with Gemini 3.8 Flash!"
+    echo "✨ Committed successfully with $model!"
 }
 
 main "$@"

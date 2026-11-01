@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# =================================================================
+# 🚀 bin/aic v3.2 - AI-Driven Commit Assistant (Next-Gen Edition)
+# Optimized for Conventional Commits & Gemini 3.8 Flash (Low)
+# =================================================================
+
+# 0. 環境変数のセットアップ
+DOTPATH="${DOTPATH:-$(cd "$(dirname "$0")/.." && pwd)}"
+[ -f "$DOTPATH/common/.env.local" ] && source "$DOTPATH/common/.env.local"
+
+_ai_generate_commit_proposals() {
+    if [[ -z "$GEMINI_API_KEY" ]]; then
+        if ! llm keys list | grep -q "gemini" 2>/dev/null; then
+            echo "⚠️  GEMINI_API_KEY is not detected in env or llm keys." >&2
+            echo "    Please set it via 'export GEMINI_API_KEY=...' or 'llm keys set gemini'" >&2
+            return 1
+        fi
+    fi
+
+    # 1. Diff の統計情報と中身を取得 (広大なコンテキストを活かしつつ 20000 文字程度に拡張)
+    local diff_stat
+    diff_stat=$(git diff --cached --stat)
+    local full_diff
+    full_diff=$(git diff --cached | head -c 20000)
+
+    # 2. システムプロンプト (Conventional Commits 準拠)
+    local system_prompt="You are a world-class software engineer. 
+Analyze the provided git diff and generate EXACTLY 3 high-quality commit message proposals in English.
+
+Requirements:
+1. Follow Conventional Commits (e.g., feat:, fix:, refactor:, chore:, docs:, ci:).
+2. Use the imperative mood (e.g., 'Add' instead of 'Added').
+3. Subject line must be under 50 characters.
+4. If the change is complex, focus on the primary 'Why' and 'What'.
+5. Output EXACTLY 3 lines. One proposal per line.
+6. NO markdown, NO numbers, NO bullet points, NO extra text. 
+
+Example Output:
+feat(auth): add OAuth2 provider support
+fix(api): resolve memory leak in connection pool
+chore(deps): update dependency-xyz to v2.0.0"
+
+    # 3. llm コマンドで生成 (Gemini 3.8 Flash / thinking_level low を指定)
+    local model="${AI_ASSIST_MODEL:-gemini-3.8-flash}"
+    local -a opts=()
+    if [[ "$model" =~ gemini-3\.[0-9]-flash ]]; then
+        opts=(-o thinking_level low)
+    fi
+
+    echo -e "Context - File Statistics:\n$diff_stat\n\nActual Diff:\n$full_diff" | \
+    llm prompt -m "$model" "${opts[@]}" -s "$system_prompt" 2>/dev/null
+}
+
+main() {
+    # ステージング確認
+    if git diff --cached --quiet; then
+        echo "❌ No changes staged. (Use 'git add' first)"
+        return 1
+    fi
+
+    # ツールチェック
+    if ! command -v fzf &>/dev/null || ! command -v llm &>/dev/null; then
+        echo "❌ Required tools (fzf, llm) not found."
+        return 1
+    fi
+
+    echo "🤖 AI is analyzing changes (Gemini 3.8 Flash)..."
+    
+    local proposals
+    proposals=$(_ai_generate_commit_proposals)
+
+    if [[ -z "$proposals" ]]; then
+        echo "❌ AI failed to generate proposals."
+        return 1
+    fi
+
+    # 選択肢の構築
+    local choices
+    choices=$(echo -e "${proposals}\n---\n[Manual Input]")
+
+    # fzf で選択 (右側に diff プレビューを表示)
+    local selected
+    selected=$(echo "$choices" | grep -v '^$' | fzf \
+        --height 60% --reverse --border --ansi \
+        --header "Select Gemini 3.8 Flash Proposal (ESC to cancel)" \
+        --preview "git diff --cached --color=always" \
+        --preview-window "right:60%:wrap")
+
+    # キャンセル処理
+    if [[ -z "$selected" || "$selected" == "---" ]]; then
+        echo "Aborted."
+        return 0
+    fi
+
+    # 手入力モード
+    if [[ "$selected" == "[Manual Input]" ]]; then
+        echo -n "✍️  Enter message: "
+        read -r selected
+    fi
+
+    # コミット実行
+    if [[ -n "$selected" ]]; then
+        _execute_commit "$selected"
+    fi
+}
+
+_execute_commit() {
+    local message="$1"
+    git commit -m "$message"
+
+    # クリップボードコピー
+    if command -v pbcopy &>/dev/null; then
+        echo -n "$message" | pbcopy
+        echo "📋 Message copied to clipboard."
+    elif command -v xclip &>/dev/null; then
+        echo -n "$message" | xclip -selection clipboard
+        echo "📋 Message copied to clipboard."
+    fi
+    echo "✨ Committed successfully with Gemini 3.8 Flash!"
+}
+
+main "$@"

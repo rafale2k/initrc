@@ -1,6 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
+# 0. 環境変数のセットアップ
+DOTPATH="${DOTPATH:-$(cd "$(dirname "$0")/.." && pwd)}"
+[ -f "$DOTPATH/common/.env.local" ] && source "$DOTPATH/common/.env.local"
+export PATH="/home/y/.local/bin:$HOME/.local/bin:/usr/local/bin:$PATH"
+if [ -z "${LLM_USER_PATH:-}" ] && [ -d "/home/y/.config/io.datasette.llm" ]; then
+    export LLM_USER_PATH="/home/y/.config/io.datasette.llm"
+fi
+
 # 1. バージョン情報の取得と更新
 CURRENT_VERSION=$(cat VERSION)
 echo "Current version: $CURRENT_VERSION"
@@ -48,14 +56,83 @@ find . -type f -name "*.sh" \
     -not -path "*/templates/*" \
     | xargs shellcheck --severity=error
 
+_call_llm_model() {
+    local model="$1"
+    local system_prompt="$2"
+    local input_data="$3"
+    local timeout_sec="${4:-15}"
+
+    local -a opts=()
+    if [[ "$model" =~ gemini-3\.[0-9]-flash ]]; then
+        opts=(-o thinking_level low)
+    fi
+
+    local err_file
+    err_file=$(mktemp)
+    local output
+    if output=$(echo -e "$input_data" | timeout "${timeout_sec}s" llm prompt -m "$model" "${opts[@]}" -s "$system_prompt" 2>"$err_file") && [[ -n "$output" ]]; then
+        echo "$output"
+        rm -f "$err_file"
+        return 0
+    else
+        local ret=$?
+        local err_msg
+        err_msg=$(cat "$err_file" 2>/dev/null || true)
+        rm -f "$err_file"
+        if [[ $ret -eq 124 ]]; then
+            echo "Request timed out after ${timeout_sec}s" >&2
+        elif [[ -n "$err_msg" ]]; then
+            echo "$err_msg" | tail -n 2 >&2
+        fi
+        return 1
+    fi
+}
+
+_generate_ai_summary() {
+    local input_data="$1"
+    local system_prompt="SREとして、今回の変更を3行で情熱的に日本語で要約して。各行に絵文字を付けて。"
+
+    local primary_model="${AI_ASSIST_MODEL:-gemini-3.8-flash}"
+    local fallback_model="${AI_FALLBACK_MODEL:-gemini-2.5-flash}"
+
+    # プライマリモデルで試行
+    echo "🤖 Generating AI summary ($primary_model)..." >&2
+    local err_file out_file
+    err_file=$(mktemp)
+    out_file=$(mktemp)
+
+    if _call_llm_model "$primary_model" "$system_prompt" "$input_data" 12 >"$out_file" 2>"$err_file" && [[ -s "$out_file" ]]; then
+        cat "$out_file"
+        rm -f "$out_file" "$err_file"
+        return 0
+    fi
+
+    local err_msg
+    err_msg=$(cat "$err_file" 2>/dev/null || true)
+    rm -f "$out_file" "$err_file"
+
+    # プライマリ失敗時: フォールバックモデルで再試行
+    echo "⚠️  $primary_model unavailable (${err_msg:-busy/timeout})." >&2
+    echo "🔄 Falling back to $fallback_model..." >&2
+
+    err_file=$(mktemp)
+    out_file=$(mktemp)
+
+    if _call_llm_model "$fallback_model" "$system_prompt" "$input_data" 15 >"$out_file" 2>"$err_file" && [[ -s "$out_file" ]]; then
+        cat "$out_file"
+        rm -f "$out_file" "$err_file"
+        return 0
+    fi
+
+    err_msg=$(cat "$err_file" 2>/dev/null || true)
+    rm -f "$out_file" "$err_file"
+
+    echo "⚠️  All AI models failed (${err_msg:-unknown error}). Proceeding without AI summary." >&2
+    return 1
+}
+
 # 5. AI Summary
-echo "🤖 Generating AI summary (Gemini 3.8 Flash)..."
-MODEL="${AI_ASSIST_MODEL:-gemini-3.8-flash}"
-AI_OPTS=()
-if [[ "$MODEL" =~ gemini-3\.[0-9]-flash ]]; then
-    AI_OPTS=(-o thinking_level low)
-fi
-AI_SUMMARY=$(echo "$DIFF_DATA" | llm -m "$MODEL" "${AI_OPTS[@]}" -s "SREとして、今回の変更を3行で情熱的に日本語で要約して。各行に絵文字を付けて。" 2>/dev/null || echo "")
+AI_SUMMARY=$(_generate_ai_summary "$DIFF_DATA" || true)
 
 # 6. CHANGELOG.md 更新
 ~/dotfiles/bin/gen-changelog "$VERSION"

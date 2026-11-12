@@ -3,7 +3,7 @@
 # ==========================================
 # 1. fzf ダウンロードステージ (公式バイナリの取得)
 # ==========================================
-FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS fzf-downloader
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS fzf-downloader
 
 ARG FZF_VERSION=v0.74.5
 ARG TARGETARCH
@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/var/cache/apk \
 # ==========================================
 # 2. Python 仮想環境ビルドステージ
 # ==========================================
-FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS python-builder
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS python-builder
 
 RUN --mount=type=cache,target=/var/cache/apk \
     apk update && apk upgrade --no-cache && \
@@ -46,7 +46,7 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 # ==========================================
 # 3. dotfiles 整理ステージ (軽量Alpineで不要ファイル削除)
 # ==========================================
-FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS dotfiles-builder
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS dotfiles-builder
 
 SHELL ["/bin/ash", "-eo", "pipefail", "-c"]
 
@@ -88,7 +88,7 @@ RUN if [ ! -f "oh-my-zsh/oh-my-zsh.sh" ] && [ -d ".git" ]; then \
 # ==========================================
 # 4. 実行ステージ
 # ==========================================
-FROM alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a AS runtime
+FROM alpine:3.24@sha256:f59abe656b692d901e184be3445e084786602108599d2a51d229c0f5a48c71bf AS runtime
 
 # セキュリティ更新の適用と最小限パッケージのインストール
 # ※ py3-pip は不要（/opt/venv を流用）、openssh は openssh-client に限定して脆弱性サーフェスを最小化

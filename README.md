@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.6.4-blue)
+![Version](https://img.shields.io/badge/version-v2.6.5-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -268,20 +268,21 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.6.4] - 2026-11-02
+## [v2.6.5] - 2026-11-15
 
 > ### 🤖 AI Release Summary
-> 🚀 **fzfのマルチアーキテクチャ対応をついに完備！あらゆるCPU環境で最速のCLI体験と完璧なポータビリティを叩き出すインフラへと進化！**
-🛡️ **立ちはだかるOGP画像のコンフリクトをリモート優先で一撃粉砕！CIパイプラインの停止を絶対に許さない鉄壁の運用魂！**
-⚡ **バイナリサイズを大幅削減した新OGPを電光石火で再生成！帯域を削ぎ落とし、1ミリ秒の無駄も許さぬ最強の配信パフォーマンスを実現！**
+> SREとして、今回の変更はまさに勝利の積み重ねです！
+
+1.  最新の依存関係でシステム基盤を盤石化！🛡️セキュリティと安定性を徹底強化しました！
+2.  AIとエラー処理でリリースプロセスが爆進化！🚀デプロイはさらに確実、もう何があっても大丈夫！
+3.  これで運用はさらに安心、未来へ向かう準備万端です！✨最高の信頼性を提供します！
 
 ---
-- feat(docker): add multi-architecture fzf builds (0672490)
-- chore: regenerate OGP image [skip ci] (bc42d0e)
-- chore: release v2.6.4 (74aa2a9)
-- feat(cli): add non-interactive mode and git repo validation (c014e02)
-- refactor(aic): encapsulate LLM calls with timeouts and errors (e0d2e25)
-- ... and 2 more changes.
+- chore(submodule): bump the submodules group with 2 updates (d2afce5)
+- chore(docker): bump alpine (3e609ab)
+- chore(deps): update msgpack requirement (6574e68)
+- chore(submodule): bump oh-my-zsh (0b4b038)
+- refactor(release): Add AI summary fallback and error handling (06dab3d)
 
 <!-- RELEASE_NOTES_END -->
 

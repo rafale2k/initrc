@@ -1,6 +1,6 @@
 # 🚀 initrc - The Autonomous SRE Framework
 
-![Version](https://img.shields.io/badge/version-v2.6.5-blue)
+![Version](https://img.shields.io/badge/version-v2.6.6-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![OS Support](https://img.shields.io/badge/os-macOS%20%7C%20Ubuntu%20%7C%20Debian%20%7C%20Fedora%20%7C%20AlmaLinux-orange)
 ![Linux CI](https://github.com/rafale2k/initrc/actions/workflows/linux-distros.yml/badge.svg)
@@ -268,21 +268,21 @@ ha            # コマンド一覧を fzf で検索して即実行
 ## 🚀 Latest Updates
 <!-- RELEASE_NOTES_START -->
 
-## [v2.6.5] - 2026-11-15
+## [v2.6.6] - 2026-11-16
 
 > ### 🤖 AI Release Summary
-> SREとして、今回の変更はまさに勝利の積み重ねです！
+> SREとして、今回の変更はまさに勝利の報告だ！
 
-1.  最新の依存関係でシステム基盤を盤石化！🛡️セキュリティと安定性を徹底強化しました！
-2.  AIとエラー処理でリリースプロセスが爆進化！🚀デプロイはさらに確実、もう何があっても大丈夫！
-3.  これで運用はさらに安心、未来へ向かう準備万端です！✨最高の信頼性を提供します！
+1.  余計なものを排除し、構成がさらに洗練されたぞ！✨
+2.  最重要！多数のCVEを根本から解決！セキュリティの堅牢性を爆上げだ！🔒
+3.  見た目もぬかりなく！OGP画像を最新化し、視覚的な魅力もバッチリだ！🖼️
 
 ---
+- chore: remove .mailmap (50c9d26)
+- fix(docker): mitigate CVEs by updating git, musl, openssh-client, and sqlite-libs from edge (cf9d802)
+- chore: regenerate OGP image [skip ci] (79dac32)
+- chore: release v2.6.5 (f970070)
 - chore(submodule): bump the submodules group with 2 updates (d2afce5)
-- chore(docker): bump alpine (3e609ab)
-- chore(deps): update msgpack requirement (6574e68)
-- chore(submodule): bump oh-my-zsh (0b4b038)
-- refactor(release): Add AI summary fallback and error handling (06dab3d)
 
 <!-- RELEASE_NOTES_END -->
 

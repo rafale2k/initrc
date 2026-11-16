@@ -104,14 +104,23 @@ RUN --mount=type=cache,target=/var/cache/apk \
         openssl \
         zoxide \
         coreutils && \
-    # 脆弱性対応 (CVE対策として edge から修正版をピンポイント適用)
+    # 脆弱性対応 (CVE対策として edge から修正版・最新版をピンポイント適用)
+    # - CVE-2026-105437: git>=2.56.1-r0
+    # - CVE-2026-107891: musl / musl-utils>=1.2.6-r6
+    # - CVE-2026-123158: openssh-client>=10.6_p2-r0
+    # - CVE-2026-119586: sqlite-libs>=3.54.1-r0 (CLIのsqlite3は未導入、ライブラリのみ最新化)
     apk add --no-cache \
         --repository=https://dl-cdn.alpinelinux.org/alpine/edge/main \
         --repository=https://dl-cdn.alpinelinux.org/alpine/edge/community \
         "curl>=8.23.0" \
         "libcurl>=8.23.0" \
         "sudo>=1.9.17_p2-r4" \
-        "libexpat>=2.9.0" && \
+        "libexpat>=2.9.0" \
+        "git>=2.56.1-r0" \
+        "musl>=1.2.6-r6" \
+        "musl-utils>=1.2.6-r6" \
+        "openssh-client>=10.6_p2-r0" \
+        "sqlite-libs>=3.54.1-r0" && \
     adduser -D -u 1000 -G wheel -s /bin/zsh rafale && \
     echo "rafale ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/rafale && \
     chmod 0440 /etc/sudoers.d/rafale
